@@ -9,7 +9,7 @@
 #include <opencv2/imgproc.hpp>
 #include <vector>
 
-#define LIDAR_SIZE 180
+#define LIDAR_SIZE 360
 
 using namespace std;
 using namespace cv;
@@ -103,33 +103,44 @@ void filter(Mat& img, Mat& res) {
 
 
 int main() {
-    link_t lidar_dev = ufr_sys_open("lidar", "@new zmq:topic @host 127.0.0.1 @port 5001 @coder msgpack:obj");
+    link_t lidar_dev = ufr_sys_open("lidar", "@new zmq:topic @host 192.168.43.141 @port 5002 @coder msgpack:obj");
     lt_start_subscriber(&lidar_dev, NULL);
 
-    Mat map(300, 300, CV_8UC1);
+    link_t pose_dev = ufr_sys_open("pose", "@new zmq:topic @host 192.168.43.141 @port 5004 @coder msgpack:obj");
+    lt_start_subscriber(&pose_dev, NULL);
 
-    int world_r_y = 150;
-    int world_r_x = 150;
+    Mat map(600, 600, CV_8UC1);
+
+    int world_r_y = 300;
+    int world_r_x = 300;
 
     while (1) {
         map.setTo(0);
         float lidar[LIDAR_SIZE];
         lt_get(&lidar_dev, "^af", LIDAR_SIZE, lidar);
         
+        float robot_x, robot_y, robot_th;
+        lt_get(&pose_dev, "^fff", &robot_x, &robot_y, &robot_th);
+        float robot_th_rad = robot_th * M_PI / 180.0;
+
+        printf("%f %f %f\n", robot_x, robot_y, robot_th );
+
         float angulo = -M_PI/2.0;
-        float diff_angulo = 3.141592 / LIDAR_SIZE;
+        float diff_angulo = 3.141592*2 / LIDAR_SIZE;
         for (int i=0;   i<LIDAR_SIZE;   i++, angulo += diff_angulo) {
-            float dist = lidar[i];
-            uint16_t y = world_r_y - ( sin(angulo) * dist * 1.0 );
-            uint16_t x = world_r_x + ( cos(angulo) * dist * 1.0 );
+            float dist = lidar[i] / 50.0;
+            // printf("%f ", dist);
+            uint16_t y = world_r_y - ( sin(angulo-robot_th_rad) * dist * 1.0 );
+            uint16_t x = world_r_x + ( cos(angulo-robot_th_rad) * dist * 1.0 );
             
 
             map.at<uint8_t>(y,x) = 255;
 
             // circle(map,Point(x,y), 2, (255), -1);
         }
+        // printf("\n");
 
-
+/*
         vector<Vec2f> lines; // will hold the results of the detection
         HoughLines(map, lines, 1, CV_PI/45, 20, 0, 0 );
 
@@ -146,7 +157,7 @@ int main() {
             pt2.y = cvRound(y0 - 1000*(a));
             line( map, pt1, pt2, 255, 2, LINE_AA);
         }
-
+*/
 
 /*        
         Mat isum, res;
