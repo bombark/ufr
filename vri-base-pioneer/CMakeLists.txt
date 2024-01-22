@@ -17,7 +17,6 @@ add_executable( vri-base
 	src/rplidar/dataunpacker/unpacker/handler_capsules.cpp
 
 	src/rplidar/hal/thread.cpp
-	
 
 	src/rplidar/rplidar_driver.cpp
 	src/rplidar/sl_crc.cpp
@@ -32,6 +31,12 @@ add_executable( vri-base
 	src/main.cpp
 	)
 
+# add_executable( vri-base-lidar
+#	src/main_lidar.cpp
+#	)
 
 target_link_libraries(vri-base ufr Aria)
 install(TARGETS vri-base DESTINATION bin)
+
+# target_link_libraries(vri-base-lidar ufr)
+# install(TARGETS vri-base-lidar DESTINATION bin)

@@ -24,7 +24,6 @@
 //  Header
 // ============================================================================
 
-#include <Aria/Aria.h>
 #include <math.h>
 #include <iostream>
 #include <ufr.h>
@@ -40,7 +39,6 @@ using namespace sl;
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
 
-#define PIONEER_SERIAL "/dev/ttyUSB0"
 #define LIDAR_SERIAL   "/dev/ttyUSB1"
 
 ILidarDriver* g_lidar_drv;
@@ -76,6 +74,7 @@ int start_lidar() {
 	///  Create a communication channel instance
 	sl_lidar_response_device_info_t devinfo;
 	g_lidar_drv = *createLidarDriver();
+	printf("%p\n", g_lidar_drv);
 	IChannel* channel = *createSerialPortChannel(LIDAR_SERIAL, 115200);
 	if (SL_IS_OK((g_lidar_drv)->connect(channel))) {
 		sl_result op_result = g_lidar_drv->getDeviceInfo(devinfo);
@@ -97,6 +96,9 @@ int start_lidar() {
 
 	g_lidar_drv->setMotorSpeed();
 	g_lidar_drv->startScan(0,1);
+	printf("%p\n", g_lidar_drv);
+
+	return 0;
 }
 
 
@@ -105,76 +107,10 @@ int main(int argc, char **argv) {
 	link_t pub_lidar = ufr_sys_open("lidar", "@new zmq:topic @host 192.168.43.141 @port 5002 @coder msgpack:obj");
     lt_start_publisher(&pub_lidar, NULL);
 
-    link_t sub_motors = ufr_sys_open("motor", "@new zmq:topic @host 192.168.43.128 @port 5003 @coder msgpack:obj");
-    lt_start_subscriber(&sub_motors, NULL);
-
-    link_t pub_encoder = ufr_sys_open("encoder", "@new zmq:topic @host 192.168.43.141 @port 5004 @coder msgpack:obj");
-    lt_start_publisher(&pub_encoder, NULL);
-
-	link_t pub_sonar = ufr_sys_open("sonar", "@new zmq:topic @host 192.168.43.141 @port 5005 @coder msgpack:obj");
-    lt_start_publisher(&pub_sonar, NULL);
-
-
-	int aria_argc = 3;
-	char* aria_argv[] = {"aria", "-robotPort", PIONEER_SERIAL};
-
-    Aria::init();
-	ArRobot robot;
-	ArArgumentParser parser(&aria_argc, aria_argv);
-	ArSimpleConnector connector(&parser);
-
-	parser.loadDefaultArguments();
-	Aria::logOptions();
-	if (!connector.parseArgs()){
-		cout << "Unknown settings\n";
-		Aria::exit(0);
-		exit(1);
-	}
-
-	if (!connector.connectRobot(&robot)){
-		cout << "Unable to connect\n";
-		Aria::exit(0);
-		exit(1);
-	}
-
-	robot.runAsync(true);
-	robot.lock();
-	robot.comInt(ArCommands::ENABLE, 1);
-	robot.unlock();
-
-
-	ArSonarDevice sonar;
-	robot.addRangeDevice(&sonar);
-	int numSonar = robot.getNumSonar();
-
 	start_lidar();
 
 	while(1) {
-		// read robot position
-		ArPose pose = robot.getPose();
-		lt_put(&pub_encoder, "fff\n", pose.getX(), pose.getY(), pose.getTh());
 
-		// read sonars
-		ArSensorReading* sonarReading;
-		for (int i=0; i < numSonar; i++){
-			sonarReading = robot.getSonarReading(i);
-			lt_put(&pub_sonar, "i", sonarReading->getRange());
-		}
-		lt_put(&pub_sonar, "\n");
-		
-		// wait for changes of velocity of motors
-		if ( lt_recv_async(&sub_motors) ) {
-			int vel=0, rotvel=0;
-			lt_get(&sub_motors, "ii", &vel, &rotvel);
-			printf("set motors: %d %d\n", vel, rotvel);
-
-			robot.lock();
-			robot.setVel( vel );
-			robot.setRotVel( rotvel );
-			robot.unlock();
-		}
-
-		// send lidar data
 		int count[360];
 		float values[360];
 		for (int i=0; i<360; i++) {
@@ -215,11 +151,10 @@ int main(int argc, char **argv) {
 			lt_put(&pub_lidar, "af\n", 360, values);
 		}
 
+
 		// wait 50ms
 		usleep(50000);
 	}
-
-	Aria::exit(0);
 
     return 0;
 }
