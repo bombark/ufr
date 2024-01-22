@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "lt_api.h": "c",
+        "stdio.h": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "stat.h": "c"
+    }
+}

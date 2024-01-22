@@ -1,0 +1,56 @@
+#!/bin/python3
+
+import os
+from pathlib import Path
+from lt_api import Link
+
+root = {
+    "bin": {}
+    , "data": {}
+    , "proc": {}
+}
+
+for var_name in os.environ:
+    if var_name[0:7] == "LT_SYS_":
+        node_name = var_name[7:]
+        root['data'][node_name] = os.environ[var_name]
+
+
+pwd = Path('/')
+stack = [root]
+while True:
+    line = input(f"root:{pwd}# ").split(' ')
+    cmd = line[0]
+
+    # builtin command exit
+    if cmd == 'exit':
+        break
+
+    # builtin command ls
+    elif cmd == 'ls':
+        for name in stack[-1]:
+            print(name)
+
+    # builtin command cat
+    elif cmd == 'cat':
+        arg1 = line[1]
+        print(root['data'][arg1])
+        link = Link(root['data'][arg1])
+        link.start_subscriber()
+        for i in range(50):
+            buffer = link.get("^ff")
+            print(buffer)
+        link.close()
+        print()
+
+
+    # builtin command cd
+    elif cmd == 'cd':
+        arg1 = line[1]
+        if arg1 == '..':
+            if len(stack) > 1:
+                pwd = pwd.parent
+                stack.pop(-1)
+        else:
+            pwd /= arg1
+            stack.append( stack[-1][arg1] )
