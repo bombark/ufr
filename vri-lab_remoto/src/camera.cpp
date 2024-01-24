@@ -22,7 +22,7 @@ int main() {
 
     static uint8_t data[1024*1024*2];
 
-    while (1) {
+    for(int a=0; a<5; a++) {
         video >> image;
 
         // convert to JPEG
@@ -30,10 +30,19 @@ int main() {
         fseek(fd, 0, SEEK_SET);
         size_t data_size = fread(data, 1, sizeof(data), fd);
 
+        /*
+        for (int i=0; i<32; i++) {
+			printf("%x ", data[i]);
+		}
+		printf("\n");
+        */
+
         // send JPG to topic
         lt_write(&camera_pub, (const char*) data, data_size);
-        imshow("map", image);
-        waitKey(100);
+        // imshow("map", image);
+
+        waitKey(1000);
+        
     }
     return 0;
 }
