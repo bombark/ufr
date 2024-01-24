@@ -234,7 +234,7 @@ void urf_gtw_mqtt_stop(link_t* link, int type) {
 }
 
 static
-void urf_gtw_mqtt_recv(link_t* link) {
+bool urf_gtw_mqtt_recv(link_t* link) {
     ll_obj_t* obj = link->gw_obj;
     if (obj->start_type != LT_START_SUBSCRIBER) {
         lt_error(link, 1, "link is not subscriber");
@@ -271,12 +271,12 @@ size_t urf_gtw_mqtt_read(link_t* link, char* buffer, size_t max_size) {
 
     const size_t rest = obj->msg_size - obj->msg_read_idx;
     if ( max_size > rest ) {
-        strncpy(buffer, &obj->msg_data[obj->msg_read_idx], rest);
+        memcpy(buffer, &obj->msg_data[obj->msg_read_idx], rest);
         obj->msg_read_idx += rest;
         return rest;
     }
 
-    strncpy(buffer, &obj->msg_data[obj->msg_read_idx], max_size);
+    memcpy(buffer, &obj->msg_data[obj->msg_read_idx], max_size);
     obj->msg_read_idx += max_size;
     return max_size;
 }
