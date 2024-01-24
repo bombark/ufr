@@ -5,6 +5,7 @@
 import os
 import ctypes
 from pathlib import Path
+import numpy as np
 
 # _base_path = str( Path(__file__).parent.resolve() )
 
@@ -117,12 +118,12 @@ class Link(ctypes.Structure):
             raise Exception("error no start")
     
     def start_publisher(self):
-        error_code = Link.dll.urf_start_publisher( ctypes.pointer(self) )
+        error_code = Link.dll.lt_start_publisher( ctypes.pointer(self) )
         if error_code != 0:
             raise Exception("error no start")
         
     def start_subscriber(self):
-        error_code = Link.dll.urf_start_subscriber( ctypes.pointer(self) )
+        error_code = Link.dll.lt_start_subscriber( ctypes.pointer(self) )
         if error_code != 0:
             raise Exception("error no start")
 
@@ -140,9 +141,22 @@ class Link(ctypes.Structure):
         Link.dll.lt_recv( ctypes.pointer(self) )
 
     def read(self):
-        buffer = (ctypes.c_ubyte * 1024)()
-        Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), 1024 )
-        return bytes(buffer)
+        max_size = 1024 * 1024
+        buffer = ( ctypes.c_ubyte * max_size )()
+        total = Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), max_size )
+        # return bytes(buffer)
+        # print(total)
+
+        res = np.zeros(total, dtype=bytes)
+        for i in range(total):
+            res[i] = buffer[i]
+            print( hex(res[i]), end=' ')
+        print()
+        # print(res.shape)
+        # np.resize( res, (total,) )
+        return res
+
+        
 
     def write(self, value):
         Link.dll.lt_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
