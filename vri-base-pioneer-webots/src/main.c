@@ -32,6 +32,7 @@
 #include <webots/compass.h>
 #include <webots/position_sensor.h>
 #include <webots/robot.h>
+#include <webots/camera.h>
 #include <ufr.h>
 
 #define TIME_STEP 32
@@ -46,7 +47,7 @@
 // ============================================================================
 
 int main(int argc, char **argv) {
-    //
+    /*
     link_t pub_lidar = ufr_sys_open("lidar", "@new zmq:topic @host 127.0.0.1 @port 5001 @coder msgpack:obj");
     lt_start_publisher(&pub_lidar, NULL);
 
@@ -61,6 +62,24 @@ int main(int argc, char **argv) {
     //
     link_t pub_encoder = ufr_sys_open("encoder", "@new zmq:topic @host 127.0.0.1 @port 5004 @coder msgpack:obj");
     lt_start_publisher(&pub_encoder, NULL);
+    */
+
+    link_t pub_lidar = ufr_sys_open("lidar", "@new mqtt:topic @host 185.209.160.8 @topic robo/lidar @coder msgpack:obj");
+    lt_start_publisher(&pub_lidar, NULL);
+
+    // 
+    link_t sub_motors = ufr_sys_open("motor", "@new mqtt:topic @host 185.209.160.8 @topic robo/motor @coder msgpack:obj");
+    lt_start_subscriber(&sub_motors, NULL);
+    
+    //
+    link_t pub_compass = ufr_sys_open("compass", "@new mqtt:topic @host 185.209.160.8 @topic robo/compass @coder msgpack:obj");
+    lt_start_publisher(&pub_compass, NULL);
+    
+    //
+    link_t pub_encoder = ufr_sys_open("encoder", "@new mqtt:topic @host 185.209.160.8 @topic robo/pose @coder msgpack:obj");
+    lt_start_publisher(&pub_encoder, NULL);
+
+
 
     // init webots stuff
     wb_robot_init();
@@ -117,19 +136,18 @@ int main(int argc, char **argv) {
             rad += 2.0*M_PI;
         }
 	
-	/*
-	float bearing = (rad - 1.5708) / M_PI * 180.0;
-	if (bearing < 0.0)
-		bearing = bearing + 360.0;
-	*/
-	// printf("norte %f\n", rad);
-        // lt_put(&pub_compass, "f\n", rad);
+        /* nao lembro
+        float bearing = (rad - 1.5708) / M_PI * 180.0;
+        if (bearing < 0.0)
+            bearing = bearing + 360.0;
+        */
+        lt_put(&pub_compass, "f\n", rad);
 
         // wheel encoders
-        const float left = wb_position_sensor_get_value(left_position_sensor);
-        const float right = wb_position_sensor_get_value(right_position_sensor);
-        // lt_put(&pub_encoder, "ff\n", left, right);
-        // printf("%g %g\n", left, right);
+        const int left = wb_position_sensor_get_value(left_position_sensor);
+        const int right = wb_position_sensor_get_value(right_position_sensor);
+        lt_put(&pub_encoder, "ii\n", left, right);
+        // printf("%f %f\n", left, right);
 
         // set actuators when receive new data
         if ( lt_recv_async(&sub_motors) ) {           

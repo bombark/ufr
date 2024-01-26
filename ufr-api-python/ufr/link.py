@@ -147,11 +147,11 @@ class Link(ctypes.Structure):
         # return bytes(buffer)
         # print(total)
 
-        res = np.zeros(total, dtype=bytes)
+        res = np.zeros(total, dtype=np.ubyte)
         for i in range(total):
             res[i] = buffer[i]
-            print( hex(res[i]), end=' ')
-        print()
+        #     print( hex(res[i]), end=' ')
+        # print()
         # print(res.shape)
         # np.resize( res, (total,) )
         return res
@@ -164,11 +164,25 @@ class Link(ctypes.Structure):
     def putln(self, *args):
         for arg in args:
             if type(arg) == int:
-                Link.dll.lt_put( ctypes.pointer(self), bytes('i', 'utf-8'), arg )
+                value = ctypes.c_int64(arg)
+                Link.dll.lt_put (
+                    ctypes.pointer(self), 
+                    bytes('i', 'utf-8'), 
+                    value
+                )
             elif type(arg) == float:
-                Link.dll.lt_put( ctypes.pointer(self), bytes('f', 'utf-8'), arg )
+                value = ctypes.c_float(arg)
+                Link.dll.lt_put ( 
+                    ctypes.pointer(self), 
+                    bytes('f', 'utf-8'), 
+                    value 
+                )
             elif type(arg) == str:
-                Link.dll.lt_put( ctypes.pointer(self), bytes('s', 'utf-8'), bytes(arg, 'utf-8') )
+                Link.dll.lt_put ( 
+                    ctypes.pointer(self), 
+                    bytes('s', 'utf-8'), 
+                    bytes(arg, 'utf-8') 
+                )
             else:
                 Exception(f"The variable {arg} is not allowed to serialize")
         Link.dll.lt_put( ctypes.pointer(self), bytes('\n', 'utf-8') )

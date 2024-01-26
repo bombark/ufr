@@ -32,11 +32,12 @@
 #include <ufr.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "ufr_gtw_ros_humble.hpp"
 
-typedef ufr_ros_decoder_t<geometry_msgs::msg::Twist> ll_decoder_t;
+typedef ufr_ros_decoder_t<geometry_msgs::msg::Pose> ll_decoder_t;
 
+/*
 const size_t g_translation[6] = {
     offsetof(geometry_msgs::msg::Twist, linear.x),
     offsetof(geometry_msgs::msg::Twist, linear.y),
@@ -45,6 +46,7 @@ const size_t g_translation[6] = {
     offsetof(geometry_msgs::msg::Twist, angular.y),
     offsetof(geometry_msgs::msg::Twist, angular.z)
 };
+*/
 
 // ============================================================================
 //  Twist - Private
@@ -116,7 +118,7 @@ lt_decoder_api_t ufr_dcr_ros_driver = {
 // ============================================================================
 
 extern "C"
-int ufr_new_dcr_ros_humble_twist(link_t* link, const lt_args_t* args) {
+int ufr_new_dcr_ros_humble_pose(link_t* link, const lt_args_t* args) {
 	std::string topic_name = lt_args_gets(args, "@topic", "topico");
 
     ll_gateway_t* gtw = (ll_gateway_t*) link->gw_obj;

@@ -17,7 +17,7 @@ function compile_module() {
     fi
     cd build
     make || ufr_fatal;
-    sudo make install
+    # sudo make install
     popd
 }
 
@@ -38,4 +38,4 @@ compile_module "ufr-gtw-sqlite"
 # compile_module "vri-nav-simple"
 # compile_module "vri-slam-simple"
 compile_module "vri-base-pioneer-webots"
-compile_module "vri-base-pioneer"
+# compile_module "vri-base-pioneer"

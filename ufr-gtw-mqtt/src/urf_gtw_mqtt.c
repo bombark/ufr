@@ -238,7 +238,7 @@ bool urf_gtw_mqtt_recv(link_t* link) {
     ll_obj_t* obj = link->gw_obj;
     if (obj->start_type != LT_START_SUBSCRIBER) {
         lt_error(link, 1, "link is not subscriber");
-        return;
+        return false;
     }
 
     // wait for the message
@@ -251,10 +251,35 @@ bool urf_gtw_mqtt_recv(link_t* link) {
     if ( link->dec_api != NULL ) {
         link->dec_api->recv(link, obj->msg_data, obj->msg_size);
     }
+
+    return true;
 }
 
 static
 bool urf_gtw_mqtt_recv_async(link_t* link) {
+    ll_obj_t* obj = link->gw_obj;
+    if (obj->start_type != LT_START_SUBSCRIBER) {
+        lt_error(link, 1, "link is not subscriber");
+        return false;
+    }
+
+    // wait for the message
+    mosquitto_loop(obj->mosq, 1, 1);
+
+    // Case received a message
+    if ( obj->is_received == true ) {
+        obj->is_received = false;
+
+        // decoder the message
+        if ( link->dec_api != NULL ) {
+            link->dec_api->recv(link, obj->msg_data, obj->msg_size);
+        }
+
+        // there is a message
+        return true;
+    }
+
+    // No message
     return false;
 }
 

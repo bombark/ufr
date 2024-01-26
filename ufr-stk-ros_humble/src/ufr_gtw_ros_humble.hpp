@@ -31,13 +31,77 @@
 
 #pragma once
 
+#include <ufr.h>
 #include "rclcpp/rclcpp.hpp"
 
-struct ll_gateway_t {
-    std::shared_ptr<rclcpp::Node> node;
+class ll_gateway_t {
+public:
+    std::shared_ptr<rclcpp::Node> m_node;
 
+public:
     ll_gateway_t() {
         rclcpp::Node* node = new rclcpp::Node("teste");
-        this->node.reset(node);
+        m_node.reset(node);
     }
 };
+
+// Template for encoders
+
+template <typename T>
+class ufr_ros_encoder_t {
+public:
+    int index = 0;
+    T message;
+    typename rclcpp::Publisher<T>::SharedPtr m_publisher;
+
+public:
+    ufr_ros_encoder_t(link_t* link, std::string topic_name) {
+        ll_gateway_t* gtw = (ll_gateway_t*) link->gw_obj;
+        m_publisher = gtw->m_node->create_publisher<T>(topic_name, 10);
+    }
+};
+
+// Template for Decoder
+
+template <typename T>
+class ufr_ros_decoder_t {
+public:
+    int index = 0;
+    volatile bool m_is_received;
+    T m_message;
+    typename rclcpp::Subscription<T>::SharedPtr m_subscription;
+
+public:
+    ufr_ros_decoder_t(ll_gateway_t* gtw, std::string topic_name) {
+        m_subscription = gtw->m_node->create_subscription<T> (
+            topic_name, 10, 
+            std::bind (
+                &ufr_ros_decoder_t::topic_callback, 
+                this, std::placeholders::_1
+            )
+        );
+    }
+
+    void topic_callback(const T& msg) {
+        // printf("OPa %g\n", msg.linear.x);
+        m_message = msg;
+        m_is_received = true;
+    }
+};
+
+// Public Functions
+
+extern "C" {
+    // gateway
+    int ufr_new_gtw_ros_humble_topic(link_t* out, const lt_args_t* args);
+
+    // encoders
+    int ufr_new_ecr_ros_humble_pose(link_t* link, const lt_args_t* args);
+    int ufr_new_ecr_ros_humble_twist(link_t* link, const lt_args_t* args);
+    int ufr_new_ecr_ros_humble_string(link_t* link, const lt_args_t* args);
+
+    // decoders
+    int ufr_new_dcr_ros_humble_pose(link_t* link, const lt_args_t* args);
+    int ufr_new_dcr_ros_humble_twist(link_t* link, const lt_args_t* args);
+    int ufr_new_dcr_ros_humble_string(link_t* link, const lt_args_t* args);
+}

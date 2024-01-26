@@ -29,64 +29,74 @@
 //  Header
 // ============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include <ufr.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "ufr_gtw_ros_humble.hpp"
 
-struct ll_encoder_t {
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher;
-    std_msgs::msg::String message;
-};
+typedef ufr_ros_encoder_t<geometry_msgs::msg::Pose> ll_encoder_t;
 
 // ============================================================================
-//  String Message Driver
+//  Pose Message Driver
 // ============================================================================
 
 static
-int lt_enc_ros_string_put_u32(link_t* link, uint32_t val) {
+int ufr_ecr_ros_put_u32(link_t* link, uint32_t val) {
 	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	if ( enc_obj ) {
-		
+		switch(enc_obj->index) {
+            case 0: enc_obj->message.position.x = val; break;
+            case 1: enc_obj->message.position.y = val; break;
+            case 2: enc_obj->message.position.z = val; break;
+            case 3: enc_obj->message.orientation.x = val; break;
+            case 4: enc_obj->message.orientation.y = val; break;
+            case 5: enc_obj->message.orientation.z = val; break;
+            case 6: enc_obj->message.orientation.w = val; break;
+            default: break;
+        }
+        enc_obj->index += 1;
 	}
 	return 0;
 }
 
 static
-int lt_enc_ros_string_put_i32(link_t* link, int32_t val) {
-    ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-    if ( enc_obj ) {
-
-    }
-    return 0;
-}
-
-static
-int lt_enc_ros_string_put_f32(link_t* link, float val) {
+int ufr_ecr_ros_put_i32(link_t* link, int32_t val) {
 	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	if ( enc_obj ) {
-		
+		switch(enc_obj->index) {
+
+            default: break;
+        }
+        enc_obj->index += 1;
 	}
 	return 0;
 }
 
 static
-int lt_enc_ros_string_put_str(link_t* link, const char* val) {
+int ufr_ecr_ros_put_f32(link_t* link, float val) {
 	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	if ( enc_obj ) {
-		enc_obj->message.data += val;
+		switch(enc_obj->index) {
+
+            default: break;
+        }
+        enc_obj->index += 1;
 	}
 	return 0;
 }
 
 static
-int lt_enc_ros_string_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
+int ufr_ecr_ros_put_str(link_t* link, const char* val) {
+	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
+	if ( enc_obj ) {
+
+	}
+	return 0;
+}
+
+static
+int ufr_ecr_ros_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
 	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	if ( type == 'i' ) {
 		
@@ -97,38 +107,47 @@ int lt_enc_ros_string_put_arr(link_t* link, const void* arr_ptr, char type, size
 }
 
 static
-int lt_enc_ros_string_put_cmd(link_t* link, char cmd) {
+int ufr_ecr_ros_put_cmd(link_t* link, char cmd) {
 	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	if ( cmd == '\n' ) {
-		enc_obj->publisher->publish(enc_obj->message);
-        enc_obj->message.data = "";
+		enc_obj->m_publisher->publish(enc_obj->message);
+        enc_obj->index = 0;
 	}
 	return 0;
 }
 
 static
-lt_encoder_api_t lt_enc_ros_string = {
-	.put_u32 = lt_enc_ros_string_put_u32,
-	.put_i32 = lt_enc_ros_string_put_i32,
-	.put_f32 = lt_enc_ros_string_put_f32,
-	.put_str = lt_enc_ros_string_put_str,
-    .put_cmd = lt_enc_ros_string_put_cmd,
-	.put_arr = lt_enc_ros_string_put_arr
+lt_encoder_api_t ufr_ecr_driver = {
+	.put_u32 = ufr_ecr_ros_put_u32,
+	.put_i32 = ufr_ecr_ros_put_i32,
+	.put_f32 = ufr_ecr_ros_put_f32,
+	.put_str = ufr_ecr_ros_put_str,
+    .put_cmd = ufr_ecr_ros_put_cmd,
+	.put_arr = ufr_ecr_ros_put_arr
 };
 
 // ============================================================================
 //  Public
 // ============================================================================
 
-extern "C" 
-int ufr_new_ecr_ros_humble_string(link_t* link, const lt_args_t* args) {
-	link->enc_api = &lt_enc_ros_string;
+extern "C"
+int ufr_new_ecr_ros_humble_pose(link_t* link, const lt_args_t* args) {
+    std::string gw_api_name = lt_api_name(link);
 
-    ll_gateway_t* gw_obj = (ll_gateway_t*) link->gw_obj;
-	ll_encoder_t* enc_obj = new ll_encoder_t();
-    enc_obj->publisher = gw_obj->m_node->create_publisher<std_msgs::msg::String>("topic", 10);
+    // 
+    if ( gw_api_name == "ROS:Topic" ) {
+        link->enc_api = &ufr_ecr_driver;
+        std::string topic_name = lt_args_gets(args, "@topic", "topico");
+        link->enc_obj = new ll_encoder_t(link, topic_name);
+        lt_info(link, "loaded encoder for geometry/pose");
 
-	link->enc_obj = enc_obj;
+    // 
+    } else {
+        lt_args_t args;
+        args.text = "@sep ;";
+        lt_load_encoder(link, "std:csv", &args);
+    }
 
-	return 0;
+	return LT_OK;
 }
+

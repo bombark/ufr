@@ -59,14 +59,20 @@ int lt_ros_topic_boot(link_t* link, const lt_args_t* args) {
 }
 
 int lt_ros_topic_start(link_t* link, int type, const lt_args_t* args) {
+    std::string msg = lt_args_gets(args, "@msg", "");
+
     if ( type == LT_START_SUBSCRIBER ) {
-        std::string msg_format = lt_args_gets(args, "@msg", "");
+        
 
         lt_args_t args;
         args.text = "";
         // lt_load_decoder(link, "ros2:twist", &args);
 
     } else if ( type == LT_START_PUBLISHER ) {
+
+        if ( msg == "twist" ) {
+            lt_load_encoder(link, "ros_humble:twist", args);
+        }
         
     } 
     return LT_OK;
@@ -97,7 +103,7 @@ bool lt_ros_topic_recv(link_t* link) {
     return true;
 }
 
-lt_api_t lt_ros_topic_api = {
+lt_api_t ufr_ros_humble_topic_drv = {
     .name = "ROS:Topic",
     .type = lt_ros_topic_type,
     .state = lt_ros_topic_state,
@@ -114,13 +120,13 @@ lt_api_t lt_ros_topic_api = {
 // ======================================================================================
 
 extern "C"
-int lt_new_ros2_topic(link_t* out, const lt_args_t* args) {
+int ufr_new_gtw_ros_humble_topic(link_t* out, const lt_args_t* args) {
     if ( g_ros_count == 0 ) {
         lt_info(out, "ROS2 start");
         const char *argv[] = {"./teste1", NULL};
         rclcpp::init(1, argv);
     }
     g_ros_count += 1;
-    out->gw_api = &lt_ros_topic_api;
+    out->gw_api = &ufr_ros_humble_topic_drv;
     return lt_ros_topic_boot(out, args);
 }
