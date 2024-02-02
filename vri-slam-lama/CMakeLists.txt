@@ -6,6 +6,6 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 # find_package(OpenCV REQUIRED)
 
 add_executable(vri-slam src/main.cpp)
-target_link_libraries(vri-slam iris_lama)
+target_link_libraries(vri-slam iris_lama ufr)
 
 install(TARGETS vri-slam DESTINATION bin)

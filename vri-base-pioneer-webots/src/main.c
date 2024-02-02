@@ -47,23 +47,20 @@
 // ============================================================================
 
 int main(int argc, char **argv) {
-    /*
-    link_t pub_lidar = ufr_sys_open("lidar", "@new zmq:topic @host 127.0.0.1 @port 5001 @coder msgpack:obj");
-    lt_start_publisher(&pub_lidar, NULL);
+    link_t pub_lidar = ufr_sys_publisher("lidar", "@new zmq:topic @host 127.0.0.1 @port 5001 @coder msgpack:obj");
 
     // 
     link_t sub_motors = ufr_sys_open("motor", "@new zmq:topic @host 127.0.0.1 @port 5002 @coder msgpack:obj");
     lt_start_subscriber(&sub_motors, NULL);
     
     //
-    link_t pub_compass = ufr_sys_open("compass", "@new zmq:topic @host 127.0.0.1 @port 5003 @coder msgpack:obj @message ff");
-    lt_start_publisher(&pub_compass, NULL);
+    link_t pub_compass = ufr_sys_publisher("compass", "@new zmq:topic @host 127.0.0.1 @port 5003 @coder msgpack:obj @message ff");
     
     //
-    link_t pub_encoder = ufr_sys_open("encoder", "@new zmq:topic @host 127.0.0.1 @port 5004 @coder msgpack:obj");
-    lt_start_publisher(&pub_encoder, NULL);
-    */
+    link_t pub_encoder = ufr_sys_publisher("encoder", "@new zmq:topic @host 127.0.0.1 @port 5004 @coder msgpack:obj");
 
+
+/*
     link_t pub_lidar = ufr_sys_open("lidar", "@new mqtt:topic @host 185.209.160.8 @topic robo/lidar @coder msgpack:obj");
     lt_start_publisher(&pub_lidar, NULL);
 
@@ -78,7 +75,7 @@ int main(int argc, char **argv) {
     //
     link_t pub_encoder = ufr_sys_open("encoder", "@new mqtt:topic @host 185.209.160.8 @topic robo/pose @coder msgpack:obj");
     lt_start_publisher(&pub_encoder, NULL);
-
+*/
 
 
     // init webots stuff

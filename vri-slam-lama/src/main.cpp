@@ -31,16 +31,23 @@
  *
  */
 
+// ============================================================================
+//  Header
+// ============================================================================
+
 #include <lama/graph_slam2d.h>
 #include <ufr.h>
 
+// ============================================================================
+//  Main
+// ============================================================================
 
 int main(int argc, char *argv[]) {
     //
     double tmp = 0;
     Eigen::Vector2d pos(0,0);
     lama::Pose2D prior(pos, tmp);
-    link_t odom_sub;
+    link_t odom_sub = ufr_subscriber("@new zmq:topic @port 5002")
 
     //
     lama::GraphSlam2D slam;

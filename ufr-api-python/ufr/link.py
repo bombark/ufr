@@ -38,6 +38,9 @@ class Link(ctypes.Structure):
     dll.lt_start_subscriber.argtypes = [ ctypes.c_void_p ]
     dll.lt_start.restype = ctypes.c_int32
 
+    dll.lt_start_connect.argtypes = [ ctypes.c_void_p ]
+    dll.lt_start.restype = ctypes.c_int32
+
     # dll.lt_stop.argtypes = [ ctypes.c_void_p ]
     # dll.lt_stop.restype = ctypes.c_int32
 
@@ -126,6 +129,11 @@ class Link(ctypes.Structure):
         error_code = Link.dll.lt_start_subscriber( ctypes.pointer(self) )
         if error_code != 0:
             raise Exception("error no start")
+
+    def connect(self):
+        error_code = Link.dll.lt_start_connect( ctypes.pointer(self) )
+        if error_code != 0:
+            raise Exception("error in the connection")
 
     def stop(self):
         Link.dll.lt_stop( ctypes.pointer(self) )

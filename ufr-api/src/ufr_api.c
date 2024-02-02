@@ -226,6 +226,11 @@ void lt_get(link_t* link, char* format, ...) {
     va_end(list);
 }
 
+bool ufr_get_str(link_t* link, char* buffer) {
+    const int is_ok = link->dec_api->copy_str(link, buffer, -1);
+    return is_ok == LT_OK;
+}
+
 void lt_put_va(link_t* link, const char* format, va_list list) {
     if ( link->enc_api == NULL ) {
         lt_error(link, 0, "Encoder is not loaded");

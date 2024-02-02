@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
-project(vri-nav-simple)
+project(ufr-app-filesystem)
 
-add_executable(vri-nav
+add_executable(ufr-app-filesystem
     ./src/main.c 
     )
 
-target_link_libraries(vri-nav lt_api)
+target_link_libraries(ufr-app-filesystem ufr)
 
-install(TARGETS vri-nav DESTINATION bin)
+install(TARGETS ufr-app-filesystem DESTINATION bin)

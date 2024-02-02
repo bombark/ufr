@@ -16,11 +16,14 @@ void test1() {
 }
 
 void test2() {
-    link_t topic = ufr_publisher("@new ros_humble:topic @topic teste @msg twist");
+    link_t topic = ufr_publisher("@new ros_humble:topic @topic /cmd_vel @msg twist");
 
     for (int i=0; i<10; i++) {
-        lt_put(&topic, "iii\n",i+1,i+2,i+3);
-        sleep(1);
+        float vel=1, rotvel=0;
+        scanf("%f %f", &vel, &rotvel);
+        lt_put(&topic, "fiiiif\n",vel,0,0,0,0,rotvel);
+        // sleep(1);
+    // }
     }
 
     lt_close(&topic);

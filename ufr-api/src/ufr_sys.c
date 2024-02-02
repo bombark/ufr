@@ -217,6 +217,16 @@ link_t ufr_publisher(const char* text) {
     return link;
 }
 
+link_t ufr_sys_publisher(const char* name, const char* default_text) {
+    char var_name[512];
+    snprintf(var_name, sizeof(var_name), "UFR_SYS_%s", name);
+    char const* text = getenv(var_name);
+    if ( text == NULL ) {
+        text = default_text;
+    }
+    return ufr_publisher(text);
+}
+
 link_t ufr_subscriber(const char* text) {
     link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
     if ( text != NULL ) {
@@ -226,6 +236,16 @@ link_t ufr_subscriber(const char* text) {
         }
     }
     return link;
+}
+
+link_t ufr_sys_subscriber(const char* name, const char* default_text) {
+    char var_name[512];
+    snprintf(var_name, sizeof(var_name), "UFR_SYS_%s", name);
+    char const* text = getenv(var_name);
+    if ( text == NULL ) {
+        text = default_text;
+    }
+    return ufr_subscriber(text);
 }
 
 void ufr_output_init(const char* text) {
@@ -257,6 +277,12 @@ void ufr_input(const char* format, ...) {
     va_start(list, format);
     lt_get_va(g_file_in_ptr, format, list);
     va_end(list);
+}
+
+void ufr_inoutput_init(const char* text) {
+    g_file_out = ufr_publisher(text);
+    lt_start_bind(&g_file_out);
+    g_file_in_ptr = &g_file_out;
 }
 
 bool ufr_input_recv() {

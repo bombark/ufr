@@ -196,6 +196,8 @@ size_t lt_write(link_t* node, const char* buffer, size_t size);
 void lt_get_va(link_t* link, const char* format, va_list list);
 void lt_get(link_t* link, char* format, ...);
 
+bool ufr_get_str(link_t* link, char* buffer);
+
 void lt_put_va(link_t* link, const char* format, va_list list);
 void lt_put(link_t* link, const char* format, ...);
 
@@ -229,12 +231,17 @@ link_t ufr_new(const char* text);
 link_t ufr_publisher(const char* text);
 link_t ufr_subscriber(const char* text);
 
+link_t ufr_sys_publisher(const char* var_name, const char* text);
+link_t ufr_sys_subscriber(const char* name, const char* default_text);
+
 void ufr_output_init(const char* text);
 void ufr_output(const char* format, ...);
 
 void ufr_input_init(const char* text);
 void ufr_input(const char* format, ...);
 bool ufr_input_recv();
+
+void ufr_inoutput_init(const char* text);
 
 void lt_log(link_t* link, uint8_t level, const char* format, ...);
 void lt_log_info(link_t* link, uint8_t level, const char* func_name, const char* format, ...);
