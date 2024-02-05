@@ -23,63 +23,25 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+	
 // ============================================================================
-//  HEADER
-// ============================================================================
-
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <ufr.h>
-
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args);
-
-// ============================================================================
-//  Tests
+//  Header
 // ============================================================================
 
-void test_simple() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    lt_close(&link);
-}
+#include <stddef.h>
 
-void test_write() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    assert( lt_write(&link, "OPA\n", 4) == 4 );
-    lt_close(&link);
-}
+#define MESSAGE_ITEM_SIZE 4096
 
-void test_read() {
-    char buffer[8];
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_subscriber(&link, NULL) == LT_OK );    
-    assert( lt_read(&link, buffer, 8) == 4 );
-    lt_close(&link);
-}
-
-void test_new() {
-    link_t link = ufr_new("@new posix:file @path ./teste.txt");
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    lt_close(&link);
-}
+typedef struct {
+    size_t size;
+    size_t max;
+    char* ptr;
+} message_t;
 
 // ============================================================================
-//  Main
+//  Public Functions
 // ============================================================================
 
-int main() {
-    test_simple();
-    test_write();
-    test_read();
-    test_new();
-	return 0;
-}
+void message_init(message_t* message);
+void message_clear(message_t* message);
+bool message_write_from_fd(message_t* message, int fd);

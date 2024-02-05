@@ -59,12 +59,9 @@ int main(int argc, char *argv[]) {
         lt_get(&odom_sub, "^ff", &odom_pos[0], &odom_pos[1]);
 
         lama::Pose2D odom(odom_pos,0);
-
         bool update = slam.enoughMotion(odom);
         if ( update ){
-
             lama::PointCloudXYZ::Ptr cloud(new lama::PointCloudXYZ);
-
             slam.update(cloud, odom, 0.0);
         }
     }

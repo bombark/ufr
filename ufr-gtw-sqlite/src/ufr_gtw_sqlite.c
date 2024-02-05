@@ -277,11 +277,13 @@ void lt_gw_sqlite_stop(link_t* link, int type) {
     }
 }
 
-void lt_gw_sqlite_recv(link_t* link) {
+bool lt_gw_sqlite_recv(link_t* link) {
     ll_gw_obj_t* obj = link->gw_obj;
     if ( sqlite3_step(obj->stmt) == SQLITE_ROW ) {
         obj->index = 0;
+        return true;
     }
+    return false;
 }
 
 bool lt_gw_sqlite_recv_async(link_t* link) {

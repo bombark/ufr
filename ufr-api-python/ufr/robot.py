@@ -7,9 +7,9 @@ from pathlib import Path
 
 
 class Robot:
-    def __init__(self, path="./"):
+    def __init__(self, path="./build"):
         self.dir = { "bin": {}, "proc":{}, "data": {}}
-        self.root = Path(path).absolute() / "robot.d"
+        self.root = Path(path).absolute()
 
         # self.venv = cli_run(["robot.d"])
         sh.mkdir("-p", self.root)

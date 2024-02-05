@@ -64,6 +64,26 @@ int lt_state(const link_t* unit) {
 	return unit->gw_api->state(unit);
 }
 
+int ufr_state(const link_t* link) {
+    return link->type_started;
+}
+
+bool ufr_link_is_publisher(const link_t* link) {
+    return link->type_started == LT_START_PUBLISHER;
+}
+
+bool ufr_link_is_subscriber(const link_t* link) {
+    return link->type_started == LT_START_SUBSCRIBER;
+}
+
+bool ufr_link_is_server(const link_t* link) {
+    return link->type_started == LT_START_BIND;
+}
+
+bool ufr_link_is_client(const link_t* link) {
+    return link->type_started == LT_START_CONNECT;
+}
+
 size_t lt_size(const link_t* link) {
 	if ( link == NULL || link->gw_api == NULL || link->gw_api->size == NULL) {
 		return 0;
@@ -91,34 +111,67 @@ void lt_init_api(link_t* link, lt_api_t* gw_api) {
     link->log_level = g_default_log_level;
 }
 
-int lt_start(link_t* link, int type) {
-    return 0;
+
+int ufr_boot(link_t* link, const lt_args_t* param_args) {
+    const lt_args_t empty_args = {.text=""};
+    const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
+    const int error = link->gw_api->boot(link, args);
+    return error;
 }
 
-int lt_start_publisher(link_t* link, const lt_args_t* args) {
-    lt_args_t empty_args = {.text=""};
-    if ( args == NULL ) {
-        return link->gw_api->start(link, LT_START_PUBLISHER, &empty_args);
+int ufr_start(link_t* link, const int type, const lt_args_t* param_args) {
+    // select the arguments avoiding NULL pointer
+    const lt_args_t empty_args = {.text=""};
+    const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
+
+    // update the debug level
+    link->log_level = lt_args_geti(args, "@debug", g_default_log_level);
+
+    // call driver function
+    const int error = link->gw_api->start(link, type, args);
+    if ( error == LT_OK ) {
+        link->type_started = type;
+    } else {
+        printf("error\n");
     }
-    return link->gw_api->start(link, LT_START_PUBLISHER, args);
+
+    // end
+    return error;
 }
 
-int lt_start_subscriber(link_t* link, const lt_args_t* args) {
-    lt_args_t empty_args = {.text=""};
-    if ( args == NULL ) {
-        return link->gw_api->start(link, LT_START_SUBSCRIBER, &empty_args);
+int ufr_start_publisher(link_t* link, const lt_args_t* args) {
+    return ufr_start(link, LT_START_PUBLISHER, args);
+}
+
+int ufr_start_subscriber(link_t* link, const lt_args_t* args) {
+    return ufr_start(link, LT_START_SUBSCRIBER, args);
+}
+
+int ufr_start_bind(link_t* link, const lt_args_t* args) {
+    return ufr_start(link, LT_START_BIND, args);
+}
+
+int ufr_start_connect(link_t* link, const lt_args_t* args) {
+    return ufr_start(link, LT_START_CONNECT, args);
+}
+
+link_t ufr_new(const char* text) {
+    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
+    if ( text != NULL ) {
+        lt_new_ptr(&link, text);
     }
-    return link->gw_api->start(link, LT_START_SUBSCRIBER, args);
+    return link;
 }
 
-int lt_start_bind(link_t* link) {
-    lt_args_t args = {.text=""};
-    return link->gw_api->start(link, LT_START_BIND, &args);
-}
-
-int lt_start_connect(link_t* link) {
-    lt_args_t args = {.text=""};
-    return link->gw_api->start(link, LT_START_CONNECT, &args);
+link_t ufr_publisher(const char* text) {
+    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
+    if ( text != NULL ) {
+        if ( lt_new_ptr(&link, text) == LT_OK ) {
+            lt_args_t pub_args = {.text=text};
+            ufr_start_publisher(&link, &pub_args);
+        }
+    }
+    return link;
 }
 
 bool lt_recv(link_t* link) {
@@ -133,6 +186,11 @@ bool lt_recv_async(link_t* link) {
         return false;
     }
     return link->gw_api->recv_async(link);
+}
+
+bool ufr_send(link_t* link) {
+    int error = link->gw_api->send(link);
+    return error == LT_OK;
 }
 
 void lt_close(link_t* link) {
@@ -552,4 +610,23 @@ bool lt_is_valid(const link_t* link) {
 
 bool lt_is_blank(const link_t* link) {
     return link->gw_api == NULL;
+}
+
+
+
+
+size_t  ufr_dummy_read(link_t*, char*, size_t) {
+    return 0;
+}
+
+size_t ufr_dummy_write(link_t*, const char*, size_t) {
+    return 0;
+}
+
+bool ufr_dummy_recv(link_t* link) {
+    return false;
+}
+
+int ufr_dummy_send(link_t* link) {
+    return 0;
 }

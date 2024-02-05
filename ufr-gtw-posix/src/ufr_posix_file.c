@@ -289,18 +289,18 @@ lt_api_t lt_posix_stdin = {
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_new_file(link_t* link, const lt_args_t* args) {
     link->gw_api = &lt_posix_file;
-    const int error = lt_posix_file_boot(link, args);
+    /*const int error = lt_posix_file_boot(link, args);
     if ( error != LT_OK ) {
         return error;
-    }
+    }*/
 
     // success
     return LT_OK;
 }
 
-int ufr_new_gtw_posix_stdout(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_new_stdout(link_t* link, const lt_args_t* args) {
     link->gw_api = &lt_posix_stdout;
     const int error = lt_posix_stdout_boot(link, args);
     if ( error != LT_OK ) {
@@ -311,7 +311,7 @@ int ufr_new_gtw_posix_stdout(link_t* link, const lt_args_t* args) {
     return LT_OK;
 }
 
-int ufr_new_gtw_posix_stdin(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_new_stdin(link_t* link, const lt_args_t* args) {
     link->gw_api = &lt_posix_stdin;
     const int error = lt_posix_stdin_boot(link, args);
     if ( error != LT_OK ) {
@@ -320,8 +320,4 @@ int ufr_new_gtw_posix_stdin(link_t* link, const lt_args_t* args) {
 
     // success
     return LT_OK;
-}
-
-const char* lt_posix_list() {
-    return "file";
 }

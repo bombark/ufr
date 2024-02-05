@@ -42,91 +42,87 @@
 #include <ufr.h>
 
 #include "ufr_posix_socket.h"
+#include "ufr_message.h"
 
 typedef struct {
-    size_t size;
-    size_t max;
-    char* ptr;
-} message_t;
-
-typedef struct {
-    int lenght;
-    struct sockaddr address;
     int sockfd;
     message_t message;
-} ll_srv_request_t;
+} ll_conn_t;
 
 // ============================================================================
-//  Socket Driver
+//  Client Driver
 // ============================================================================
 
-int lt_posix_socket_type(const link_t* link) {
-	return 0;
-}
-
-int lt_posix_socket_state(const link_t* link){
-	return 0;
-}
-
-size_t lt_posix_socket_size(const link_t* link, int type){
-	return 0;
-}
-
-int lt_posix_socket_boot(link_t* link, const lt_args_t* args) {
-    ll_shr_t* shr = malloc(sizeof(ll_shr_t));
-    shr->server_sockfd = 0;
-    link->gw_shr = shr;
-	return 0;
-}
-
-int lt_posix_socket_start(link_t* link, int type, const lt_args_t* args) {
-    int retval = 1;
-    // Start a Server
-    if ( type == LT_START_BIND ) {
-        retval = ufr_posix_start_server(link, args);
-    // Start a Client
-    } else if ( type == LT_START_CONNECT ) {
-        retval = ufr_posix_start_client(link, args);
-    }
-	return retval;
-}
-
-void lt_posix_socket_stop(link_t* link, int type) {
-    ll_srv_request_t* request = link->gw_obj;
-    if ( request != NULL ) {
-        if ( request->sockfd > 0 ) {
-            close(request->sockfd);
-        }
-        request->sockfd = 0;
-    }
-}
-
-int lt_posix_socket_copy(link_t* link, link_t* out) {
-    out->gw_shr = link->gw_shr;
-	return 0;
+static
+void lt_posix_socket_cli_stop(link_t* link, int type) {
+    
 }
 
 static
-lt_api_t lt_posix_socket = {
+size_t lt_posix_socket_cli_read(link_t* link, char* buffer, size_t length) {
+    ll_conn_t* conn = link->gw_obj;
+    return read(conn->sockfd, buffer, length);
+}
+
+static
+size_t lt_posix_socket_cli_write(link_t* link, const char* buffer, size_t length) {
+    return 0;
+}
+
+static
+bool lt_posix_socket_cli_recv(link_t* link) {
+    return false;
+}
+
+static
+int lt_posix_socket_cli_send(struct _link* link) {
+    return 0;
+}
+
+lt_api_t ufr_posix_socket_cli = {
 	.type = lt_posix_socket_type,
 	.state = lt_posix_socket_state,
 	.size = lt_posix_socket_size,
 	.boot = lt_posix_socket_boot,
 	.start = lt_posix_socket_start,
-	.stop = lt_posix_socket_stop,
+	.stop = lt_posix_socket_cli_stop,
 	.copy = lt_posix_socket_copy,
-	.read = ufr_dummy_read,
-	.write = ufr_dummy_write,
-    .recv = ufr_dummy_recv,
-    .send = ufr_dummy_send
+	.read = lt_posix_socket_cli_read,
+	.write = lt_posix_socket_cli_write,
+    .recv = lt_posix_socket_cli_recv,
+    .send = lt_posix_socket_cli_send
 };
 
 // ============================================================================
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_posix_socket(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_posix_socket;
-	lt_posix_socket_boot(link, args);
-	return LT_OK;
+int ufr_posix_start_client(link_t* link, const lt_args_t* args) {
+    struct sockaddr_in serverAddr;
+    socklen_t addr_size;
+
+    // get the parameters
+    const char* address = "127.0.0.1";
+    const uint16_t port = 2000;
+
+    /*---- Create the socket. The three arguments are: ----*/
+    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+    const int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+
+    /*---- Configure settings of the server address struct ----*/
+    /* Address family = Internet */
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr(address);
+    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+    connect(sockfd, (struct sockaddr *) &serverAddr, addr_size);
+
+    // update the link
+    ll_conn_t* conn = malloc( sizeof(ll_conn_t) );
+    conn->sockfd = sockfd;
+    link->gw_obj = conn;
+
+    // change the API function to client
+    link->gw_api = &ufr_posix_socket_cli;
+    return LT_OK;
 }

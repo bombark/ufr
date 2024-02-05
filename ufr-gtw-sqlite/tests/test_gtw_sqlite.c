@@ -46,7 +46,7 @@ void test_select() {
     ufr_new_gtw_sqlite_table(&link, &args_boot);
 
     lt_args_t args_subs = {.text="@sql %s", .arg[0].str="SELECT * FROM pessoa"};
-    lt_start_subscriber(&link, &args_subs);
+    ufr_start_subscriber(&link, &args_subs);
 
     int id;
     char name[64];
@@ -70,7 +70,7 @@ void test_insert() {
     ufr_new_gtw_sqlite_table(&link, &args_boot);
 
     lt_args_t args_subs = {.text="@sql %s", .arg[0].str="INSERT INTO pessoa VALUES(?,?,?)"};
-    lt_start_publisher(&link, &args_subs);
+    ufr_start_publisher(&link, &args_subs);
 
     lt_put(&link, "isi\n", 7, "trrr", 80);
     lt_put(&link, "isi\n", 4, "teste", 50);

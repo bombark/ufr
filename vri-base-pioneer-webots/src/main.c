@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
     // 
     link_t sub_motors = ufr_sys_open("motor", "@new zmq:topic @host 127.0.0.1 @port 5002 @coder msgpack:obj");
-    lt_start_subscriber(&sub_motors, NULL);
+    ufr_start_subscriber(&sub_motors, NULL);
     
     //
     link_t pub_compass = ufr_sys_publisher("compass", "@new zmq:topic @host 127.0.0.1 @port 5003 @coder msgpack:obj @message ff");

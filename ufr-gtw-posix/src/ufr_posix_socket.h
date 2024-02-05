@@ -23,63 +23,30 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+	
 // ============================================================================
-//  HEADER
+//  Header
 // ============================================================================
 
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args);
+typedef struct {
+    int server_sockfd;
+} ll_shr_t;
 
 // ============================================================================
-//  Tests
+//  Public Functions
 // ============================================================================
 
-void test_simple() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    lt_close(&link);
-}
+int    lt_posix_socket_type(const link_t* link);
+int    lt_posix_socket_state(const link_t* link);
+size_t lt_posix_socket_size(const link_t* link, int type);
+int    lt_posix_socket_boot(link_t* link, const lt_args_t* args);
+int    lt_posix_socket_start(link_t* link, int type, const lt_args_t* args);
+void   lt_posix_socket_stop(link_t* link, int type);
+int    lt_posix_socket_copy(link_t* link, link_t* out);
+size_t lt_posix_socket_read(link_t* link, char* buffer, size_t length);
+size_t lt_posix_socket_write(link_t* link, const char* buffer, size_t length);
 
-void test_write() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    assert( lt_write(&link, "OPA\n", 4) == 4 );
-    lt_close(&link);
-}
-
-void test_read() {
-    char buffer[8];
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_subscriber(&link, NULL) == LT_OK );    
-    assert( lt_read(&link, buffer, 8) == 4 );
-    lt_close(&link);
-}
-
-void test_new() {
-    link_t link = ufr_new("@new posix:file @path ./teste.txt");
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    lt_close(&link);
-}
-
-// ============================================================================
-//  Main
-// ============================================================================
-
-int main() {
-    test_simple();
-    test_write();
-    test_read();
-    test_new();
-	return 0;
-}
+int ufr_posix_start_server(link_t* link, const lt_args_t* args);
+int ufr_posix_start_client(link_t* link, const lt_args_t* args);

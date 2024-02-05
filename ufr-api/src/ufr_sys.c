@@ -41,9 +41,16 @@ link_t g_file_out;
 link_t g_file_in;
 link_t* g_file_in_ptr = &g_file_in;   // modified when the mode STDINOUT is activated
 
-typedef int(*dl_func_new_t)(link_t*, const lt_args_t* args);
+typedef int (*dl_func_new_t) (link_t*, const lt_args_t* args);
+typedef const char* (*dl_func_list_t) (const uint8_t idx);
+
 
 char g_ld_lib_path[1024];
+
+
+
+uint8_t g_libraries_len = 0;
+ufr_library_t g_libraries[16];
 
 // ============================================================================
 //  Functions
@@ -76,7 +83,7 @@ void ufr_sys_init() {
     const char* link_inout_params = getenv(env_name);
     if ( link_inout_params != NULL ) {
         g_file_out = ufr_new(link_inout_params);
-        lt_start_bind(&g_file_out);
+        ufr_start_bind(&g_file_out, NULL);
         g_file_in_ptr = &g_file_out;
 
         // exit
@@ -88,7 +95,7 @@ void ufr_sys_init() {
     const char* link_params = getenv(env_name);
     if ( link_params != NULL ) {
         g_file_out = ufr_new(link_params);
-        lt_start_publisher(&g_file_out, NULL);
+        ufr_start_publisher(&g_file_out, NULL);
     } else {
         g_file_out = ufr_new("@new posix:stdout @encoder std:csv");
     }
@@ -98,45 +105,115 @@ void ufr_sys_init() {
     const char* link_params_in = getenv(env_name);
     if ( link_params_in != NULL ) {
         g_file_in = ufr_new(link_params_in);
-        lt_start_subscriber(&g_file_in, NULL);
+        ufr_start_subscriber(&g_file_in, NULL);
     } else {
         g_file_in = ufr_new("@new posix:stdin @decoder std:csv @sep ,");
     }
 }
 
-static
-int lt_load_lib(link_t* link, const char* lib_type, const char* class_name, const lt_args_t* args) {
-    uint16_t class_name_cur = 0;
-    char lib_name[128];
-    lt_flex_text_div(class_name, &class_name_cur, lib_name, sizeof(lib_name), ':');
+int ufr_sys_load_library(link_t* link, const char* name) {
+    // open the dinamic library handle
+    char filename[512];
+    snprintf(filename, sizeof(filename), "lib%s.so", name);
+    void* dl_handle = dlopen(filename, RTLD_LAZY);
+    if ( dl_handle == NULL ) {
+        return lt_error(link, 1, dlerror());
+    }
 
-    // try open
-    char lib_path[2048];
-    snprintf(lib_path, sizeof(lib_path), "%slib%s_%s.abi3.so", g_ld_lib_path, lib_type, lib_name);
-    void* lib_handle = dlopen(lib_path, RTLD_LAZY);
-
-    // case NULL, try again
-    if ( lib_handle == NULL ) {
-        snprintf(lib_path, sizeof(lib_path), "%slibufr_%s_%s.so", g_ld_lib_path, lib_type, lib_name);
-        lib_handle = dlopen(lib_path, RTLD_LAZY);
-        // error
-        if ( lib_handle == NULL ) {
-            return lt_error(link, 1, dlerror());
+    // find if this handle was already opened
+    uint8_t idx = 0;
+    bool is_not_loaded = true;
+    for (uint8_t i=0; i<g_libraries_len; i++) {
+        if ( g_libraries[i].handle == dl_handle ) {
+            idx = i;
+            break;
         }
     }
 
+    // get the library slot
+    ufr_library_t* library;
+    if ( is_not_loaded ) {
+        idx = g_libraries_len;
+        lt_info(link, "loaded library %s no slot %d\n", name, idx);
+        g_libraries_len += 1;
+        library = &g_libraries[idx];
+        library->count = 0;
+        library->handle = dl_handle;
+        strcpy(library->name, name);
+    } else {
+        library = &g_libraries[idx];
+    }
 
-    char func_name[128];
-    char lib_func_name[512];
-    lt_flex_text_div(class_name, &class_name_cur, func_name, sizeof(func_name), ':');
-    snprintf(lib_func_name, sizeof(lib_func_name), "ufr_new_%s_%s_%s", lib_type, lib_name, func_name);
+    // end
+    library->count += 1;
+    link->library = library;
+    return LT_OK;
+}
 
-    dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(lib_handle, lib_func_name);
+const char* ufr_sys_lib_call_list(link_t* link, uint8_t idx) {
+    if ( link->library == NULL ) {
+        lt_error(link, 1, "library is not loaded");
+        return NULL;
+    }
+
+    // get the function pointer
+    char func_name[512];
+    void* handle = link->library->handle;
+    snprintf(func_name, sizeof(func_name), "%s_list", link->library->name);
+    dl_func_list_t dl_func_list = (dl_func_list_t) dlsym(handle, func_name);
+    if ( dl_func_list == NULL ) {
+        lt_error(link, 1, dlerror());
+        return NULL;
+    }
+
+    // 
+    return dl_func_list(idx);
+}
+
+int ufr_sys_lib_call_new(link_t* link, const char* name, const lt_args_t* args) {
+
+    if ( link->library == NULL ) {
+        return lt_error(link, 1, "library is not loaded");
+    }
+
+    // get the function pointer
+    char func_name[512];
+    void* handle = link->library->handle;
+    snprintf(func_name, sizeof(func_name), "%s_new_%s", link->library->name, name);
+    dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(handle, func_name);
     if ( dl_func_new == NULL ) {
         return lt_error(link, 1, dlerror());
     }
 
+    // 
     return dl_func_new(link, args);
+}
+
+
+
+static
+int lt_load_lib(link_t* link, const char* lib_type, const char* class_name, const lt_args_t* args) {
+    uint16_t class_name_cur = 0;
+
+    // get the first string from "<library>:<class_name>", ex: "zmq:socket" -> zmq
+    char lib_name[128];
+    lt_flex_text_div(class_name, &class_name_cur, lib_name, sizeof(lib_name), ':');
+
+    // load the library, ex: libufr_gtw_posix.so
+    char lib_fullname[256];
+    snprintf(lib_fullname, sizeof(lib_fullname), "ufr_%s_%s", lib_type, lib_name);
+    int state = ufr_sys_load_library(link, lib_fullname);
+    if ( state != LT_OK ) {
+        return state;
+    }
+
+    // get the second string from "<library>:<class_name>", ex: "zmq:socket" -> socket
+    char func_name[128];
+    char lib_func_name[512];
+    lt_flex_text_div(class_name, &class_name_cur, func_name, sizeof(func_name), ':');
+    
+    // call the driver function
+    return ufr_sys_lib_call_new(link, func_name, args);
 }
 
 int lt_load_gateway(link_t* link, const char* class_name, const lt_args_t* args) {
@@ -198,25 +275,6 @@ int lt_new_ptr(link_t* link, const char* text) {
     return LT_OK;
 }
 
-link_t ufr_new(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    if ( text != NULL ) {
-        lt_new_ptr(&link, text);
-    }
-    return link;
-}
-
-link_t ufr_publisher(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    if ( text != NULL ) {
-        if ( lt_new_ptr(&link, text) == LT_OK ) {
-            lt_args_t pub_args = {.text=text};
-            lt_start_publisher(&link, &pub_args);    
-        }
-    }
-    return link;
-}
-
 link_t ufr_sys_publisher(const char* name, const char* default_text) {
     char var_name[512];
     snprintf(var_name, sizeof(var_name), "UFR_SYS_%s", name);
@@ -232,7 +290,7 @@ link_t ufr_subscriber(const char* text) {
     if ( text != NULL ) {
         if ( lt_new_ptr(&link, text) == LT_OK ) {
             lt_args_t sub_args = {.text=text};
-            lt_start_subscriber(&link, &sub_args);
+            ufr_start_subscriber(&link, &sub_args);
         }
     }
     return link;
@@ -281,7 +339,7 @@ void ufr_input(const char* format, ...) {
 
 void ufr_inoutput_init(const char* text) {
     g_file_out = ufr_publisher(text);
-    lt_start_bind(&g_file_out);
+    ufr_start_bind(&g_file_out, NULL);
     g_file_in_ptr = &g_file_out;
 }
 

@@ -25,61 +25,28 @@
  */
 
 // ============================================================================
-//  HEADER
+//  Header
 // ============================================================================
 
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <ufr.h>
-
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args);
+#include <stddef.h>
+#include <stdint.h>
 
 // ============================================================================
-//  Tests
+//  Public Functions
 // ============================================================================
 
-void test_simple() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    lt_close(&link);
+const char* ufr_gtw_posix_list(uint8_t index) {
+    const char* names[3] = {"file", "queue", "socket"};
+    if ( index >= 3 ) {
+        return NULL;
+    }
+    return names[index];
 }
 
-void test_write() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    assert( lt_write(&link, "OPA\n", 4) == 4 );
-    lt_close(&link);
-}
-
-void test_read() {
-    char buffer[8];
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_subscriber(&link, NULL) == LT_OK );    
-    assert( lt_read(&link, buffer, 8) == 4 );
-    lt_close(&link);
-}
-
-void test_new() {
-    link_t link = ufr_new("@new posix:file @path ./teste.txt");
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    lt_close(&link);
-}
-
-// ============================================================================
-//  Main
-// ============================================================================
-
-int main() {
-    test_simple();
-    test_write();
-    test_read();
-    test_new();
-	return 0;
+uint8_t ufr_gtw_posix_version(uint8_t index) {
+    const uint8_t version[3] = {1,0,0};
+    if ( index >= 3 ) {
+        return 0;
+    }
+    return version[index];
 }

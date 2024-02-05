@@ -6,3 +6,6 @@ target_link_libraries(pub_ii ufr)
 
 add_executable(sub_ii ./src/sub_ii.c)
 target_link_libraries(sub_ii ufr)
+
+add_executable(testlib ./src/testlib.c)
+target_link_libraries(testlib ufr dl)

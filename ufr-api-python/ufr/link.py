@@ -29,17 +29,17 @@ class Link(ctypes.Structure):
     dll.lt_size_max.argtypes = [ ctypes.c_void_p ]
     dll.lt_size_max.restype =  ctypes.c_size_t
 
-    dll.lt_start.argtypes = [ ctypes.c_void_p ]
-    dll.lt_start.restype = ctypes.c_int32
+    dll.ufr_start.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_start.restype = ctypes.c_int32
 
-    dll.lt_start_publisher.argtypes = [ ctypes.c_void_p ]
-    dll.lt_start.restype = ctypes.c_int32
+    dll.ufr_start_publisher.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_start.restype = ctypes.c_int32
 
-    dll.lt_start_subscriber.argtypes = [ ctypes.c_void_p ]
-    dll.lt_start.restype = ctypes.c_int32
+    dll.ufr_start_subscriber.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_start.restype = ctypes.c_int32
 
-    dll.lt_start_connect.argtypes = [ ctypes.c_void_p ]
-    dll.lt_start.restype = ctypes.c_int32
+    dll.ufr_start_connect.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_start.restype = ctypes.c_int32
 
     # dll.lt_stop.argtypes = [ ctypes.c_void_p ]
     # dll.lt_stop.restype = ctypes.c_int32
@@ -116,17 +116,17 @@ class Link(ctypes.Structure):
         return "Invalid"
 
     def start(self):
-        error_code = Link.dll.lt_start( ctypes.pointer(self) )
+        error_code = Link.dll.ufr_start( ctypes.pointer(self), 0 )
         if error_code != 0:
             raise Exception("error no start")
     
     def start_publisher(self):
-        error_code = Link.dll.lt_start_publisher( ctypes.pointer(self) )
+        error_code = Link.dll.lt_start_publisher( ctypes.pointer(self), 0 )
         if error_code != 0:
             raise Exception("error no start")
         
     def start_subscriber(self):
-        error_code = Link.dll.lt_start_subscriber( ctypes.pointer(self) )
+        error_code = Link.dll.lt_start_subscriber( ctypes.pointer(self), 0 )
         if error_code != 0:
             raise Exception("error no start")
 

@@ -23,63 +23,52 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+	
 // ============================================================================
-//  HEADER
+//  Header
 // ============================================================================
 
-#include <assert.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <ufr.h>
+#include <stdbool.h>
 
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args);
+#include "ufr_message.h"
 
 // ============================================================================
-//  Tests
+//  Message Functions
 // ============================================================================
 
-void test_simple() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    lt_close(&link);
+void message_init(message_t* message) {
+    message->size = 0;
+    message->max = MESSAGE_ITEM_SIZE;
+    message->ptr = malloc(message->max);
 }
 
-void test_write() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    assert( lt_write(&link, "OPA\n", 4) == 4 );
-    lt_close(&link);
+void message_clear(message_t* message) {
+    message->size = 0;
 }
 
-void test_read() {
-    char buffer[8];
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_subscriber(&link, NULL) == LT_OK );    
-    assert( lt_read(&link, buffer, 8) == 4 );
-    lt_close(&link);
-}
+bool message_write_from_fd(message_t* message, int fd) {
+    bool is_ok = true;
+    int count;
+    message->size = 0;
 
-void test_new() {
-    link_t link = ufr_new("@new posix:file @path ./teste.txt");
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    lt_close(&link);
-}
+    // tem problema quando recebe um pacote com exatamente com 4096 bytes
+    while(1) {
+        const size_t bytes = read(fd, &message->ptr[0], MESSAGE_ITEM_SIZE);
+        printf("%d\n", bytes);
+        if ( bytes < MESSAGE_ITEM_SIZE ) {
+            message->size += bytes;
+            break;
+        } else if ( bytes == -1 ) {
+            is_ok = false;
+            break;
+        } else {
+            message->size += bytes;
+        }
+    }
 
-// ============================================================================
-//  Main
-// ============================================================================
+    message->ptr[message->size] = '\0';
 
-int main() {
-    test_simple();
-    test_write();
-    test_read();
-    test_new();
-	return 0;
+    printf("%s\n", message->ptr);
+    return is_ok;
 }

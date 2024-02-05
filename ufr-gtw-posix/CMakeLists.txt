@@ -3,10 +3,14 @@ project(ufr-gtw-posix)
 
 
 add_library(ufr_gtw_posix SHARED
+    ./src/ufr_gtw_posix.c
     ./src/ufr_posix_dir.c 
     ./src/ufr_posix_file.c 
     ./src/ufr_posix_pipe.c 
-    # ./src/lt_posix_socket.c 
+    ./src/ufr_posix_socket.c 
+    ./src/ufr_posix_socket_srv.c
+    ./src/ufr_posix_socket_cli.c
+    ./src/ufr_message.c
     )
 
 target_compile_options(ufr_gtw_posix PUBLIC -O1)
