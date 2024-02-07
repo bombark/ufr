@@ -112,14 +112,15 @@ void lt_init_api(link_t* link, lt_api_t* gw_api) {
 }
 
 
-int ufr_boot(link_t* link, const lt_args_t* param_args) {
-    const lt_args_t empty_args = {.text=""};
-    const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
-    const int error = link->gw_api->boot(link, args);
+int ufr_boot(link_t* link, int type) {
+    // const lt_args_t empty_args = {.text=""};
+    // const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
+    // const int error = link->gtw_api->boot(link, args);
+    const int error = link->gtw_api->boot(link, type);
     return error;
 }
 
-int ufr_start(link_t* link, const int type, const lt_args_t* param_args) {
+int ufr_start(link_t* link, const lt_args_t* param_args) {
     // select the arguments avoiding NULL pointer
     const lt_args_t empty_args = {.text=""};
     const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
@@ -128,50 +129,32 @@ int ufr_start(link_t* link, const int type, const lt_args_t* param_args) {
     link->log_level = lt_args_geti(args, "@debug", g_default_log_level);
 
     // call driver function
-    const int error = link->gw_api->start(link, type, args);
-    if ( error == LT_OK ) {
-        link->type_started = type;
-    } else {
-        printf("error\n");
-    }
+    printf("qq %d\n", link->type_started);
+    const int type = link->type_started;
+    const int error = link->gtw_api->start(link, type, args);
 
     // end
     return error;
 }
 
 int ufr_start_publisher(link_t* link, const lt_args_t* args) {
-    return ufr_start(link, LT_START_PUBLISHER, args);
+    link->type_started = LT_START_PUBLISHER;
+    return ufr_start(link, args);
 }
 
 int ufr_start_subscriber(link_t* link, const lt_args_t* args) {
-    return ufr_start(link, LT_START_SUBSCRIBER, args);
+    link->type_started = LT_START_SUBSCRIBER;
+    return ufr_start(link, args);
 }
 
 int ufr_start_bind(link_t* link, const lt_args_t* args) {
-    return ufr_start(link, LT_START_BIND, args);
+    link->type_started = LT_START_BIND;
+    return ufr_start(link, args);
 }
 
 int ufr_start_connect(link_t* link, const lt_args_t* args) {
-    return ufr_start(link, LT_START_CONNECT, args);
-}
-
-link_t ufr_new(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    if ( text != NULL ) {
-        lt_new_ptr(&link, text);
-    }
-    return link;
-}
-
-link_t ufr_publisher(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    if ( text != NULL ) {
-        if ( lt_new_ptr(&link, text) == LT_OK ) {
-            lt_args_t pub_args = {.text=text};
-            ufr_start_publisher(&link, &pub_args);
-        }
-    }
-    return link;
+    link->type_started = LT_START_CONNECT;
+    return ufr_start(link, args);
 }
 
 bool lt_recv(link_t* link) {
@@ -361,6 +344,14 @@ size_t lt_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
     size_t arr_size = 0;
     link->dec_api->copy_arr(link, 'f', arr_size_max, &arr_size, (void*) arr_data);
     return arr_size;
+}
+
+int ufr_enter_array(link_t* link, size_t arr_size_max) {
+    return link->ecr_api->enter_arr(link, arr_size_max);
+}
+
+int ufr_leave_array(link_t* link) {
+    return link->ecr_api->leave_arr(link);
 }
 
 // ============================================================================

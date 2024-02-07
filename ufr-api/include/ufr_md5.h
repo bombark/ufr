@@ -1,6 +1,7 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2023, Felipe Bombardelli
+ * Copyright (c) 2024, Visao Robotica e Imagem (VRI)
+ *  - Felipe Bombardelli <felipebombardelli@gmail.com>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -23,59 +24,11 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-// ============================================================================
-//  HEADER
-// ============================================================================
-
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <ufr.h>
-
-int ufr_gtw_posix_new_dir(link_t* link, const lt_args_t* args);
-int ufr_new_gtw_posix_pipe(link_t* link, const lt_args_t* args);
-
-// ============================================================================
-//  Tests
-// ============================================================================
-
-void test_pipe() {
-	printf("%s\n", __func__);
-	link_t pipe;
-	lt_args_t args = {.text=""};
-	// assert( lt_new_posix_pipe(&pipe, &args) == LT_OK );
 	
-	char buffer[16];
-	for (int i=0; i<10; i++) {
-		const size_t sent = lt_write(&pipe, "felipe", 6);
-		assert(sent == 6);
-		const size_t recv = lt_read(&pipe, buffer, sizeof(buffer));
-		assert(recv == 6);
-		assert(strcmp(buffer, "felipe") == 0);
-	}
-
-	lt_close(&pipe);
-	printf("\tOK\n");
-}
-
-void test_dir() {
-	link_t dir;
-	lt_args_t args = {.text="@path ./pasta"};
-	assert( lt_new_posix_dir(&dir, &args) == LT_OK );
-
-	// lt_cd(&dir, "name");
-	lt_put(&dir, "^s\n", "felipe bombardelli");
-
-}
-
 // ============================================================================
-//  Main
+//  Header
 // ============================================================================
 
-int main() {
-	// test_dir();
-	// test_pipe();
-	return 0;
-}
+#pragma once
+
+#define ufr_h_md5sum "a1234f1a92f00dfc765fba1e93cdda86" 

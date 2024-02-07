@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_posix_pipe(link_t* link, const lt_args_t* args);
+int ufr_gtw_posix_new_pipe(link_t* link, int type);
 
 // ============================================================================
 //  Tests
@@ -44,11 +44,15 @@ void test_simple() {
     char buffer[8];
     link_t link;
     lt_args_t args = {.text=""};
-    assert( ufr_new_gtw_posix_pipe(&link, &args) == LT_OK );
+    assert( ufr_gtw_posix_new_pipe(&link, 0) == LT_OK );
+    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_start(&link, &args) == LT_OK );    
+
     assert( lt_write(&link, "Opa!", 4) == 4 );
     assert( lt_read(&link, buffer, sizeof(buffer)) == 4 );
     buffer[4] = '\0';
     assert( strcmp(buffer, "Opa!") == 0 );
+
     lt_close(&link);
 }
 

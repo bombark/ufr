@@ -81,6 +81,13 @@ void lex_next_token(ll_decoder_t* decoder, char* out_token) {
 // ============================================================================
 
 static
+void ufr_dcr_csv_init(link_t* link, const lt_args_t* args) {
+}
+
+void ufr_dcr_csv_free(link_t* link, const lt_args_t* args) {
+}
+
+static
 void lt_dec_csv_recv(link_t* link, char* msg_data, size_t msg_size) {
 	ll_decoder_t* decoder = link->dec_obj;
 
@@ -154,7 +161,7 @@ lt_decoder_api_t lt_dcr_std_csv = {
 //  Public Functions
 // ============================================================================
 
-int ufr_new_dcr_std_csv(link_t* link, const lt_args_t* args) {
+int ufr_dcr_std_new_csv(link_t* link, const lt_args_t* args) {
     link->dec_api = &lt_dcr_std_csv;
     ll_decoder_t* decoder = malloc(sizeof(ll_decoder_t));
     const char* sep = lt_args_gets(args, "@sep", ",");

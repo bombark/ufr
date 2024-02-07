@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_ecr_std_csv(link_t* link, const lt_args_t* args);
+int ufr_ecr_std_new_csv(link_t* link, const lt_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -43,7 +43,7 @@ int ufr_new_ecr_std_csv(link_t* link, const lt_args_t* args);
 void test_simple() {
     link_t link = ufr_new("@new posix:pipe");
     lt_args_t args = {.text="@sep ;"};  
-    ufr_new_ecr_std_csv(&link, &args);
+    ufr_ecr_std_new_csv(&link, &args);
 
     // test 1
     {
@@ -82,7 +82,7 @@ void test_simple() {
 void test_simple_2() {
     link_t link = ufr_new("@new posix:pipe");
     lt_args_t args = {.text="@sep ,"};  
-    ufr_new_ecr_std_csv(&link, &args);
+    ufr_ecr_std_new_csv(&link, &args);
 
     // test 1
     {
@@ -118,12 +118,35 @@ void test_simple_2() {
     lt_close(&link);
 }
 
+void test3() {
+    // link_t link;
+    // ufr_sys_load_library(&link, "ufr_gtw_posix");
+    link_t link = ufr_publisher("@new posix:file @path saida.txt");
+
+/*
+    
+    lt_args_t args = {.text="@sep ,"};  
+    ufr_ecr_std_new_csv(&link, &args);
+
+    lt_put(&link, "iii", 10,20,30);
+    ufr_enter_array(&link, 10);
+
+    ufr_leave_array(&link);
+    ufr_close(&link);
+
+    lt_put(&link, "\n");
+*/
+}
+
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
+    test3();
+    return 0;
+
     test_simple();
     test_simple_2();
 	return 0;

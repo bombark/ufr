@@ -135,8 +135,7 @@ lt_api_t lt_posix_dir = {
 //  Public
 // ============================================================================
 
-int ufr_new_gtw_posix_dir(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_posix_dir;
-	lt_posix_dir_boot(link, args);
+int ufr_new_gtw_posix_dir(link_t* link, int type) {
+	link->gtw_api = &lt_posix_dir;
 	return LT_OK;
 }

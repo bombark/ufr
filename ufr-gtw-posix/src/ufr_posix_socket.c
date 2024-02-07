@@ -56,8 +56,11 @@ typedef struct {
     message_t message;
 } ll_srv_request_t;
 
+extern lt_api_t ufr_posix_socket_cli;
+extern lt_api_t ufr_posix_socket_srv;
+
 // ============================================================================
-//  Socket Driver
+//  Common Socket Driver
 // ============================================================================
 
 int lt_posix_socket_type(const link_t* link) {
@@ -79,18 +82,6 @@ int lt_posix_socket_boot(link_t* link, const lt_args_t* args) {
 	return 0;
 }
 
-int lt_posix_socket_start(link_t* link, int type, const lt_args_t* args) {
-    int retval = 1;
-    // Start a Server
-    if ( type == LT_START_BIND ) {
-        retval = ufr_posix_start_server(link, args);
-    // Start a Client
-    } else if ( type == LT_START_CONNECT ) {
-        retval = ufr_posix_start_client(link, args);
-    }
-	return retval;
-}
-
 void lt_posix_socket_stop(link_t* link, int type) {
     ll_srv_request_t* request = link->gw_obj;
     if ( request != NULL ) {
@@ -106,27 +97,20 @@ int lt_posix_socket_copy(link_t* link, link_t* out) {
 	return 0;
 }
 
-static
-lt_api_t lt_posix_socket = {
-	.type = lt_posix_socket_type,
-	.state = lt_posix_socket_state,
-	.size = lt_posix_socket_size,
-	.boot = lt_posix_socket_boot,
-	.start = lt_posix_socket_start,
-	.stop = lt_posix_socket_stop,
-	.copy = lt_posix_socket_copy,
-	.read = ufr_dummy_read,
-	.write = ufr_dummy_write,
-    .recv = ufr_dummy_recv,
-    .send = ufr_dummy_send
-};
 
 // ============================================================================
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_posix_socket(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_posix_socket;
-	lt_posix_socket_boot(link, args);
+int ufr_gtw_posix_new_socket(link_t* link, int type) {
+    if ( type == LT_START_CONNECT ) {
+        link->gw_api = &ufr_posix_socket_cli;
+    } else if ( type == LT_START_BIND ) {
+        link->gw_api = &ufr_posix_socket_srv;
+    } else {
+        return 1;
+    }
+
+    link->type_started = type;
 	return LT_OK;
 }

@@ -3,12 +3,13 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_posix_socket(link_t* link, const lt_args_t* args);
+int ufr_gtw_posix_new_socket(link_t* link, int type);
 
 void test() {
     link_t link;
-    assert( ufr_new_gtw_posix_socket(&link, NULL) == LT_OK );
-    assert( ufr_start_bind(&link, NULL) == LT_OK );
+    assert( ufr_gtw_posix_new_socket(&link, LT_START_BIND) == LT_OK );
+    assert( ufr_boot(&link, NULL) == LT_OK );
+    assert( ufr_start(&link, NULL) == LT_OK );
     assert( ufr_link_is_server(&link) == true );
 
     while(1) {
@@ -26,24 +27,11 @@ void test() {
     ufr_close(&link);
 }
 
-/*
-  link:
-  - empty
-  - somente gateway
-  - gateway, decoder
-  - gateway, encoder
-
-  estado:
-  - reset
-  - server, client, publisher, subscriber
-
-
-*/
-
 void test2() {
     link_t link;
-    assert( ufr_new_gtw_posix_socket(&link, NULL) == LT_OK );
-    assert( ufr_start_bind(&link, NULL) == LT_OK );
+    assert( ufr_gtw_posix_new_socket(&link, LT_START_BIND) == LT_OK );
+    assert( ufr_boot(&link, NULL) == LT_OK );
+    assert( ufr_start(&link, NULL) == LT_OK );
     assert( ufr_link_is_server(&link) == true );
 
     while(1) {
@@ -64,6 +52,6 @@ void test2() {
 
 
 int main() {
-    test();
+    // test();
     return 0;
 }

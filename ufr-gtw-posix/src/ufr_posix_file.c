@@ -132,6 +132,10 @@ int lt_posix_file_start(link_t* link, int type, const lt_args_t* args) {
             return lt_error(link, errno, strerror(errno));
         }
         link->gw_obj = new_gw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
+
+    // error
+    } else {
+        return lt_error(link, 1, "parameter type(%d) is invalid", type);
     }
 
     // success
@@ -188,7 +192,16 @@ size_t lt_posix_file_read(link_t* link, char* buffer, size_t length) {
 
 static
 size_t lt_posix_file_write(link_t* link, const char* buffer, size_t length) {
+    lt_info(link, "write %ld bytes", length);
 	ll_gw_obj_t* gw_obj = link->gw_obj;
+    if ( gw_obj == NULL ) {
+        lt_error(link, 1, "gw_obj is null");
+        return 0;
+    }
+    if ( gw_obj->fd == NULL ) {
+        lt_error(link, 1, "gw_obj->fd is null");
+        return 0;
+    }
     return fwrite(buffer, 1, length, gw_obj->fd);
 }
 
@@ -254,8 +267,6 @@ static
 int lt_posix_stdin_boot(link_t* link, const lt_args_t* args) {
     link->gw_shr = NULL;
     link->gw_obj = new_gw_obj(stdin, RECV_BUFFER_SIZE_DEFAULT);
-
-    // success
 	return LT_OK;
 }
 
@@ -289,35 +300,21 @@ lt_api_t lt_posix_stdin = {
 //  Public Functions
 // ============================================================================
 
-int ufr_gtw_posix_new_file(link_t* link, const lt_args_t* args) {
-    link->gw_api = &lt_posix_file;
-    /*const int error = lt_posix_file_boot(link, args);
-    if ( error != LT_OK ) {
-        return error;
-    }*/
-
-    // success
+int ufr_gtw_posix_new_file(link_t* link, int type) {
+printf("a %d\n", type);
+    link->gtw_api = &lt_posix_file;
+    link->type_started = type;
     return LT_OK;
 }
 
-int ufr_gtw_posix_new_stdout(link_t* link, const lt_args_t* args) {
-    link->gw_api = &lt_posix_stdout;
-    const int error = lt_posix_stdout_boot(link, args);
-    if ( error != LT_OK ) {
-        return error;
-    }
-
-    // success
+int ufr_gtw_posix_new_stdout(link_t* link, int type) {
+    link->gtw_api = &lt_posix_stdout;
+    link->type_started = type;
     return LT_OK;
 }
 
-int ufr_gtw_posix_new_stdin(link_t* link, const lt_args_t* args) {
-    link->gw_api = &lt_posix_stdin;
-    const int error = lt_posix_stdin_boot(link, args);
-    if ( error != LT_OK ) {
-        return error;
-    }
-
-    // success
+int ufr_gtw_posix_new_stdin(link_t* link, int type) {
+    link->gtw_api = &lt_posix_stdin;
+    link->type_started = type;
     return LT_OK;
 }

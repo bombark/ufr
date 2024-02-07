@@ -154,8 +154,8 @@ lt_api_t lt_posix_pipe = {
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_posix_pipe(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_posix_pipe;
-	lt_posix_pipe_boot(link, args);
-	return LT_OK;
+int ufr_gtw_posix_new_pipe(link_t* link, int type) {
+	link->gtw_api = &lt_posix_pipe;
+    link->type_started = type;
+    return LT_OK;
 }

@@ -54,6 +54,57 @@ typedef struct {
 // ============================================================================
 
 static
+int ufr_posix_socket_start_server(link_t* link, int type, const lt_args_t* args) {
+    // get the parameters for the server
+    const uint16_t port = 2000;
+
+    // get TCP protocol
+    struct protoent *protoent;
+    protoent = getprotobyname("tcp");
+    if (protoent == NULL) {
+        return lt_error(link, 1, "getprotobyname");
+    }
+
+    // start the socket
+    int server_sockfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
+    if (server_sockfd == -1) {
+        return lt_error(link, 1, "error to open socket");
+    }
+
+    // configure the socket
+    int enable = 1;
+    if (setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
+        close(server_sockfd);
+        return lt_error(link, 1, "setsockopt(SO_REUSEADDR) failed");
+    }
+
+    // bind the socket
+    struct sockaddr_in server_address;
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_address.sin_port = htons(port);
+    int error = bind( server_sockfd, (struct sockaddr*)&server_address, sizeof(server_address) );
+    if ( error == -1 ) {
+        perror("bind");
+        return lt_error(link, 1, "error to bind the port");
+    }
+
+    // listen the socket
+    if (listen(server_sockfd, 5) == -1) {
+        perror("listen");
+        return lt_error(link, 1, "error to listen the socket");
+    }
+
+    // update the shared object
+    ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+    shr->server_sockfd = server_sockfd;
+    link->gw_obj = NULL;
+
+    // success
+    return LT_OK;
+}
+
+static
 void lt_posix_socket_srv_stop(link_t* link, int type) {
     ll_srv_request_t* request = link->gw_obj;
     if ( request != NULL ) {
@@ -106,7 +157,7 @@ lt_api_t ufr_posix_socket_srv = {
 	.state = lt_posix_socket_state,
 	.size = lt_posix_socket_size,
 	.boot = lt_posix_socket_boot,
-	.start = lt_posix_socket_start,
+	.start = ufr_posix_socket_start_server,
 	.stop = lt_posix_socket_srv_stop,
 	.copy = lt_posix_socket_copy,
 	.read = lt_posix_socket_srv_read,
@@ -114,58 +165,3 @@ lt_api_t ufr_posix_socket_srv = {
     .recv = lt_posix_socket_srv_recv,
     .send = lt_posix_socket_srv_send
 };
-
-// ============================================================================
-//  Public Functions
-// ============================================================================
-
-int ufr_posix_start_server(link_t* link, const lt_args_t* args) {
-    // get the parameters for the server
-    const uint16_t port = 2000;
-
-    // get TCP protocol
-    struct protoent *protoent;
-    protoent = getprotobyname("tcp");
-    if (protoent == NULL) {
-        return lt_error(link, 1, "getprotobyname");
-    }
-
-    // start the socket
-    int server_sockfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
-    if (server_sockfd == -1) {
-        return lt_error(link, 1, "error to open socket");
-    }
-
-    // configure the socket
-    int enable = 1;
-    if (setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
-        close(server_sockfd);
-        return lt_error(link, 1, "setsockopt(SO_REUSEADDR) failed");
-    }
-
-    // bind the socket
-    struct sockaddr_in server_address;
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_address.sin_port = htons(port);
-    int error = bind( server_sockfd, (struct sockaddr*)&server_address, sizeof(server_address) );
-    if ( error == -1 ) {
-        perror("bind");
-        return lt_error(link, 1, "error to bind the port");
-    }
-
-    // listen the socket
-    if (listen(server_sockfd, 5) == -1) {
-        perror("listen");
-        return lt_error(link, 1, "error to listen the socket");
-    }
-
-    // update the shared object
-    ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
-    shr->server_sockfd = server_sockfd;
-    link->gw_obj = NULL;
-    link->gw_api = &ufr_posix_socket_srv;
-
-    // success
-    return LT_OK;
-}

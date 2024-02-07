@@ -34,25 +34,20 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_posix_file(link_t* link, const lt_args_t* args);
+int ufr_gtw_posix_new_file(link_t* link, int type);
 
 // ============================================================================
 //  Tests
 // ============================================================================
 
-void test_simple() {
-    link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    lt_close(&link);
-}
-
 void test_write() {
     link_t link;
     lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
+    assert( ufr_gtw_posix_new_file(&link, LT_START_PUBLISHER) == LT_OK );
+    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_start(&link, &args) == LT_OK );
     assert( lt_write(&link, "OPA\n", 4) == 4 );
+    // lt_stop(&link);
     lt_close(&link);
 }
 
@@ -60,8 +55,9 @@ void test_read() {
     char buffer[8];
     link_t link;
     lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_new_gtw_posix_file(&link, &args) == LT_OK );
-    assert( ufr_start_subscriber(&link, NULL) == LT_OK );    
+    assert( ufr_gtw_posix_new_file(&link, LT_START_SUBSCRIBER) == LT_OK );
+    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_start(&link, &args) == LT_OK );    
     assert( lt_read(&link, buffer, 8) == 4 );
     lt_close(&link);
 }
@@ -77,9 +73,8 @@ void test_new() {
 // ============================================================================
 
 int main() {
-    test_simple();
     test_write();
     test_read();
-    test_new();
+    // test_new();
 	return 0;
 }

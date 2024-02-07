@@ -342,11 +342,15 @@ lt_api_t urf_gw_mqtt_socket = {
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_mqtt_topic(link_t* link, const lt_args_t* args) {
+int ufr_gtw_mqtt_new_topic(link_t* link, int type) {
 	lt_init_api(link, &urf_gw_mqtt_socket);
-	return urf_gtw_mqtt_boot(link, args);
+    link->type_started = type;
+	return LT_OK;
 }
 
-const char* urf_gtw_mqtt_list() {
+const char* urf_gtw_mqtt_list(uint8_t idx) {
+    if ( idx > 1 ) {
+        return NULL;
+    }
     return "topic";
 }

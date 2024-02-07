@@ -122,6 +122,15 @@ int lt_enc_csv_put_cmd(link_t* link, char cmd) {
 	return 0;
 }
 
+int ufr_ecr_enter_arr(link_t* link, size_t maxsize) {
+    return 0;
+}
+
+
+int ufr_ecr_leave_arr(link_t* link) {
+    return 0;
+}
+
 static
 lt_encoder_api_t lt_enc_csv = {
 	.put_u32 = lt_enc_csv_put_u32,
@@ -129,11 +138,14 @@ lt_encoder_api_t lt_enc_csv = {
 	.put_f32 = lt_enc_csv_put_f32,
 	.put_str = lt_enc_csv_put_str,
 
-	.put_cmd = lt_enc_csv_put_cmd
+	.put_cmd = lt_enc_csv_put_cmd,
+
+    .enter_arr = ufr_ecr_enter_arr,
+    .leave_arr = ufr_ecr_leave_arr
 };
 
 extern "C"
-int ufr_new_ecr_std_csv(link_t* link, const lt_args_t* args) {
+int ufr_ecr_std_new_csv(link_t* link, const lt_args_t* args) {
     // get parameters
 	const char* sep = lt_args_gets(args, "@sep", ",");
 

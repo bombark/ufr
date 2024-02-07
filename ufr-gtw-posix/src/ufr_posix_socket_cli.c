@@ -54,6 +54,36 @@ typedef struct {
 // ============================================================================
 
 static
+int ufr_posix_socket_start_client(link_t* link, int type, const lt_args_t* args) {
+    struct sockaddr_in serverAddr;
+    socklen_t addr_size;
+
+    // get the parameters
+    const char* address = "127.0.0.1";
+    const uint16_t port = 2000;
+
+    /*---- Create the socket. The three arguments are: ----*/
+    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
+    const int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+
+    /*---- Configure settings of the server address struct ----*/
+    /* Address family = Internet */
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr(address);
+    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
+    connect(sockfd, (struct sockaddr *) &serverAddr, addr_size);
+
+    // update the link
+    ll_conn_t* conn = malloc( sizeof(ll_conn_t) );
+    conn->sockfd = sockfd;
+    link->gw_obj = conn;
+
+    // change the API function to client
+    return LT_OK;
+}
+
+static
 void lt_posix_socket_cli_stop(link_t* link, int type) {
     
 }
@@ -84,7 +114,7 @@ lt_api_t ufr_posix_socket_cli = {
 	.state = lt_posix_socket_state,
 	.size = lt_posix_socket_size,
 	.boot = lt_posix_socket_boot,
-	.start = lt_posix_socket_start,
+	.start = ufr_posix_socket_start_client,
 	.stop = lt_posix_socket_cli_stop,
 	.copy = lt_posix_socket_copy,
 	.read = lt_posix_socket_cli_read,
@@ -92,37 +122,3 @@ lt_api_t ufr_posix_socket_cli = {
     .recv = lt_posix_socket_cli_recv,
     .send = lt_posix_socket_cli_send
 };
-
-// ============================================================================
-//  Public Functions
-// ============================================================================
-
-int ufr_posix_start_client(link_t* link, const lt_args_t* args) {
-    struct sockaddr_in serverAddr;
-    socklen_t addr_size;
-
-    // get the parameters
-    const char* address = "127.0.0.1";
-    const uint16_t port = 2000;
-
-    /*---- Create the socket. The three arguments are: ----*/
-    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
-    const int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-
-    /*---- Configure settings of the server address struct ----*/
-    /* Address family = Internet */
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = inet_addr(address);
-    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
-    connect(sockfd, (struct sockaddr *) &serverAddr, addr_size);
-
-    // update the link
-    ll_conn_t* conn = malloc( sizeof(ll_conn_t) );
-    conn->sockfd = sockfd;
-    link->gw_obj = conn;
-
-    // change the API function to client
-    link->gw_api = &ufr_posix_socket_cli;
-    return LT_OK;
-}

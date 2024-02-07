@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_mqtt_topic(link_t* link, const lt_args_t* args);
+int ufr_gtw_mqtt_new_topic(link_t* link, int type);
 
 // ============================================================================
 //  Tests
@@ -43,8 +43,9 @@ int ufr_new_gtw_mqtt_topic(link_t* link, const lt_args_t* args);
 void test_publisher() {
     link_t link;
     lt_args_t args = {.text="@host 185.209.160.8 @topic test/topic"};
-    assert( ufr_new_gtw_mqtt_topic(&link, &args) == LT_OK );
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
+    assert( ufr_gtw_mqtt_new_topic(&link, LT_START_PUBLISHER) == LT_OK );
+    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_start(&link, &args) == LT_OK );
     assert( lt_write(&link, "teste", 5) == 5 );
     lt_close(&link);
 }
@@ -53,8 +54,10 @@ void test_subscriber() {
     char buffer[1024];
     link_t link;
     lt_args_t args = {.text="@host 185.209.160.8 @topic test/topic"};
-    ufr_new_gtw_mqtt_topic(&link, &args);
-    ufr_start_subscriber(&link, NULL);
+    
+    assert( ufr_gtw_mqtt_new_topic(&link, LT_START_SUBSCRIBER) == LT_OK );
+    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_start(&link, &args) == LT_OK );
     lt_recv(&link);
     lt_read(&link, buffer, sizeof(buffer));
     printf("%s\n", buffer);
@@ -63,15 +66,14 @@ void test_subscriber() {
 
 void test_publisher_fmt() {
     char buffer[1024];
-    link_t link = ufr_new("@new mqtt:topic @host 185.209.160.8 @topic test/topic @encoder msgpack:obj");
-    ufr_start_publisher(&link, NULL);
+    link_t link = ufr_publisher("@new mqtt:topic @host 185.209.160.8 @topic test/topic @encoder msgpack:obj");
     lt_put(&link, "iii\n", 40,50,60);
     lt_close(&link);
 }
 
 void test_subscriber_fmt() {
     char buffer[1024];
-    link_t link = ufr_new("@new mqtt:topic @host 185.209.160.8 @topic test/topic @decoder msgpack:obj");
+    link_t link = ufr_subscriber("@new mqtt:topic @host 185.209.160.8 @topic test/topic @decoder msgpack:obj");
     ufr_start_subscriber(&link, NULL);
     int a,b,c;
     lt_get(&link, "^iii", &a, &b, &c);
@@ -84,9 +86,9 @@ void test_subscriber_fmt() {
 // ============================================================================
 
 int main() {
-    // test_publisher();
-    // test_subscriber();
+    test_publisher();
+    test_subscriber();
     // test_publisher_fmt();
-    test_subscriber_fmt();
+    // test_subscriber_fmt();
 	return 0;
 }
