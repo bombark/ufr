@@ -44,7 +44,7 @@ void test_publisher() {
     link_t link;
     lt_args_t args = {.text="@host 185.209.160.8 @topic test/topic"};
     assert( ufr_gtw_mqtt_new_topic(&link, LT_START_PUBLISHER) == LT_OK );
-    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_boot_gtw(&link, &args) == LT_OK );
     assert( ufr_start(&link, &args) == LT_OK );
     assert( lt_write(&link, "teste", 5) == 5 );
     lt_close(&link);
@@ -56,7 +56,7 @@ void test_subscriber() {
     lt_args_t args = {.text="@host 185.209.160.8 @topic test/topic"};
     
     assert( ufr_gtw_mqtt_new_topic(&link, LT_START_SUBSCRIBER) == LT_OK );
-    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_boot_gtw(&link, &args) == LT_OK );
     assert( ufr_start(&link, &args) == LT_OK );
     lt_recv(&link);
     lt_read(&link, buffer, sizeof(buffer));

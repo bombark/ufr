@@ -93,7 +93,7 @@ fprintf(stderr, "server %s\n", url);
 }
 
 static
-lt_api_t ufr_zmq_socket = {
+lt_api_t ufr_zmq_socket_api = {
 	.type = ufr_zmq_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
@@ -107,7 +107,7 @@ lt_api_t ufr_zmq_socket = {
 	.write = ufr_zmq_write,
 };
 
-int ufr_new_gtw_zmq_socket(link_t* link, const lt_args_t* args) {
-	lt_init_api(link, &ufr_zmq_socket);
-	return ufr_zmq_boot(link, args);
+int ufr_gtw_zmq_new_socket(link_t* link, int type) {
+	lt_init_api(link, &ufr_zmq_socket_api);
+	return LT_OK;
 }

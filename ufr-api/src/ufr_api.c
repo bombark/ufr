@@ -165,11 +165,15 @@ int ufr_start_connect(link_t* link, const lt_args_t* args) {
     return ufr_start(link, args);
 }
 
-bool lt_recv(link_t* link) {
+bool ufr_recv(link_t* link) {
     if ( link->gw_api == NULL ) {
         return false;
     }
     return link->gw_api->recv(link);
+}
+
+bool lt_recv(link_t* link) {
+    return ufr_recv(link);
 }
 
 bool lt_recv_async(link_t* link) {
@@ -184,15 +188,19 @@ bool ufr_send(link_t* link) {
     return error == LT_OK;
 }
 
-void lt_close(link_t* link) {
+void ufr_close(link_t* link) {
     link->gw_api->stop(link, LT_STOP_CLOSE);
+}
+
+void lt_close(link_t* link) {
+    ufr_close(link);
 }
 
 // ============================================================================
 //  Link - Character Stream
 // ============================================================================
 
-size_t lt_read(link_t* node, char* buffer, size_t maxsize) {
+size_t ufr_read(link_t* node, char* buffer, size_t maxsize) {
 	if ( node == NULL || node->gw_api == NULL || node->gw_api->read == NULL){
 		return 0;
 	}
@@ -201,13 +209,21 @@ size_t lt_read(link_t* node, char* buffer, size_t maxsize) {
 	return node->gw_api->read(node, buffer, maxsize);
 }
 
-size_t lt_write(link_t* node, const char* buffer, size_t size) {
+size_t lt_read(link_t* node, char* buffer, size_t maxsize) {
+    return ufr_read(node, buffer, maxsize);
+}
+
+size_t ufr_write(link_t* node, const char* buffer, size_t size) {
 	if ( node == NULL || node->gw_api == NULL || node->gw_api->write == NULL) {
 		return 0;
 	}
 
 	// fprintf(stderr, "%s::%s %p\n", node->gw_api->name, __func__, node);
 	return node->gw_api->write(node, buffer, size);
+}
+
+size_t lt_write(link_t* node, const char* buffer, size_t size) {
+    return ufr_write(node, buffer, size);
 }
 
 // ============================================================================
@@ -280,7 +296,7 @@ bool ufr_get_str(link_t* link, char* buffer) {
     return is_ok == LT_OK;
 }
 
-void lt_put_va(link_t* link, const char* format, va_list list) {
+void ufr_put_va(link_t* link, const char* format, va_list list) {
     if ( link->enc_api == NULL ) {
         lt_error(link, 0, "Encoder is not loaded");
         return;
@@ -335,10 +351,17 @@ void lt_put_va(link_t* link, const char* format, va_list list) {
 	
 }
 
+void ufr_put(link_t* link, const char* format, ...) {
+    va_list list;
+    va_start(list, format);
+    ufr_put_va(link, format, list);
+    va_end(list);
+}
+
 void lt_put(link_t* link, const char* format, ...) {
     va_list list;
-	va_start(list, format);
-    lt_put_va(link, format, list);
+    va_start(list, format);
+    ufr_put_va(link, format, list);
     va_end(list);
 }
 

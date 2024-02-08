@@ -34,16 +34,16 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_ecr_msgpack_obj(link_t* link, const lt_args_t* args);
+int ufr_ecr_msgpack_new_obj(link_t* link, const int type);
 
 // ============================================================================
 //  Tests
 // ============================================================================
 
-void test() {
+void test1() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_new_ecr_msgpack_obj(&link, NULL) == LT_OK );
+    assert( ufr_ecr_msgpack_new_obj(&link, 0) == LT_OK );
     
     {
         lt_put(&link, "iii\n", 10, 20, 30);
@@ -71,9 +71,27 @@ void test() {
         assert( buffer[5] == 5 );
     }
 
-
     lt_close(&link);
 }
+
+
+void test2() {
+    link_t link = ufr_publisher("@new posix:file @path saida.txt");
+    assert( ufr_ecr_msgpack_new_obj(&link, 0) == LT_OK );
+    assert( ufr_boot_ecr(&link, NULL) == LT_OK );
+
+    ufr_put(&link, "iii", 10, 20, 30);
+    ufr_enter_array(&link, 3);
+    for (int i=0; i<3; i++) {
+        ufr_put(&link, "i", i);
+    }
+    ufr_leave_array(&link);
+    ufr_put(&link, "\n");
+
+
+    ufr_close(&link);
+}
+
 
 
 // ============================================================================
@@ -81,6 +99,7 @@ void test() {
 // ============================================================================
 
 int main() {
-    test();
+    // test1();
+    test2();
 	return 0;
 }

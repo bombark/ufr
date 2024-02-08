@@ -126,6 +126,9 @@ typedef struct {
     int (*copy_str)(struct _link* link, char* ret_val, size_t size_max);
 
 	int (*copy_arr)(struct _link* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr);
+
+    int (*enter_array)(struct _link* link);
+    int (*leave_array)(struct _link* link);
 } lt_decoder_api_t;
 
 typedef struct {
@@ -257,13 +260,17 @@ int ufr_start_connect(link_t* link, const lt_args_t* args);
 // stop
 void lt_stop(link_t* link);
 void lt_close(link_t* link);
-inline void ufr_close(link_t* link){ lt_close(link); }
+void ufr_close(link_t* link);
 
+bool ufr_recv(link_t* link);
 bool lt_recv(link_t* link);
 bool lt_recv_async(link_t* link);
 bool ufr_send(link_t* link);
 
+size_t ufr_read(link_t* node, char* buffer, size_t size);
 size_t lt_read(link_t* node, char* buffer, size_t size);
+
+size_t ufr_write(link_t* node, const char* buffer, size_t size);
 size_t lt_write(link_t* node, const char* buffer, size_t size);
 
 void lt_get_va(link_t* link, const char* format, va_list list);
@@ -271,7 +278,8 @@ void lt_get(link_t* link, char* format, ...);
 
 bool ufr_get_str(link_t* link, char* buffer);
 
-void lt_put_va(link_t* link, const char* format, va_list list);
+void ufr_put_va(link_t* link, const char* format, va_list list);
+void ufr_put(link_t* link, const char* format, ...);
 void lt_put(link_t* link, const char* format, ...);
 
 size_t lt_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data);

@@ -17,7 +17,7 @@ function compile_module() {
     fi
     cd build
     make || ufr_fatal;
-    # sudo make install
+	sudo make install
     popd
 }
 

@@ -95,7 +95,7 @@ int ufr_zmq_topic_start(struct _link* link, int type, const lt_args_t* args) {
 }
 
 static
-lt_api_t ufr_zmq_topic = {
+lt_api_t ufr_zmq_topic_api = {
 	.type = ufr_zmq_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
@@ -109,7 +109,7 @@ lt_api_t ufr_zmq_topic = {
 	.write = ufr_zmq_write,
 };
 
-int ufr_new_gtw_zmq_topic(link_t* link, const lt_args_t* args) {
-    lt_init_api(link, &ufr_zmq_topic);
-	return ufr_zmq_boot(link, args);
+int ufr_gtw_zmq_new_topic(link_t* link, const int type) {
+    lt_init_api(link, &ufr_zmq_topic_api);
+	return LT_OK;
 }

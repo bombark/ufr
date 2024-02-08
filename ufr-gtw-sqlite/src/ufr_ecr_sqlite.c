@@ -1,6 +1,7 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2023, Felipe Bombardelli
+ * Copyright (c) 2023, Visao Robotica Imagem (VRI)
+ *   Felipe Bombardelli
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -22,50 +23,88 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+ * */
+	
 // ============================================================================
-//  HEADER
+//  Header
 // ============================================================================
 
-#include <assert.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
+#include <sqlite3.h>
 #include <ufr.h>
 
-int ufr_dcr_msgpack_new_obj(link_t* link, const int type);
+#include "ufr_gtw_sqlite.h"
 
 // ============================================================================
-//  Tests
+//  Encoder
 // ============================================================================
 
-void test() {
-    char buffer[8];
-    link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_dcr_msgpack_new_obj(&link, 0) == LT_OK );
-    assert( ufr_boot_dcr(&link, NULL) == LT_OK );
+static
+int ufr_ecr_sqlite_put_u32(link_t* link, uint32_t val) {
+	ll_gw_obj_t* obj = link->gw_obj;
+	if ( obj ) {
 
-    {
-        int recv[8];
-        char send[] = {-107,1,2,3,4,5,'\n'};
-        ufr_write(&link, send, sizeof(send));
-        lt_get(&link, "^ai", 8, recv);
-        for (int i=0; i<5; i++) {
-            printf("%d ", recv[i]);
-        }
-        printf("\n");
-    }
-
-    ufr_close(&link);
-}
-
-
-// ============================================================================
-//  Main
-// ============================================================================
-
-int main() {
-    test();
+	}
 	return 0;
 }
+
+static
+int ufr_ecr_sqlite_put_i32(link_t* link, int32_t val) {
+	ll_gw_obj_t* obj = link->gw_obj;
+	if ( obj ) {
+        obj->index += 1;
+        sqlite3_bind_int(obj->stmt, obj->index, val);
+	}
+	return 0;
+}
+
+static
+int ufr_ecr_sqlite_put_f32(link_t* link, float val) {
+	ll_gw_obj_t* obj = link->gw_obj;
+	if ( obj ) {
+        obj->index += 1;
+        sqlite3_bind_double(obj->stmt, obj->index, val);
+	}
+	return 0;
+}
+
+static
+int ufr_ecr_sqlite_put_str(link_t* link, const char* val) {
+	ll_gw_obj_t* obj = link->gw_obj;
+	if ( obj ) {
+        obj->index += 1;
+        sqlite3_bind_text(obj->stmt, obj->index, val, strlen(val), NULL);
+	}
+	return 0;
+}
+
+static
+int ufr_ecr_sqlite_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
+	ll_gw_obj_t* obj = link->gw_obj;
+
+}
+
+static
+int ufr_ecr_sqlite_put_cmd(link_t* link, char cmd) {
+	ll_gw_obj_t* obj = link->gw_obj;
+    if ( cmd == '\n' ) {
+        if ( sqlite3_step(obj->stmt) == SQLITE_DONE ) {
+            sqlite3_reset(obj->stmt);
+            obj->index = 0;
+        }
+    }
+	return LT_OK;
+}
+
+lt_encoder_api_t ufr_ecr_sqlite_api = {
+	.put_u32 = ufr_ecr_sqlite_put_u32,
+	.put_i32 = ufr_ecr_sqlite_put_i32,
+	.put_f32 = ufr_ecr_sqlite_put_f32,
+	.put_str = ufr_ecr_sqlite_put_str,
+	.put_arr = ufr_ecr_sqlite_put_arr,
+	.put_cmd = ufr_ecr_sqlite_put_cmd
+};

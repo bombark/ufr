@@ -337,16 +337,16 @@ void ufr_output_init(const char* text) {
 void ufr_output(const char* format, ...) {
     va_list list;
     va_start(list, format);
-    lt_put_va(&g_file_out, format, list);
+    ufr_put_va(&g_file_out, format, list);
     va_end(list);
 }
 
 void ufr_output_ln(const char* format, ...) {
     va_list list;
     va_start(list, format);
-    lt_put_va(&g_file_out, format, list);
+    ufr_put_va(&g_file_out, format, list);
     va_end(list);
-    lt_put(&g_file_out, "\n");
+    ufr_put(&g_file_out, "\n");
 }
 
 void ufr_input_init(const char* text) {
