@@ -50,10 +50,10 @@ char g_ld_lib_path[1024];
 
 
 uint8_t g_libraries_len = 0;
-ufr_library_t g_libraries[16];
+ufr_library_t g_libraries[255];
 
 // ============================================================================
-//  Functions
+//  Constructor
 // ============================================================================
 
 __attribute__((constructor))
@@ -111,7 +111,52 @@ void ufr_sys_init() {
     }
 }
 
-int sys_ufr_load_gtw_library(link_t* link, const char* name) {
+// ============================================================================
+//  ufr_sys_lib_call
+// ============================================================================
+
+const char* ufr_sys_lib_call_list (
+    link_t* link, const uint8_t slot, const uint8_t list_idx
+) {
+    // get the function pointer
+    char func_name[512];
+    ufr_library_t* library = &g_libraries[slot];
+    snprintf(func_name, sizeof(func_name), "%s_list", library->name);
+    dl_func_list_t dl_func_list = (dl_func_list_t) dlsym(library->handle, func_name);
+    if ( dl_func_list == NULL ) {
+        lt_error(link, 1, dlerror());
+        return NULL;
+    }
+
+    // execute the function
+    return dl_func_list(list_idx);
+}
+
+int ufr_sys_lib_call_new (
+    link_t* link, const uint8_t slot, const char* name, const int type
+) {
+
+    // get the function pointer
+    char func_name[512];
+    ufr_library_t* library = &g_libraries[slot];
+    snprintf(func_name, sizeof(func_name), "%s_new_%s", library->name, name);
+    dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(library->handle, func_name);
+    if ( dl_func_new == NULL ) {
+        return lt_error(link, 1, dlerror());
+    }
+
+    // execute the function
+    lt_info(link, "calling the function %s(%p)", func_name, dl_func_new);
+    return dl_func_new(link, type);
+}
+
+// ============================================================================
+//  Loading Library System
+// ============================================================================
+
+int sys_ufr_load_library(link_t* link, const char* name, uint8_t* out_slot) {
+    lt_info(link, "loading library %s", name);
+
     // open the dinamic library handle
     char filename[512];
     snprintf(filename, sizeof(filename), "lib%s.so", name);
@@ -121,198 +166,140 @@ int sys_ufr_load_gtw_library(link_t* link, const char* name) {
     }
 
     // find if this handle was already opened
-    uint8_t idx = 0;
+    uint8_t slot = 0;
     bool is_not_loaded = true;
     for (uint8_t i=0; i<g_libraries_len; i++) {
         if ( g_libraries[i].handle == dl_handle ) {
-            idx = i;
+            is_not_loaded = false;
+            slot = i;
             break;
         }
     }
 
     // get the library slot
     ufr_library_t* library;
+
+    // -- create new slot for the library
     if ( is_not_loaded ) {
-        idx = g_libraries_len;
-        lt_info(link, "loaded library %s no slot %d\n", name, idx);
+        slot = g_libraries_len;
+        lt_info(link, "loaded library %s no slot %d", name, slot);
         g_libraries_len += 1;
-        library = &g_libraries[idx];
+        library = &g_libraries[slot];
         library->count = 0;
         library->handle = dl_handle;
         strcpy(library->name, name);
+
+    // -- library is already loaded, get the slot
     } else {
-        library = &g_libraries[idx];
+        library = &g_libraries[slot];
     }
 
     // end
     library->count += 1;
-    link->library = library;
+    *out_slot = slot;
     return LT_OK;
 }
-
-// ============================================================================
-//  ufr_sys_lib_call
-// ============================================================================
-
-const char* ufr_sys_lib_call_list(link_t* link, uint8_t idx) {
-    if ( link->library == NULL ) {
-        lt_error(link, 1, "library is not loaded");
-        return NULL;
-    }
-
-    // get the function pointer
-    char func_name[512];
-    void* handle = link->library->handle;
-    snprintf(func_name, sizeof(func_name), "%s_list", link->library->name);
-    dl_func_list_t dl_func_list = (dl_func_list_t) dlsym(handle, func_name);
-    if ( dl_func_list == NULL ) {
-        lt_error(link, 1, dlerror());
-        return NULL;
-    }
-
-    // 
-    return dl_func_list(idx);
-}
-
-int ufr_sys_lib_call_new(link_t* link, const char* name, int type) {
-    if ( link->library == NULL ) {
-        return lt_error(link, 1, "library is not loaded");
-    }
-
-    // get the function pointer
-    char func_name[512];
-    void* handle = link->library->handle;
-    snprintf(func_name, sizeof(func_name), "%s_new_%s", link->library->name, name);
-    dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(handle, func_name);
-    if ( dl_func_new == NULL ) {
-        return lt_error(link, 1, dlerror());
-    }
-
-    // 
-    return dl_func_new(link, type);
-}
-
-// ============================================================================
-//  Loading Library System
-// ============================================================================
 
 /** load the library, ex: 'gtw' and 'posix' -> libufr_gtw_posix.so
  * @param[in] library_type Type of the library (ex: gtw,ecr,dcr)
  * @param[in] library_name nam of library (ex: posix, msgpack, std)
  */
 static
-int sys_ufr_load(link_t* link, const char* library_type, const char* library_name) {
-    char lib_fullname[256];
-    snprintf(lib_fullname, sizeof(lib_fullname), "ufr_%s_%s", library_type, library_name);
-    return sys_ufr_load_gtw_library(link, lib_fullname);
+int sys_ufr_load (
+    link_t* link, const char* library_type, 
+    const char* class_path, int boot_type, const lt_args_t* args
+) {
+    //
+    char lib_name[128];
+    char class_name[128];
+    uint16_t flex_cursor = 0;
+    lt_flex_text_div(class_path, &flex_cursor, lib_name, sizeof(lib_name), ':');
+    lt_flex_text_div(class_path, &flex_cursor, class_name, sizeof(class_name), ':');
+
+    // load the library
+    uint8_t slot;
+    char lib_prefix_name[256];
+    snprintf(lib_prefix_name, sizeof(lib_prefix_name), "ufr_%s_%s", library_type, lib_name);
+    const int state1 = sys_ufr_load_library(link, lib_prefix_name, &slot);
+    if ( state1 != LT_OK ) {
+        return state1;
+    }
+
+    // fill the link->[dcr,ecr or gtw]_api
+    ufr_sys_lib_call_new(link, slot, class_name, boot_type);
+
+    // store the slot and call the boot
+    if ( strcmp(library_type, "dcr") == 0 ) {
+        link->slot_lib_dcr = slot;
+        ufr_boot_dcr(link, args);
+    } else if ( strcmp(library_type, "ecr") == 0 ) {
+        link->slot_lib_ecr = slot;
+        ufr_boot_ecr(link, args);
+    } else if ( strcmp(library_type, "gtw") == 0 ) {
+        link->slot_lib_gtw = slot;
+        ufr_boot_gtw(link, args);
+    } else {
+        return lt_error(link, 1, "invalid boot type");
+    }
+
+    // end
+    return LT_OK;
 }
 
-
-int sys_ufr_new_link(link_t* link, int type, const lt_args_t* args) {
+/**
+ * 
+ */
+int sys_ufr_new_link(link_t* link, int boot_type, const lt_args_t* args) {
     lt_info(link, "creating link");
 
-    // get argument @new
-    const char* arg_new = lt_args_gets(&args, "@new", NULL);
+    // load and start the gateway
+    const char* arg_new = lt_args_gets(args, "@new", NULL);
     if ( arg_new == NULL ) {
         return lt_error(link, EINVAL, "Parameter @new is not present");
     }
-
-    // split the parameter @new to library_name and class_name
-    char library_name[128];
-    char class_name[128];
-    uint16_t class_name_cur = 0;
-    lt_flex_text_div(arg_new, &class_name_cur, library_name, sizeof(library_name), ':');
-    lt_flex_text_div(arg_new, &class_name_cur, class_name, sizeof(class_name), ':');
-
-    // load the gateway
-    lt_info(link, "- loading gateway %s loaded with (%s)", arg_new, args.text);
-    const int error1 = sys_ufr_load_gtw_library(link, class_name, args);
-    if ( error1 != LT_OK ) {
-        return error1;
-    }
-
-    // fill the link->gtw_api
-    ufr_sys_lib_call_new(link, class_name, args);
-    ufr_boot(link, args);
-
-    lt_info(link, "- gateway %s loaded", class_name);
+    sys_ufr_load(link, "gtw", arg_new, boot_type, args);
+    ufr_start(link, args);
 
     // load default encoder or decoder
-    const char* coder_name = lt_args_gets(&args, "@coder", NULL);
+    const char* coder_name = lt_args_gets(args, "@coder", NULL);
 
     // load the encoder, when indicated
-    const char* encoder_name = lt_args_gets(&args, "@encoder", coder_name);
+    const char* encoder_name = lt_args_gets(args, "@encoder", coder_name);
     if ( encoder_name != NULL ) {
-        lt_info(link, "- loading encoder %s", encoder_name);
-        const int error2 = lt_load_encoder(link, encoder_name, &args);
-        if ( error2 != LT_OK ) {
-            return error2;
-        }
-        lt_info(link, "- encoder %s loaded", encoder_name);
+        sys_ufr_load(link, "ecr", encoder_name, boot_type, args);
     }
 
     // load the decoder, when indicated
-    const char* decoder_name = lt_args_gets(&args, "@decoder", coder_name);
+    const char* decoder_name = lt_args_gets(args, "@decoder", coder_name);
     if ( decoder_name != NULL ) {
-        lt_info(link, "- loading decoder %s", decoder_name);
-        const int error3 = lt_load_decoder(link, decoder_name, &args);
-        if ( error3 != LT_OK ) {
-            return error3;
-        }
-        lt_info(link, "- decoder %s loaded", decoder_name);
+        sys_ufr_load(link, "dcr", decoder_name, boot_type, args);
     }
 
     // success
     return LT_OK;
 }
 
-
-
-
-
-
-
-
-
-int lt_load_gateway(link_t* link, const char* class_name, const lt_args_t* args) {
-
-    const int state1 = lt_load_lib(link, "gtw", class_name, args);
-    if ( state1 != LT_OK ) {
-        return state1;
-    }
-
-    return ufr_boot(link, link->type_started);
-}
-
-int lt_load_encoder(link_t* link, const char* class_name, const lt_args_t* args) {
-    return lt_load_lib(link, "ecr", class_name, args);
-}
-
-int lt_load_decoder(link_t* link, const char* class_name, const lt_args_t* args) {
-    return lt_load_lib(link, "dcr", class_name, args);
-}
-
-
-
-link_t ufr_link(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    if ( text != NULL ) {
-        lt_new_ptr(&link, text);
-    }
-    return link;
-}
-
-link_t ufr_publisher(const char* text) {
+static
+link_t ufr_link_with_type(const char* text, int boot_type) {
     link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
     if ( text == NULL ) {
         return link;
     }
-
-    
-
-
-
+    lt_args_t args = {.text=text};
+    sys_ufr_new_link(&link, boot_type, &args);
     return link;
+}
+
+link_t ufr_new(const char* text) {
+    return ufr_link_with_type(text, 0);
+}
+
+link_t ufr_link(const char* text) {
+    return ufr_link_with_type(text, 0);
+}
+
+link_t ufr_publisher(const char* text) {
+    return ufr_link_with_type(text, LT_START_PUBLISHER);
 }
 
 link_t ufr_sys_publisher(const char* name, const char* default_text) {
@@ -326,15 +313,7 @@ link_t ufr_sys_publisher(const char* name, const char* default_text) {
 }
 
 link_t ufr_subscriber(const char* text) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
-    link.type_started = LT_START_SUBSCRIBER;
-    if ( text != NULL ) {
-        if ( lt_new_ptr(&link, text) == LT_OK ) {
-            lt_args_t sub_args = {.text=text};
-            ufr_start_subscriber(&link, &sub_args);
-        }
-    }
-    return link;
+    return ufr_link_with_type(text, LT_START_SUBSCRIBER);
 }
 
 link_t ufr_sys_subscriber(const char* name, const char* default_text) {
@@ -346,6 +325,10 @@ link_t ufr_sys_subscriber(const char* name, const char* default_text) {
     }
     return ufr_subscriber(text);
 }
+
+// ============================================================================
+//  Input and Output
+// ============================================================================
 
 void ufr_output_init(const char* text) {
     g_file_out = ufr_publisher(text);
@@ -369,7 +352,6 @@ void ufr_output_ln(const char* format, ...) {
 void ufr_input_init(const char* text) {
     g_file_in = ufr_subscriber(text);
 }
-
 
 void ufr_input(const char* format, ...) {
     va_list list;

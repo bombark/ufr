@@ -45,7 +45,7 @@ void test_simple() {
     link_t link;
     lt_args_t args = {.text=""};
     assert( ufr_gtw_posix_new_pipe(&link, 0) == LT_OK );
-    assert( ufr_boot(&link, &args) == LT_OK );
+    assert( ufr_boot_gtw(&link, &args) == LT_OK );
     assert( ufr_start(&link, &args) == LT_OK );    
 
     assert( lt_write(&link, "Opa!", 4) == 4 );

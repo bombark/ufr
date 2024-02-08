@@ -28,6 +28,7 @@
 //  Header
 // ============================================================================
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -81,10 +82,26 @@ void lex_next_token(ll_decoder_t* decoder, char* out_token) {
 // ============================================================================
 
 static
-void ufr_dcr_csv_init(link_t* link, const lt_args_t* args) {
+int ufr_dcr_csv_boot(link_t* link, const lt_args_t* args) {
+    // allocate the decoder object
+    ll_decoder_t* decoder = malloc(sizeof(ll_decoder_t));
+    if ( decoder == NULL ) {
+        return lt_error(link, ENOMEM, strerror(ENOMEM));
+    }
+
+    // prepare the decoder
+    const char* sep = lt_args_gets(args, "@sep", ",");
+    decoder->sep = sep[0];
+    link->dcr_obj = (void*) decoder;
+    return LT_OK;
 }
 
-void ufr_dcr_csv_free(link_t* link, const lt_args_t* args) {
+static
+void ufr_dcr_csv_close(link_t* link) {
+    if ( link->dcr_obj != NULL ) {
+        free(link->dcr_obj);
+        link->dcr_obj = NULL;
+    }
 }
 
 static
@@ -145,6 +162,9 @@ int lt_dec_csv_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t
 
 static
 lt_decoder_api_t lt_dcr_std_csv = {
+    .boot = ufr_dcr_csv_boot,
+    .close = ufr_dcr_csv_close,
+
 	.recv = lt_dec_csv_recv,
 
 	.get_u32 = NULL,
@@ -161,11 +181,7 @@ lt_decoder_api_t lt_dcr_std_csv = {
 //  Public Functions
 // ============================================================================
 
-int ufr_dcr_std_new_csv(link_t* link, const lt_args_t* args) {
+int ufr_dcr_std_new_csv(link_t* link, int type) {
     link->dec_api = &lt_dcr_std_csv;
-    ll_decoder_t* decoder = malloc(sizeof(ll_decoder_t));
-    const char* sep = lt_args_gets(args, "@sep", ",");
-    decoder->sep = sep[0];
-    link->dec_obj = (void*) decoder;
-	return 0;
+	return LT_OK;
 }

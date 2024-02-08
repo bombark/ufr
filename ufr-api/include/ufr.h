@@ -111,8 +111,8 @@ typedef struct {
 } lt_api_t;
 
 typedef struct {
-    void (*init)(struct _link* link);
-    void (*free)(struct _link* link);
+    int (*boot)(struct _link* link, const lt_args_t* args);
+    void (*close)(struct _link* link);
 
 	void (*recv)(struct _link* link, char* msg_data, size_t msg_size);
 
@@ -129,9 +129,10 @@ typedef struct {
 } lt_decoder_api_t;
 
 typedef struct {
-    void (*init)(struct _link* link);
-    void (*free)(struct _link* link);
+    int (*boot)(struct _link* link, const lt_args_t* args);
+    void (*close)(struct _link* link);
     void (*clear)(struct _link* link);
+    int (*set_header)(struct _link* link, const char* header);
 
 	int (*put_u32)(struct _link* link, uint32_t val);
 	int (*put_i32)(struct _link* link, int32_t val);
@@ -142,8 +143,8 @@ typedef struct {
 	int (*put_arr)(struct _link* link, const void* array, char type, size_t size);
 	int (*put_mat)(struct _link* link, const void* vet, char type, size_t rows, size_t cols);
 
-    int (*enter_arr)(struct _link* link, size_t maxsize);
-    int (*leave_arr)(struct _link* link);
+    int (*enter_array)(struct _link* link, size_t maxsize);
+    int (*leave_array)(struct _link* link);
 
 } lt_encoder_api_t;
 
@@ -186,8 +187,15 @@ typedef struct _link {
     };
 
     // Decoder
-    lt_decoder_api_t* dec_api;
-    void*             dec_obj;
+    union {
+        lt_decoder_api_t* dec_api;
+        lt_decoder_api_t* dcr_api;
+    };
+
+    union {
+        void*             dec_obj;
+        void*             dcr_obj;
+    };
 
     uint8_t type_started;
     uint8_t log_level;
@@ -196,6 +204,10 @@ typedef struct _link {
     void* dl_handle;
 
     ufr_library_t* library;
+    
+    uint8_t slot_lib_gtw;
+    uint8_t slot_lib_ecr;
+    uint8_t slot_lib_dcr;
 } link_t;
 
 
@@ -230,7 +242,10 @@ link_t ufr_server(const char* text);
 link_t ufr_client(const char* text);
 
 // boot
-int ufr_boot(link_t* link, int type);
+int ufr_boot_dcr(link_t* link, const lt_args_t* args);
+int ufr_boot_ecr(link_t* link, const lt_args_t* args);
+int ufr_boot_gtw(link_t* link, const lt_args_t* args);
+
 
 // start
 int ufr_start(link_t* link, const lt_args_t* param_args);
@@ -322,9 +337,9 @@ int  lt_log_error(link_t* link, int error, const char* func_name, const char* fo
 link_t ufr_sys_open(const char* name, const char* def_args);
 
 
-int ufr_sys_load_library(link_t* link, const char* name);
-const char* ufr_sys_lib_call_list(link_t* link, uint8_t idx);
-int ufr_sys_lib_call_new(link_t* link, const char* name, int type);
+// int ufr_sys_load_library(link_t* link, const char* name);
+// const char* ufr_sys_lib_call_list(link_t* link, uint8_t idx);
+// int ufr_sys_lib_call_new(link_t* link, const char* name, int type);
 
 void urf_sys_set_ld_path(char* path);
 

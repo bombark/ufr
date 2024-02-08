@@ -119,23 +119,25 @@ void test_simple_2() {
 }
 
 void test3() {
-    // link_t link;
-    // ufr_sys_load_library(&link, "ufr_gtw_posix");
+    // open a link with gateway
     link_t link = ufr_publisher("@new posix:file @path saida.txt");
 
-/*
-    
+    // boot the encoder
     lt_args_t args = {.text="@sep ,"};  
-    ufr_ecr_std_new_csv(&link, &args);
+    ufr_ecr_std_new_csv(&link, 0);
+    ufr_boot_ecr(&link, &args);
 
-    lt_put(&link, "iii", 10,20,30);
-    ufr_enter_array(&link, 10);
+    for (int i=0; i<2; i++) {
+        // write test data
+        lt_put(&link, "iii", 10,20,30);
+        ufr_enter_array(&link, 3);
+        lt_put(&link, "iii", 40,50,60);
+        ufr_leave_array(&link);
+        lt_put(&link, "\n");
+    }
 
-    ufr_leave_array(&link);
+    // close the link
     ufr_close(&link);
-
-    lt_put(&link, "\n");
-*/
 }
 
 
@@ -147,7 +149,7 @@ int main() {
     test3();
     return 0;
 
-    test_simple();
-    test_simple_2();
-	return 0;
+    // test_simple();
+    // test_simple_2();
+	// return 0;
 }

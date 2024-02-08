@@ -187,12 +187,17 @@ int lt_posix_file_copy(link_t* link, link_t* out) {
 static
 size_t lt_posix_file_read(link_t* link, char* buffer, size_t length) {
 	ll_gw_obj_t* gw_obj = link->gw_obj;
-	return fread(buffer, 1, length, gw_obj->fd);
+    if ( gw_obj == NULL ) {
+        lt_error(link, 1, "gw_obj is null");
+        return 0;
+    }
+	const size_t nbytes = fread(buffer, 1, length, gw_obj->fd);
+    lt_info(link, "read %ld bytes", nbytes);
+    return nbytes;
 }
 
 static
 size_t lt_posix_file_write(link_t* link, const char* buffer, size_t length) {
-    lt_info(link, "write %ld bytes", length);
 	ll_gw_obj_t* gw_obj = link->gw_obj;
     if ( gw_obj == NULL ) {
         lt_error(link, 1, "gw_obj is null");
@@ -202,7 +207,9 @@ size_t lt_posix_file_write(link_t* link, const char* buffer, size_t length) {
         lt_error(link, 1, "gw_obj->fd is null");
         return 0;
     }
-    return fwrite(buffer, 1, length, gw_obj->fd);
+    const size_t nbytes = fwrite(buffer, 1, length, gw_obj->fd);
+    lt_info(link, "wrote %ld bytes", nbytes);
+    return nbytes;
 }
 
 static
@@ -301,7 +308,6 @@ lt_api_t lt_posix_stdin = {
 // ============================================================================
 
 int ufr_gtw_posix_new_file(link_t* link, int type) {
-printf("a %d\n", type);
     link->gtw_api = &lt_posix_file;
     link->type_started = type;
     return LT_OK;

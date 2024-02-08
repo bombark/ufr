@@ -111,13 +111,22 @@ void lt_init_api(link_t* link, lt_api_t* gw_api) {
     link->log_level = g_default_log_level;
 }
 
+int ufr_boot_dcr(link_t* link, const lt_args_t* args) {
+    lt_info(link, "booting decoder");
+    const int state = link->dec_api->boot(link, args);
+    return state;
+}
 
-int ufr_boot(link_t* link, int type) {
-    // const lt_args_t empty_args = {.text=""};
-    // const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
-    // const int error = link->gtw_api->boot(link, args);
-    const int error = link->gtw_api->boot(link, type);
-    return error;
+int ufr_boot_ecr(link_t* link, const lt_args_t* args) {
+    lt_info(link, "booting encoder");
+    const int state = link->ecr_api->boot(link, args);
+    return state;
+}
+
+int ufr_boot_gtw(link_t* link, const lt_args_t* args) {
+    lt_info(link, "booting gateway");
+    const int state = link->gtw_api->boot(link, args);
+    return state;
 }
 
 int ufr_start(link_t* link, const lt_args_t* param_args) {
@@ -129,7 +138,6 @@ int ufr_start(link_t* link, const lt_args_t* param_args) {
     link->log_level = lt_args_geti(args, "@debug", g_default_log_level);
 
     // call driver function
-    printf("qq %d\n", link->type_started);
     const int type = link->type_started;
     const int error = link->gtw_api->start(link, type, args);
 
@@ -347,11 +355,11 @@ size_t lt_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
 }
 
 int ufr_enter_array(link_t* link, size_t arr_size_max) {
-    return link->ecr_api->enter_arr(link, arr_size_max);
+    return link->ecr_api->enter_array(link, arr_size_max);
 }
 
 int ufr_leave_array(link_t* link) {
-    return link->ecr_api->leave_arr(link);
+    return link->ecr_api->leave_array(link);
 }
 
 // ============================================================================

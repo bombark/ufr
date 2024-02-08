@@ -28,16 +28,17 @@
 //  Header
 // ============================================================================
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <string>
-#include <errno.h>
 #include <ufr.h>
 
 struct encoder_obj_t {
+    const char* header;
     const char* sep;
     std::string line;
 };
@@ -45,6 +46,29 @@ struct encoder_obj_t {
 // ============================================================================
 //  CSV
 // ============================================================================
+
+static
+int ufr_ecr_csv_boot(link_t* link, const lt_args_t* args) {
+    // allocate the encoder
+    encoder_obj_t* enc_obj = new encoder_obj_t();
+    if ( enc_obj == NULL ) {
+        return lt_error(link, ENOMEM, strerror(ENOMEM));
+    }
+
+    // fill the encoder data
+    const char* sep = lt_args_gets(args, "@sep", ",");
+    enc_obj->sep = sep;
+    link->enc_obj = enc_obj;
+    return LT_OK;
+}
+
+static
+void ufr_ecr_csv_close(link_t* link) {
+    if ( link->ecr_obj != NULL ) {
+        free(link->ecr_obj);
+        link->ecr_obj = NULL;
+    }
+}
 
 static
 int lt_enc_csv_put_u32(link_t* link, uint32_t val) {
@@ -101,38 +125,51 @@ static
 int lt_enc_csv_put_str(link_t* link, const char* val) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
 
-	if ( enc_obj->line.size() == 0 ) {
-		enc_obj->line += val;
-	} else {
+    if ( enc_obj->line.size() == 0 ) {
+        enc_obj->line += val;
+    } else {
         enc_obj->line += enc_obj->sep;
-		enc_obj->line += val;
-	}
-	
-	return 0;
+        enc_obj->line += val;
+    }
+
+    return 0;
 }
 
 static
 int lt_enc_csv_put_cmd(link_t* link, char cmd) {
-	if ( cmd == '\n' ) {
+    if ( cmd == '\n' ) {
         encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
         enc_obj->line += '\n';
         lt_write(link, enc_obj->line.c_str(), enc_obj->line.size());
         enc_obj->line.clear();
-	}
-	return 0;
-}
-
-int ufr_ecr_enter_arr(link_t* link, size_t maxsize) {
+    }
     return 0;
 }
 
+int ufr_ecr_enter_array(link_t* link, size_t maxsize) {
+    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
+    if ( enc_obj->line.size() > 0 ) {
+        enc_obj->line += enc_obj->sep;
+    }
+    enc_obj->line += "#ENTER_ARRAY";
+    return LT_OK;
+}
 
-int ufr_ecr_leave_arr(link_t* link) {
-    return 0;
+
+int ufr_ecr_leave_array(link_t* link) {
+    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
+    if ( enc_obj->line.size() > 0 ) {
+        enc_obj->line += enc_obj->sep;
+    }
+    enc_obj->line += "#LEAVE_ARRAY";
+    return LT_OK;
 }
 
 static
-lt_encoder_api_t lt_enc_csv = {
+lt_encoder_api_t ufr_ecr_std_csv_api = {
+    .boot = ufr_ecr_csv_boot,
+    .close = ufr_ecr_csv_close,
+
 	.put_u32 = lt_enc_csv_put_u32,
 	.put_i32 = lt_enc_csv_put_i32,
 	.put_f32 = lt_enc_csv_put_f32,
@@ -140,25 +177,17 @@ lt_encoder_api_t lt_enc_csv = {
 
 	.put_cmd = lt_enc_csv_put_cmd,
 
-    .enter_arr = ufr_ecr_enter_arr,
-    .leave_arr = ufr_ecr_leave_arr
+    .enter_array = ufr_ecr_enter_array,
+    .leave_array = ufr_ecr_leave_array
 };
 
+// ============================================================================
+//  Public Funtions
+// ============================================================================
+
 extern "C"
-int ufr_ecr_std_new_csv(link_t* link, const lt_args_t* args) {
-    // get parameters
-	const char* sep = lt_args_gets(args, "@sep", ",");
-
-    // 
-    encoder_obj_t* enc_obj = new encoder_obj_t();
-    if ( enc_obj == NULL ) {
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
-    }
-    enc_obj->sep = sep;
-
-    // set the link
-	link->enc_api = &lt_enc_csv;
-	link->enc_obj = enc_obj;
-	return 0;
+int ufr_ecr_std_new_csv(link_t* link, int type) {
+	link->ecr_api = &ufr_ecr_std_csv_api;
+	return LT_OK;
 }
 
