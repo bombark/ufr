@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.0)
 project(ufr)
 
 # include UFR API
-include_directories(./ufr-api/include)
+include_directories(./ufr-api-c/include)
 
 # Build libraries with no dependencies
-add_subdirectory(./ufr-api)
+add_subdirectory(./ufr-api-c)
 add_subdirectory(./ufr-gtw-posix)
 add_subdirectory(./ufr-cc-std)
 

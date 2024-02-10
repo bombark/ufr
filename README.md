@@ -31,7 +31,7 @@ Development of an interface for different communication protocols inspired by th
 
 ```
 mkdir build
-cmake..
+cmake ..
 make
 ```
 
