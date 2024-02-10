@@ -1,6 +1,6 @@
 # Unified Framework for Robotics (UFR)
 
-[:uk: Inglês](README.md) [:brazil: Português](README.pt.md)
+[:uk: English](README.md) [:brazil: Portuguese](README.pt.md)
 
 Robot projects typically use a robotics framework to modularize their code into small parts. This modularization is necessary to increase the portability of the same code for different robots and also to increase the sharing of complex algorithms for SLAM. It is worth remembering that Free Software is very important to optimize this sharing and allow all countries to advance technologically.
 
