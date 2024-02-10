@@ -136,3 +136,10 @@ compilação: gcc client.c -o client -lufr
 - fazer driver para bases de dados;
 - fazer driver para interfaces graficas, portanto provar que a interface consegue abstrair  programação baseada em eventos;
 
+# Lista de Abreviações
+- gtw: gateway
+- ecr: encoder
+- dcr: decoder
+- stk: stack
+- cc: decoder and encoder
+- app: application

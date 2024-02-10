@@ -135,3 +135,11 @@ gcc client.c -o client -lufr
 - develop a select mechanism to read devices at different frequencies;
 - make drivers for databases;
 - create a driver for graphical interfaces, therefore proving that the interface can abstract event-based programming;
+
+# List of Abbreviations
+- gtw: gateway
+- ecr: encoder
+- dcr: decoder
+- stk: stack
+- cc: decoder and encoder
+- app: application
