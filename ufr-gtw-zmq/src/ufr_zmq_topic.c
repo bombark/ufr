@@ -89,6 +89,8 @@ int ufr_zmq_topic_start(struct _link* link, int type, const lt_args_t* args) {
 
         ll_obj_t* local = link->gw_obj;
         local->socket = socket;
+    } else {
+        return lt_error(link, 1, "start type invalid (%d)", type);
     }
 
     return 0;
@@ -108,6 +110,10 @@ lt_api_t ufr_zmq_topic_api = {
 	.read = ufr_zmq_read,
 	.write = ufr_zmq_write,
 };
+
+// ============================================================================
+//  Public Functions
+// ============================================================================
 
 int ufr_gtw_zmq_new_topic(link_t* link, const int type) {
     lt_init_api(link, &ufr_zmq_topic_api);

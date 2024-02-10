@@ -44,6 +44,7 @@ void test1() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
     assert( ufr_ecr_msgpack_new_obj(&link, 0) == LT_OK );
+    assert( ufr_boot_ecr(&link, NULL) == LT_OK );
     
     {
         lt_put(&link, "iii\n", 10, 20, 30);
@@ -99,7 +100,7 @@ void test2() {
 // ============================================================================
 
 int main() {
-    // test1();
-    test2();
+    test1();
+    // test2();
 	return 0;
 }

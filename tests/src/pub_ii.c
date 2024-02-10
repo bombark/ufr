@@ -38,6 +38,7 @@
 // ============================================================================
 
 int main() {
+    /*
     // ufr_output_init("@new zmq:topic @host 192.168.43.128 @port 5003 @coder msgpack:obj");
     ufr_output_init("@new mqtt:topic @host 185.209.160.8 @topic robo/motor @coder msgpack:obj");
     // ufr_output_init("@new zmq:topic @host 127.0.0.1 @port 5000 @coder msgpack:obj");
@@ -47,6 +48,14 @@ int main() {
         int vel, rotvel;
         scanf("%d %d", &vel, &rotvel);
         ufr_output("ii\n", vel, rotvel);
+    }
+    */
+
+    link_t link = ufr_publisher("@new zmq:topic @host 127.0.0.1 @port 5002 @coder msgpack:obj");
+    while (1) {
+        int vel, rotvel;
+        scanf("%d %d", &vel, &rotvel);
+        ufr_put(&link, "ii\n", vel, rotvel);
     }
     
     return 0;

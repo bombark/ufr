@@ -52,31 +52,12 @@ int main(int argc, char **argv) {
     // 
     link_t sub_motors = ufr_sys_open("motor", "@new zmq:topic @host 127.0.0.1 @port 5002 @coder msgpack:obj");
     ufr_start_subscriber(&sub_motors, NULL);
-    
+
     //
     link_t pub_compass = ufr_sys_publisher("compass", "@new zmq:topic @host 127.0.0.1 @port 5003 @coder msgpack:obj @message ff");
-    
+
     //
     link_t pub_encoder = ufr_sys_publisher("encoder", "@new zmq:topic @host 127.0.0.1 @port 5004 @coder msgpack:obj");
-
-
-/*
-    link_t pub_lidar = ufr_sys_open("lidar", "@new mqtt:topic @host 185.209.160.8 @topic robo/lidar @coder msgpack:obj");
-    lt_start_publisher(&pub_lidar, NULL);
-
-    // 
-    link_t sub_motors = ufr_sys_open("motor", "@new mqtt:topic @host 185.209.160.8 @topic robo/motor @coder msgpack:obj");
-    lt_start_subscriber(&sub_motors, NULL);
-    
-    //
-    link_t pub_compass = ufr_sys_open("compass", "@new mqtt:topic @host 185.209.160.8 @topic robo/compass @coder msgpack:obj");
-    lt_start_publisher(&pub_compass, NULL);
-    
-    //
-    link_t pub_encoder = ufr_sys_open("encoder", "@new mqtt:topic @host 185.209.160.8 @topic robo/pose @coder msgpack:obj");
-    lt_start_publisher(&pub_encoder, NULL);
-*/
-
 
     // init webots stuff
     wb_robot_init();
@@ -123,7 +104,7 @@ int main(int argc, char **argv) {
     while (wb_robot_step(TIME_STEP) != -1) {
         // publisher the lidar values
         lms291_values = wb_lidar_get_range_image(lms291);
-        // lt_put(&pub_lidar, "af\n", lms291_width, lms291_values);
+        ufr_put(&pub_lidar, "af\n", lms291_width, lms291_values);
 
         // compass
         const double* compass_values = wb_compass_get_values(compass);
@@ -138,7 +119,7 @@ int main(int argc, char **argv) {
         if (bearing < 0.0)
             bearing = bearing + 360.0;
         */
-        lt_put(&pub_compass, "f\n", rad);
+        ufr_put(&pub_compass, "f\n", rad);
 
         // wheel encoders
         const int left = wb_position_sensor_get_value(left_position_sensor);

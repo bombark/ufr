@@ -38,6 +38,7 @@
 // ============================================================================
 
 int main() {
+    /*
     ufr_input_init("@new mqtt:topic @host 185.209.160.8 @topic teste @coder msgpack:obj");
     // ufr_input_init("@new zmq:topic @coder std:csv");
 
@@ -46,6 +47,7 @@ int main() {
 	    ufr_input("^ii", &a, &b);
         printf("%d %d\n", a, b);
     }
+    */
     
     return 0;
 }

@@ -252,13 +252,18 @@ int sys_ufr_load (
 int sys_ufr_new_link(link_t* link, int boot_type, const lt_args_t* args) {
     lt_info(link, "creating link");
 
-    // load and start the gateway
+    // load and boot the gateway
     const char* arg_new = lt_args_gets(args, "@new", NULL);
     if ( arg_new == NULL ) {
         return lt_error(link, EINVAL, "Parameter @new is not present");
     }
     sys_ufr_load(link, "gtw", arg_new, boot_type, args);
-    ufr_start(link, args);
+
+    // start the gateway, case specified (publisher, subscriver, server or client)
+    link->type_started = boot_type;
+    if ( boot_type != LT_START_BLANK ) {
+        ufr_start(link, args);
+    }
 
     // load default encoder or decoder
     const char* coder_name = lt_args_gets(args, "@coder", NULL);
