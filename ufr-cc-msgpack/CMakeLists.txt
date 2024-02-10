@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(cc_msgpack)
 
 # find_package(msgpackc REQUIRED)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(msgpackc IMPORTED_TARGET libmsgpackc REQUIRED)
 
 add_library(ufr_ecr_msgpack SHARED ./src/ufr_ecr_msgpack.c)
 target_link_libraries(ufr_ecr_msgpack msgpackc ufr)
