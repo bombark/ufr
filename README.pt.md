@@ -27,7 +27,7 @@ Desenvolvimento de uma interface para os diferentes protocolos de comunicação 
 - Permitir o uso das mesmas funções para diferentes linguanges, como Python, Pascal e outros;
 - Permitir uma flexibilidade de uso entre diferentes protocolo e diferentes codificação de mensagem como CSV, JSON, YAML ou Msgpack;
 
-# Compilação do UFR
+# Compilação
 
 ```
 mkdir build
