@@ -27,6 +27,16 @@ Desenvolvimento de uma interface para os diferentes protocolos de comunicação 
 - Permitir o uso das mesmas funções para diferentes linguanges, como Python, Pascal e outros;
 - Permitir uma flexibilidade de uso entre diferentes protocolo e diferentes codificação de mensagem como CSV, JSON, YAML ou Msgpack;
 
+# Compilação do UFR
+
+```
+mkdir build
+cmake ..
+make
+```
+
+Pode-se usar ccmake para configurar habilitar compilação de drivers que precisam de outras bibliotecas.
+
 # Exemplo de Publicante
 
 Arquivo publisher.c

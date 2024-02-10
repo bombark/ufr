@@ -27,10 +27,15 @@ Development of an interface for different communication protocols inspired by th
 - Allow the use of the same functions for different languages, such as Python, Pascal and others;
 - Allow flexibility of use between different protocols and different message encodings such as CSV, JSON, YAML or Msgpack;
 
+# UFR compilation
 
+```
+mkdir build
+cmake..
+makeup
+```
 
-
-
+You can use ccmake to configure enable compilation of drivers that require other libraries.
 
 # Publisher Example
 
