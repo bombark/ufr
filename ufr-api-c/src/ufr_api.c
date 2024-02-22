@@ -656,11 +656,11 @@ const char* ufr_test_args(const link_t* link) {
 }
 
 
-size_t  ufr_dummy_read(link_t*, char*, size_t) {
+size_t  ufr_dummy_read(link_t* link, char* buffer, size_t size) {
     return 0;
 }
 
-size_t ufr_dummy_write(link_t*, const char*, size_t) {
+size_t ufr_dummy_write(link_t* link, const char* buffer, size_t size) {
     return 0;
 }
 
