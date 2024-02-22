@@ -38,32 +38,48 @@
 //  Tests
 // ============================================================================
 
-int test_publisher() {
+void test_topic(link_t* link, const char* class_name) {
 
+    int state = ufr_sys_lib_call_new(link, link->slot_lib_gtw, class_name, LT_START_PUBLISHER);
+    assert( state == LT_OK );
+
+    const char* test_args = ufr_test_args(link);
+    assert( test_args != NULL );
+
+    lt_args_t args = {.text=test_args};
+    assert( ufr_boot_gtw(link, &args) == LT_OK );
+    assert( ufr_start(link, &args) == LT_OK );
+    assert( ufr_write(link, "opa\n", 4) == 4 );
+    ufr_close(link);
 }
 
+void test_socket(link_t* link, const char* class_name) {
+}
+
+
 // ============================================================================
-//  Header
+//  Main
 // ============================================================================
 
-int main() {
+int main(int argc, char** argv) {
+    const char* lib_file = "./ufr-gtw-posix/libufr_gtw_posix.so";
+    char* pack_name = "ufr_gtw_posix";
+
     link_t link;
-    // assert( ufr_sys_load_library(&link, "ufr_gtw_posix") == LT_OK );
+    assert( ufr_load_gtw_from_lib(&link, lib_file, pack_name) == LT_OK );
 
-    for (int i=0; i<10; i++) {
-        const char* name = ufr_sys_lib_call_list(&link, i);
-        if ( name == NULL ) {
-            break;
+    int i=0;
+    // for (int i=0; i<10; i++) {
+        const char* class_name = ufr_sys_lib_call_list(link.slot_lib_gtw, i);
+        if ( class_name == NULL ) {
+            // break;
         }
-        printf("%s\n", name);
-    }
+        
+        printf("%s\n", class_name);
+        test_topic(&link, class_name);
+    // }
 
-    assert( ufr_sys_lib_call_new(&link, "file", NULL) == LT_OK );
+    
 
-    lt_args_t args = {.text="@path saida.txt"};
-    ufr_boot_gtw(&link, &args);
-    ufr_start(&link, &args);
-    lt_write(&link, "opa\n", 4);
-    lt_close(&link);
     return 0;
 }

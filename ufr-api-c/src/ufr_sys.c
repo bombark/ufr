@@ -44,12 +44,9 @@ link_t* g_file_in_ptr = &g_file_in;   // modified when the mode STDINOUT is acti
 typedef int (*dl_func_new_t) (link_t*, int type);
 typedef const char* (*dl_func_list_t) (const uint8_t idx);
 
-
 char g_ld_lib_path[1024];
 
-
-
-uint8_t g_libraries_len = 0;
+uint8_t g_libraries_len = 1;   // 0: error, 1-255 is loaded library
 ufr_library_t g_libraries[255];
 
 // ============================================================================
@@ -115,16 +112,14 @@ void ufr_sys_init() {
 //  ufr_sys_lib_call
 // ============================================================================
 
-const char* ufr_sys_lib_call_list (
-    link_t* link, const uint8_t slot, const uint8_t list_idx
-) {
+const char* ufr_sys_lib_call_list (const uint8_t slot, const uint8_t list_idx) {
     // get the function pointer
     char func_name[512];
     ufr_library_t* library = &g_libraries[slot];
+
     snprintf(func_name, sizeof(func_name), "%s_list", library->name);
     dl_func_list_t dl_func_list = (dl_func_list_t) dlsym(library->handle, func_name);
     if ( dl_func_list == NULL ) {
-        lt_error(link, 1, dlerror());
         return NULL;
     }
 
@@ -154,13 +149,14 @@ int ufr_sys_lib_call_new (
 //  Loading Library System
 // ============================================================================
 
-int sys_ufr_load_library(link_t* link, const char* name, uint8_t* out_slot) {
-    lt_info(link, "loading library %s", name);
+int sys_ufr_load_library (
+    link_t* link, const char* lib_file, const char* lib_fullname,
+    uint8_t* out_slot
+) {
+    lt_info(link, "loading library %s", lib_fullname);
 
     // open the dinamic library handle
-    char filename[512];
-    snprintf(filename, sizeof(filename), "lib%s.so", name);
-    void* dl_handle = dlopen(filename, RTLD_LAZY);
+    void* dl_handle = dlopen(lib_file, RTLD_LAZY);
     if ( dl_handle == NULL ) {
         return lt_error(link, 1, dlerror());
     }
@@ -182,12 +178,12 @@ int sys_ufr_load_library(link_t* link, const char* name, uint8_t* out_slot) {
     // -- create new slot for the library
     if ( is_not_loaded ) {
         slot = g_libraries_len;
-        lt_info(link, "loaded library %s no slot %d", name, slot);
+        lt_info(link, "loaded library %s no slot %d", lib_fullname, slot);
         g_libraries_len += 1;
         library = &g_libraries[slot];
         library->count = 0;
         library->handle = dl_handle;
-        strcpy(library->name, name);
+        strcpy(library->name, lib_fullname);
 
     // -- library is already loaded, get the slot
     } else {
@@ -197,6 +193,17 @@ int sys_ufr_load_library(link_t* link, const char* name, uint8_t* out_slot) {
     // end
     library->count += 1;
     *out_slot = slot;
+    return LT_OK;
+}
+
+int ufr_load_gtw_from_lib(link_t* link, const char* lib_file, const char* lib_name) {
+    uint8_t slot;
+    const int state = sys_ufr_load_library(link, lib_file, lib_name, &slot);
+    if ( state != LT_OK ) {
+        return state;
+    }
+
+    link->slot_lib_gtw = slot;
     return LT_OK;
 }
 
@@ -218,9 +225,11 @@ int sys_ufr_load (
 
     // load the library
     uint8_t slot;
-    char lib_prefix_name[256];
-    snprintf(lib_prefix_name, sizeof(lib_prefix_name), "ufr_%s_%s", library_type, lib_name);
-    const int state1 = sys_ufr_load_library(link, lib_prefix_name, &slot);
+    char lib_file[512];
+    char lib_fullname[256];
+    snprintf(lib_fullname, sizeof(lib_fullname), "ufr_%s_%s", library_type, lib_name);
+    snprintf(lib_file, sizeof(lib_file), "lib%s.so", lib_fullname);
+    const int state1 = sys_ufr_load_library(link, lib_file, lib_fullname, &slot);
     if ( state1 != LT_OK ) {
         return state1;
     }
@@ -255,8 +264,10 @@ int sys_ufr_new_link(link_t* link, int boot_type, const lt_args_t* args) {
     // load and boot the gateway
     const char* arg_new = lt_args_gets(args, "@new", NULL);
     if ( arg_new == NULL ) {
+    	link->slot_lib_gtw = 0;
         return lt_error(link, EINVAL, "Parameter @new is not present");
     }
+
     sys_ufr_load(link, "gtw", arg_new, boot_type, args);
 
     // start the gateway, case specified (publisher, subscriver, server or client)
@@ -269,42 +280,48 @@ int sys_ufr_new_link(link_t* link, int boot_type, const lt_args_t* args) {
     const char* coder_name = lt_args_gets(args, "@coder", NULL);
 
     // load the encoder, when indicated
-    const char* encoder_name = lt_args_gets(args, "@encoder", coder_name);
-    if ( encoder_name != NULL ) {
-        sys_ufr_load(link, "ecr", encoder_name, boot_type, args);
+    if ( boot_type != LT_START_SUBSCRIBER ) {
+        const char* encoder_name = lt_args_gets(args, "@encoder", coder_name);
+        if ( encoder_name != NULL ) {
+            sys_ufr_load(link, "ecr", encoder_name, boot_type, args);
+        }
     }
 
     // load the decoder, when indicated
-    const char* decoder_name = lt_args_gets(args, "@decoder", coder_name);
-    if ( decoder_name != NULL ) {
-        sys_ufr_load(link, "dcr", decoder_name, boot_type, args);
+    if ( boot_type != LT_START_PUBLISHER ) {
+        const char* decoder_name = lt_args_gets(args, "@decoder", coder_name);
+        if ( decoder_name != NULL ) {
+            sys_ufr_load(link, "dcr", decoder_name, boot_type, args);
+        }
     }
 
     // success
     return LT_OK;
 }
 
-static
-link_t ufr_link_with_type(const char* text, int boot_type) {
-    link_t link = {.gw_api=NULL, .dec_api=NULL, .enc_api=NULL};
+int ufr_link_with_type(link_t* link, const char* text, int boot_type) {
+    lt_init_api(link, NULL);
     if ( text == NULL ) {
-        return link;
+        return lt_error(link, 1, "text parameter is null");
     }
-    lt_args_t args = {.text=text};
-    sys_ufr_new_link(&link, boot_type, &args);
-    return link;
+    const lt_args_t args = {.text=text};
+    return sys_ufr_new_link(link, boot_type, &args);
 }
 
 link_t ufr_new(const char* text) {
-    return ufr_link_with_type(text, 0);
+    link_t link;
+    ufr_link_with_type(&link, text, 0);
+    return link;
 }
 
 link_t ufr_link(const char* text) {
-    return ufr_link_with_type(text, 0);
+    return ufr_new(text);
 }
 
 link_t ufr_publisher(const char* text) {
-    return ufr_link_with_type(text, LT_START_PUBLISHER);
+    link_t link;
+    ufr_link_with_type(&link, text, LT_START_PUBLISHER);
+    return link;
 }
 
 link_t ufr_sys_publisher(const char* name, const char* default_text) {
@@ -318,7 +335,9 @@ link_t ufr_sys_publisher(const char* name, const char* default_text) {
 }
 
 link_t ufr_subscriber(const char* text) {
-    return ufr_link_with_type(text, LT_START_SUBSCRIBER);
+    link_t link;
+    ufr_link_with_type(&link, text, LT_START_SUBSCRIBER);
+    return link;
 }
 
 link_t ufr_sys_subscriber(const char* name, const char* default_text) {
@@ -329,6 +348,12 @@ link_t ufr_sys_subscriber(const char* name, const char* default_text) {
         text = default_text;
     }
     return ufr_subscriber(text);
+}
+
+link_t ufr_server(const char* text) {
+    link_t link;
+    ufr_link_with_type(&link, text, LT_START_BIND);
+    return link;
 }
 
 // ============================================================================
@@ -361,7 +386,7 @@ void ufr_input_init(const char* text) {
 void ufr_input(const char* format, ...) {
     va_list list;
     va_start(list, format);
-    lt_get_va(g_file_in_ptr, format, list);
+    ufr_get_va(g_file_in_ptr, format, list);
     va_end(list);
 }
 

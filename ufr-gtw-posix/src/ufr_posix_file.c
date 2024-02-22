@@ -69,22 +69,22 @@ ll_gw_obj_t* new_gw_obj(FILE* fd, size_t recv_buffer_size) {
 // ============================================================================
 
 static
-int lt_posix_file_type(const link_t* link) {
+int ufr_gtw_posix_file_type(const link_t* link) {
 	return 0;
 }
 
 static
-int lt_posix_file_state(const link_t* link){
+int ufr_gtw_posix_file_state(const link_t* link){
 	return 0;
 }
 
 static
-size_t lt_posix_file_size(const link_t* link, int type){
+size_t ufr_gtw_posix_file_size(const link_t* link, int type){
 	return 0;
 }
 
 static
-int lt_posix_file_boot(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_file_boot(link_t* link, const lt_args_t* args) {
 	const char* path = lt_args_gets(args, "@path", NULL);
     if ( path == NULL ) {
         lt_error(link, EINVAL, "Parameter @path is blank");
@@ -114,7 +114,7 @@ int lt_posix_file_boot(link_t* link, const lt_args_t* args) {
 }
 
 static
-int lt_posix_file_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_file_start(link_t* link, int type, const lt_args_t* args) {
     // start publisher
     if ( type == LT_START_PUBLISHER ) {
         ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
@@ -143,7 +143,7 @@ int lt_posix_file_start(link_t* link, int type, const lt_args_t* args) {
 }
 
 static
-void lt_posix_file_stop(link_t* link, int type) {
+void ufr_gtw_posix_file_stop(link_t* link, int type) {
     if ( link->gw_obj != NULL ) {
         ll_gw_obj_t* gw_obj = link->gw_obj;
         fclose(gw_obj->fd);
@@ -164,7 +164,7 @@ void lt_posix_file_stop(link_t* link, int type) {
 }
 
 static 
-bool lt_posix_file_recv(link_t* link) {
+bool ufr_gtw_posix_file_recv(link_t* link) {
     ll_gw_obj_t* gw_obj = link->gw_obj;
     const char* buf = fgets(gw_obj->recv_buffer, gw_obj->recv_buffer_size, gw_obj->fd);
     if ( buf == NULL ) {
@@ -180,12 +180,12 @@ bool lt_posix_file_recv(link_t* link) {
 }
 
 static
-int lt_posix_file_copy(link_t* link, link_t* out) {
+int ufr_gtw_posix_file_copy(link_t* link, link_t* out) {
 	return 0;
 }
 
 static
-size_t lt_posix_file_read(link_t* link, char* buffer, size_t length) {
+size_t ufr_gtw_posix_file_read(link_t* link, char* buffer, size_t length) {
 	ll_gw_obj_t* gw_obj = link->gw_obj;
     if ( gw_obj == NULL ) {
         lt_error(link, 1, "gw_obj is null");
@@ -197,7 +197,7 @@ size_t lt_posix_file_read(link_t* link, char* buffer, size_t length) {
 }
 
 static
-size_t lt_posix_file_write(link_t* link, const char* buffer, size_t length) {
+size_t ufr_gtw_posix_file_write(link_t* link, const char* buffer, size_t length) {
 	ll_gw_obj_t* gw_obj = link->gw_obj;
     if ( gw_obj == NULL ) {
         lt_error(link, 1, "gw_obj is null");
@@ -212,19 +212,24 @@ size_t lt_posix_file_write(link_t* link, const char* buffer, size_t length) {
     return nbytes;
 }
 
+const char* ufr_gtw_posix_file_test_args(const link_t* link) {
+    return "@path teste.txt";
+}
+
 static
-lt_api_t lt_posix_file = {
-    .name = "Posix:File",
-    .type = lt_posix_file_type,
-    .state = lt_posix_file_state,
-    .size = lt_posix_file_size,
-    .boot = lt_posix_file_boot,
-    .start = lt_posix_file_start,
-    .stop = lt_posix_file_stop,
-    .copy = lt_posix_file_copy,
-    .read = lt_posix_file_read,
-    .write = lt_posix_file_write,
-    .recv = lt_posix_file_recv
+lt_api_t ufr_gtw_posix_file_api = {
+    .name = "file",
+    .type = ufr_gtw_posix_file_type,
+    .state = ufr_gtw_posix_file_state,
+    .size = ufr_gtw_posix_file_size,
+    .boot = ufr_gtw_posix_file_boot,
+    .start = ufr_gtw_posix_file_start,
+    .stop = ufr_gtw_posix_file_stop,
+    .copy = ufr_gtw_posix_file_copy,
+    .read = ufr_gtw_posix_file_read,
+    .write = ufr_gtw_posix_file_write,
+    .recv = ufr_gtw_posix_file_recv,
+    .test_args = ufr_gtw_posix_file_test_args
 };
 
 // ============================================================================
@@ -232,7 +237,7 @@ lt_api_t lt_posix_file = {
 // ============================================================================
 
 static
-int lt_posix_stdout_boot(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_stdout_boot(link_t* link, const lt_args_t* args) {
     link->gw_shr = NULL;
     link->gw_obj = new_gw_obj(stdout, 0);
 
@@ -241,29 +246,29 @@ int lt_posix_stdout_boot(link_t* link, const lt_args_t* args) {
 }
 
 static
-int lt_posix_stdout_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_stdout_start(link_t* link, int type, const lt_args_t* args) {
     // success
 	return LT_OK;
 }
 
 static
-void lt_posix_stdout_stop(link_t* link, int type) {
+void ufr_gtw_posix_stdout_stop(link_t* link, int type) {
 
 }
 
 static
-lt_api_t lt_posix_stdout = {
+lt_api_t ufr_gtw_posix_stdout_api = {
     .name = "Posix:File",
-    .type = lt_posix_file_type,
-    .state = lt_posix_file_state,
-    .size = lt_posix_file_size,
-    .boot = lt_posix_stdout_boot,
-    .start = lt_posix_stdout_start,
-    .stop = lt_posix_stdout_stop,
-    .copy = lt_posix_file_copy,
-    .read = lt_posix_file_read,
-    .write = lt_posix_file_write,
-    .recv = lt_posix_file_recv
+    .type = ufr_gtw_posix_file_type,
+    .state = ufr_gtw_posix_file_state,
+    .size = ufr_gtw_posix_file_size,
+    .boot = ufr_gtw_posix_stdout_boot,
+    .start = ufr_gtw_posix_stdout_start,
+    .stop = ufr_gtw_posix_stdout_stop,
+    .copy = ufr_gtw_posix_file_copy,
+    .read = ufr_gtw_posix_file_read,
+    .write = ufr_gtw_posix_file_write,
+    .recv = ufr_gtw_posix_file_recv
 };
 
 // ============================================================================
@@ -271,36 +276,36 @@ lt_api_t lt_posix_stdout = {
 // ============================================================================
 
 static
-int lt_posix_stdin_boot(link_t* link, const lt_args_t* args) {
+int ufr_gtw_posix_stdin_boot(link_t* link, const lt_args_t* args) {
     link->gw_shr = NULL;
     link->gw_obj = new_gw_obj(stdin, RECV_BUFFER_SIZE_DEFAULT);
 	return LT_OK;
 }
 
 static
-int lt_posix_stdin_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_stdin_start(link_t* link, int type, const lt_args_t* args) {
     // success
 	return LT_OK;
 }
 
 static
-void lt_posix_stdin_stop(link_t* link, int type) {
+void ufr_gtw_posix_stdin_stop(link_t* link, int type) {
 
 }
 
 static
-lt_api_t lt_posix_stdin = {
+lt_api_t ufr_gtw_posix_stdin_api = {
     .name = "Posix:File",
-    .type = lt_posix_file_type,
-    .state = lt_posix_file_state,
-    .size = lt_posix_file_size,
-    .boot = lt_posix_stdin_boot,
-    .start = lt_posix_stdin_start,
-    .stop = lt_posix_stdin_stop,
-    .copy = lt_posix_file_copy,
-    .read = lt_posix_file_read,
-    .write = lt_posix_file_write,
-    .recv = lt_posix_file_recv
+    .type = ufr_gtw_posix_file_type,
+    .state = ufr_gtw_posix_file_state,
+    .size = ufr_gtw_posix_file_size,
+    .boot = ufr_gtw_posix_stdin_boot,
+    .start = ufr_gtw_posix_stdin_start,
+    .stop = ufr_gtw_posix_stdin_stop,
+    .copy = ufr_gtw_posix_file_copy,
+    .read = ufr_gtw_posix_file_read,
+    .write = ufr_gtw_posix_file_write,
+    .recv = ufr_gtw_posix_file_recv
 };
 
 // ============================================================================
@@ -308,19 +313,19 @@ lt_api_t lt_posix_stdin = {
 // ============================================================================
 
 int ufr_gtw_posix_new_file(link_t* link, int type) {
-    link->gtw_api = &lt_posix_file;
+    link->gtw_api = &ufr_gtw_posix_file_api;
     link->type_started = type;
     return LT_OK;
 }
 
 int ufr_gtw_posix_new_stdout(link_t* link, int type) {
-    link->gtw_api = &lt_posix_stdout;
+    link->gtw_api = &ufr_gtw_posix_stdout_api;
     link->type_started = type;
     return LT_OK;
 }
 
 int ufr_gtw_posix_new_stdin(link_t* link, int type) {
-    link->gtw_api = &lt_posix_stdin;
+    link->gtw_api = &ufr_gtw_posix_stdin_api;
     link->type_started = type;
     return LT_OK;
 }

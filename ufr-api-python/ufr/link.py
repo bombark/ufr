@@ -9,6 +9,14 @@ import numpy as np
 
 # _base_path = str( Path(__file__).parent.resolve() )
 
+UFR_OK = 0
+
+UFR_START_BLANK=0
+UFR_START_CONNECT=1
+UFR_START_BIND=2
+UFR_START_PUBLISHER=3
+UFR_START_SUBSCRIBER=4
+
 # =======================================================================================
 #  Link
 # =======================================================================================
@@ -32,20 +40,14 @@ class Link(ctypes.Structure):
     dll.ufr_start.argtypes = [ ctypes.c_void_p ]
     dll.ufr_start.restype = ctypes.c_int32
 
-    dll.ufr_start_publisher.argtypes = [ ctypes.c_void_p ]
-    dll.ufr_start.restype = ctypes.c_int32
-
-    dll.ufr_start_subscriber.argtypes = [ ctypes.c_void_p ]
-    dll.ufr_start.restype = ctypes.c_int32
-
-    dll.ufr_start_connect.argtypes = [ ctypes.c_void_p ]
-    dll.ufr_start.restype = ctypes.c_int32
+    dll.ufr_link_with_type.argtypes = [ ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32 ]
+    dll.ufr_link_with_type.restype = ctypes.c_int32
 
     # dll.lt_stop.argtypes = [ ctypes.c_void_p ]
     # dll.lt_stop.restype = ctypes.c_int32
 
-    dll.lt_close.argtypes = [ ctypes.c_void_p ]
-    dll.lt_close.restype = ctypes.c_int32
+    dll.ufr_close.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_close.restype = ctypes.c_int32
 
     # dll.lt_puts.argtypes = [ ctypes.c_void_p, ctypes.c_char_p  ]
     # dll.lt_puts.restype = ctypes.c_int32
@@ -53,8 +55,8 @@ class Link(ctypes.Structure):
     dll.lt_api_name.argtypes = [ ctypes.c_void_p ]
     dll.lt_api_name.restype =  ctypes.c_char_p
 
-    dll.lt_new_ptr.argtypes = [ ctypes.c_void_p, ctypes.c_char_p ]
-    dll.lt_new_ptr.restype =  ctypes.c_int32
+    dll.ufr_link.argtypes = [ ctypes.c_void_p, ctypes.c_char_p ]
+    dll.ufr_link.restype =  ctypes.c_int32
 
     _fields_ = [
         ('gtw_api', ctypes.c_void_p),
@@ -63,20 +65,22 @@ class Link(ctypes.Structure):
         ('ecr_api', ctypes.c_void_p),
         ('ecr_obj', ctypes.c_void_p),
         ('dcr_api', ctypes.c_void_p),
-        ('dcr_obj', ctypes.c_void_p)
+        ('dcr_obj', ctypes.c_void_p),
+
+        ('type_started', ctypes.c_ubyte),
+        ('log_level', ctypes.c_ubyte),
+        ('slot_gtw', ctypes.c_ubyte),
+        ('slot_ecr', ctypes.c_ubyte),
+        ('slot_dcr', ctypes.c_ubyte),
+
+        ('errstr', ctypes.c_ubyte * 67)
     ]
 
-    def __init__(self, text: str):
-        Link.dll.lt_new_ptr( ctypes.pointer(self), bytes(text,'utf-8') )
-
-    """
-    def __init__(self, **args):
-        text = ""
-        for arg, val in args.items():
-            text += f"@{arg} {val} "
-        print(text)
-        Link.dll.lt_new_ptr( ctypes.pointer(self), bytes(text,'utf-8') )
-    """
+    def __init__(self, text: str, type: int):
+        error = Link.dll.ufr_link_with_type( ctypes.pointer(self), bytes(text,'utf-8'), type )
+        if error != UFR_OK:
+            error_msg = bytes(self.errstr).decode('utf-8').rstrip('\0')
+            raise Exception(error_msg)
 
     def __del__(self):
         # self.close()
@@ -121,17 +125,17 @@ class Link(ctypes.Structure):
             raise Exception("error no start")
     
     def start_publisher(self):
-        error_code = Link.dll.lt_start_publisher( ctypes.pointer(self), 0 )
+        error_code = Link.dll.ufr_start_publisher( ctypes.pointer(self), 0 )
         if error_code != 0:
             raise Exception("error no start")
         
     def start_subscriber(self):
-        error_code = Link.dll.lt_start_subscriber( ctypes.pointer(self), 0 )
+        error_code = Link.dll.ufr_start_subscriber( ctypes.pointer(self), 0 )
         if error_code != 0:
             raise Exception("error no start")
 
     def connect(self):
-        error_code = Link.dll.lt_start_connect( ctypes.pointer(self) )
+        error_code = Link.dll.ufr_start_connect( ctypes.pointer(self) )
         if error_code != 0:
             raise Exception("error in the connection")
 
@@ -151,7 +155,7 @@ class Link(ctypes.Structure):
     def read(self):
         max_size = 1024 * 1024
         buffer = ( ctypes.c_ubyte * max_size )()
-        total = Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), max_size )
+        total = Link.dll.ufr_read( ctypes.pointer(self), ctypes.pointer(buffer), max_size )
         # return bytes(buffer)
         # print(total)
 
@@ -164,6 +168,8 @@ class Link(ctypes.Structure):
         # np.resize( res, (total,) )
         return res
 
+    def is_error(self):
+        return Link.dll.ufr_link_is_error( ctypes.pointer(self) )
         
 
     def write(self, value):
@@ -201,57 +207,36 @@ class Link(ctypes.Structure):
         for c in format:
             if c == 'i':
                 var = ctypes.c_int32(0)
-                Link.dll.lt_get(ctypes.pointer(self), bytes('i', 'utf-8'), ctypes.byref(var))
+                Link.dll.ufr_get(ctypes.pointer(self), bytes('i', 'utf-8'), ctypes.byref(var))
                 resp.append(var.value)
             elif c == 'f':
                 var = ctypes.c_float(0)
-                Link.dll.lt_get(ctypes.pointer(self), bytes('f', 'utf-8'), ctypes.byref(var))
+                Link.dll.ufr_get(ctypes.pointer(self), bytes('f', 'utf-8'), ctypes.byref(var))
                 resp.append(var.value)
             elif c == 's':
                 buffer = (ctypes.c_ubyte * 1024)()
-                Link.dll.lt_get(ctypes.pointer(self), bytes('s', 'utf-8'), ctypes.pointer(buffer))
+                Link.dll.ufr_get(ctypes.pointer(self), bytes('s', 'utf-8'), ctypes.pointer(buffer))
                 text = bytes(buffer).decode('utf-8').rstrip('\0')
                 resp.append(text)
             elif c == '^':
-                Link.dll.lt_get(ctypes.pointer(self), bytes('^', 'utf-8'))
-        return resp
-
-
-class CDev(Link):
-    def read(self):
-        buffer = (ctypes.c_ubyte * 256)()
-        Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), 256 )
-        return bytes(buffer).decode()
-
-    def write(self, value):
-        Link.dll.lt_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
-
-
-class File(CDev):
-    def size(self):
-        return Link.dll.lt_size( ctypes.pointer(self) )
-
-    def seek(self):
-        pass
-
-    def __str__(self):
-        api_name = Link.dll.lt_api_name( ctypes.pointer(self) ).decode('utf-8')
-
-        data = {}
-        data[".state"] = self.state()
-        data['.size'] = self.size()
-
-        return api_name+" "+str(data)
+                Link.dll.ufr_get(ctypes.pointer(self), bytes('^', 'utf-8'))
+        # case just one, return scalar value
+        if len(resp) == 1:
+            return resp[0]
+        else:
+            return resp
     
 def Subscriber(text: str):
-    link = Link(text)
-    link.start_subscriber()
-    return link
+    return Link(text, UFR_START_SUBSCRIBER)
 
 def Publisher(text: str):
-    link = Link(text)
-    link.start_publisher()
-    return link
+    return Link(text, UFR_START_PUBLISHER)
+
+def Server(text: str):
+    return Link(text, UFR_START_BIND)
+
+def Client(text: str):
+    return Link(text, UFR_START_CONNECT)
 
 def urf_input(format: str):
     resp = []
@@ -288,3 +273,34 @@ def urf_output(format: str, *args):
             c_args.append( bytes(args[i], 'utf-8') )
     Link.dll.urf_output( bytes(format, 'utf-8'), *c_args)
 
+
+
+"""
+Talvez apagar
+
+class CDev(Link):
+    def read(self):
+        buffer = (ctypes.c_ubyte * 256)()
+        Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), 256 )
+        return bytes(buffer).decode()
+
+    def write(self, value):
+        Link.dll.lt_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
+
+
+class File(CDev):
+    def size(self):
+        return Link.dll.lt_size( ctypes.pointer(self) )
+
+    def seek(self):
+        pass
+
+    def __str__(self):
+        api_name = Link.dll.lt_api_name( ctypes.pointer(self) ).decode('utf-8')
+
+        data = {}
+        data[".state"] = self.state()
+        data['.size'] = self.size()
+
+        return api_name+" "+str(data)
+"""

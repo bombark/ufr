@@ -50,3 +50,7 @@ uint8_t ufr_gtw_posix_version(uint8_t index) {
     }
     return version[index];
 }
+
+
+
+

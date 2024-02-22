@@ -125,6 +125,7 @@ int ufr_boot_ecr(link_t* link, const lt_args_t* args) {
 
 int ufr_boot_gtw(link_t* link, const lt_args_t* args) {
     lt_info(link, "booting gateway");
+    const int log_debug = lt_args_geti(args, "@debug", g_default_log_level);   
     const int state = link->gtw_api->boot(link, args);
     return state;
 }
@@ -133,9 +134,6 @@ int ufr_start(link_t* link, const lt_args_t* param_args) {
     // select the arguments avoiding NULL pointer
     const lt_args_t empty_args = {.text=""};
     const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
-
-    // update the debug level
-    link->log_level = lt_args_geti(args, "@debug", g_default_log_level);
 
     // call driver function
     const int type = link->type_started;
@@ -230,7 +228,7 @@ size_t lt_write(link_t* node, const char* buffer, size_t size) {
 //  Link - Formatted Stream
 // ============================================================================
 
-void lt_get_va(link_t* link, const char* format, va_list list) {
+void ufr_get_va(link_t* link, const char* format, va_list list) {
     if ( link->dec_api == NULL ) {
         lt_error(link, 0, "Decoder is not loaded");
         return;
@@ -244,7 +242,7 @@ void lt_get_va(link_t* link, const char* format, va_list list) {
 			break;
 
 		} else if ( type == '^' ) {
-			lt_recv(link);
+			ufr_recv(link);
 
         } else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -256,23 +254,23 @@ void lt_get_va(link_t* link, const char* format, va_list list) {
             // size_t* arr_size_ptr = va_arg(list, size_t*);
             size_t arr_size;
             void* arr_ptr = va_arg(list, void*);
-            link->dec_api->copy_arr(link, arr_type, arr_size_max, &arr_size, arr_ptr);
+            link->dcr_api->copy_arr(link, arr_type, arr_size_max, &arr_size, arr_ptr);
 
 		} else {
             switch (type) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
-                    link->dec_api->copy_str(link, buffer, -1);
+                    link->dcr_api->copy_str(link, buffer, -1);
                 } break;
 
                 case 'i': {
                     int32_t *val = va_arg(list, int32_t*);
-                    link->dec_api->get_i32(link, val);
+                    link->dcr_api->get_i32(link, val);
                 } break;
 
                 case 'f': {
                     float* val = va_arg(list, float*);
-                    link->dec_api->get_f32(link, val);
+                    link->dcr_api->get_f32(link, val);
                 } break;
 
                 case '\n': {
@@ -284,10 +282,17 @@ void lt_get_va(link_t* link, const char* format, va_list list) {
 	
 }
 
+void ufr_get(link_t* link, char* format, ...) {
+    va_list list;
+    va_start(list, format);
+    ufr_get_va(link, format, list);
+    va_end(list);
+}
+
 void lt_get(link_t* link, char* format, ...) {
     va_list list;
 	va_start(list, format);
-    lt_get_va(link, format, list);
+    ufr_get_va(link, format, list);
     va_end(list);
 }
 
@@ -297,7 +302,7 @@ bool ufr_get_str(link_t* link, char* buffer) {
 }
 
 void ufr_put_va(link_t* link, const char* format, va_list list) {
-    if ( link->enc_api == NULL ) {
+    if ( link->ecr_api == NULL ) {
         lt_error(link, 0, "Encoder is not loaded");
         return;
     }
@@ -313,7 +318,7 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 
 		// new line
 		} else if ( type == '\n' ) {
-			link->enc_api->put_cmd(link, '\n');
+			link->ecr_api->put_cmd(link, '\n');
 
 		} else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -323,24 +328,24 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
             }
             const int32_t arr_size = va_arg(list, int32_t);
             const void* arr_ptr = va_arg(list, void*);
-            link->enc_api->put_arr(link, arr_ptr, arr_type, arr_size);
+            link->ecr_api->put_arr(link, arr_ptr, arr_type, arr_size);
 
 		// s, i or f
 		} else {
 			switch (type) {
 				case 's': {
 					const char* str = va_arg(list, const char*);
-					link->enc_api->put_str(link, str);
+					link->ecr_api->put_str(link, str);
 				} break;
 			
 				case 'i': {
 					const int32_t val = va_arg(list, int32_t);
-					link->enc_api->put_i32(link, val);
+					link->ecr_api->put_i32(link, val);
 				} break;
 
 				case 'f': {
 					const double val = va_arg(list, double);
-					link->enc_api->put_f32(link, val);
+					link->ecr_api->put_f32(link, val);
 				} break;
 
 				default:
@@ -367,13 +372,13 @@ void lt_put(link_t* link, const char* format, ...) {
 
 size_t lt_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
     size_t arr_size = 0;
-    link->dec_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
+    link->dcr_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
     return arr_size;
 }
 
 size_t lt_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
     size_t arr_size = 0;
-    link->dec_api->copy_arr(link, 'f', arr_size_max, &arr_size, (void*) arr_data);
+    link->dcr_api->copy_arr(link, 'f', arr_size_max, &arr_size, (void*) arr_data);
     return arr_size;
 }
 
@@ -605,13 +610,21 @@ void lt_log_info(link_t* link, uint8_t level, const char* func_name, const char*
 }
 
 int lt_log_error(link_t* link, int error, const char* func_name, const char* format, ...) {
+    // copy the error message in the link buffer
     va_list list;
     va_start(list, format);
-    const int space = 24U - strlen(func_name);
-    fprintf(stderr, "\x1B[31m# erro: %s%*s\033[0m: ", func_name, space, "");
-    vfprintf(stderr, format, list);
-    fprintf(stderr, "\n");
+    vsnprintf(&link->errstr[0], sizeof(link->errstr), format, list);
     va_end(list);
+
+    // show the debug
+    if ( link->log_level > 0 ) {
+        const int space = 24U - strlen(func_name);
+        fprintf(stderr, "\x1B[31m# erro: %s%*s\033[0m: ", func_name, space, "");
+        fprintf(stderr, "%s", &link->errstr[0]);
+        fprintf(stderr, "\n");
+    }
+
+    // return error number
     return error;
 }
 
@@ -627,14 +640,20 @@ void lt_funclog_end(link_t* link) {
 }
 
 bool lt_is_valid(const link_t* link) {
-    return link->gw_api != NULL;
+    return link->gtw_api != NULL;
 }
 
 bool lt_is_blank(const link_t* link) {
-    return link->gw_api == NULL;
+    return link->gtw_api == NULL;
 }
 
+bool ufr_link_is_error(const link_t* link) {
+    return link->slot_lib_gtw == 0;
+}
 
+const char* ufr_test_args(const link_t* link) {
+    return link->gtw_api->test_args(link);
+}
 
 
 size_t  ufr_dummy_read(link_t*, char*, size_t) {

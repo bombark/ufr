@@ -108,6 +108,9 @@ typedef struct {
 
     int (*send)(struct _link* link);
     int (*accept)(struct _link* link, struct _link* out_client);
+
+    // tests
+    const char* (*test_args)(const struct _link* link);
 } lt_api_t;
 
 typedef struct {
@@ -200,17 +203,13 @@ typedef struct _link {
         void*             dcr_obj;
     };
 
-    uint8_t type_started;
+    uint8_t type_started;   
     uint8_t log_level;
-    char errstr[126];
 
-    void* dl_handle;
-
-    ufr_library_t* library;
-    
     uint8_t slot_lib_gtw;
     uint8_t slot_lib_ecr;
     uint8_t slot_lib_dcr;
+    char errstr[67];
 } link_t;
 
 
@@ -273,8 +272,10 @@ size_t lt_read(link_t* node, char* buffer, size_t size);
 size_t ufr_write(link_t* node, const char* buffer, size_t size);
 size_t lt_write(link_t* node, const char* buffer, size_t size);
 
-void lt_get_va(link_t* link, const char* format, va_list list);
+void ufr_get_va(link_t* link, const char* format, va_list list);
 void lt_get(link_t* link, char* format, ...);
+
+void ufr_get(link_t* link, char* format, ...);
 
 bool ufr_get_str(link_t* link, char* buffer);
 
@@ -299,6 +300,9 @@ const char* lt_args_gets(const lt_args_t* args, const char* noun, const char* de
 
 bool lt_is_valid(const link_t* link);
 bool lt_is_blank(const link_t* link);
+bool ufr_link_is_error(const link_t* link);
+
+const char* ufr_test_args(const link_t* link);
 
 // ============================================================================
 //  Dummy functions
@@ -314,11 +318,18 @@ int    ufr_dummy_send (link_t*);
 //  UFR functions
 // ============================================================================
 
+// Functions used for test framework
+int ufr_load_gtw_from_lib(link_t* link, const char* lib_file, const char* pack_name);
+
+
+
 // lt_sys.h
 int lt_load_gateway(link_t* link, const char* class_name, const lt_args_t* args);
 int lt_load_encoder(link_t* link, const char* class_name, const lt_args_t* args);
 int lt_load_decoder(link_t* link, const char* class_name, const lt_args_t* args);
 int lt_new_ptr(link_t* link, const char* text);
+
+int ufr_link_with_type(link_t* link, const char* text, int boot_type);
 
 link_t ufr_sys_publisher(const char* var_name, const char* text);
 link_t ufr_sys_subscriber(const char* name, const char* default_text);
@@ -346,8 +357,9 @@ link_t ufr_sys_open(const char* name, const char* def_args);
 
 
 // int ufr_sys_load_library(link_t* link, const char* name);
-// const char* ufr_sys_lib_call_list(link_t* link, uint8_t idx);
-// int ufr_sys_lib_call_new(link_t* link, const char* name, int type);
+const char* ufr_sys_lib_call_list (const uint8_t slot, const uint8_t list_idx);
+
+int ufr_sys_lib_call_new (link_t* link, const uint8_t slot, const char* name, const int type);
 
 void urf_sys_set_ld_path(char* path);
 

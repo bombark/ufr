@@ -16,5 +16,7 @@ install(TARGETS ufr DESTINATION lib)
 install(FILES ./include/ufr.h DESTINATION include)
 
 # test
-enable_testing()
-add_subdirectory(./tests)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    enable_testing()
+    add_subdirectory(./tests)
+endif()
