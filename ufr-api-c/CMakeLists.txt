@@ -11,6 +11,7 @@ add_library(ufr SHARED
 
 # target_compile_options(lt_api PUBLIC -O1 -Wall -Wfloat-conversion)
 target_compile_options(ufr PUBLIC -O1)
+target_link_libraries(ufr dl)
 
 install(TARGETS ufr DESTINATION lib)
 install(FILES ./include/ufr.h DESTINATION include)
