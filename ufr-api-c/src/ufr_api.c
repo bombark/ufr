@@ -99,7 +99,7 @@ size_t ufr_size_max(const link_t* link) {
 	return link->gtw_api->size(link, UFR_SIZE_MAX);
 }
 
-void ufr_init_api(link_t* link, ufr_gtw_api_t* gtw_api) {
+void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->gtw_api = gtw_api;
     link->gtw_obj = NULL;
     link->gtw_shr = NULL;
@@ -109,28 +109,34 @@ void ufr_init_api(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->enc_obj = NULL;
     link->type_started = UFR_START_BLANK;
     link->log_level = g_default_log_level;
+    link->log_ident = 0;
 }
 
 int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
-    ufr_info(link, "booting decoder");
+    ufr_log_ini(link, "booting decoder");
     const int state = link->dcr_api->boot(link, args);
+    ufr_log_end(link, "decoder booted");
     return state;
 }
 
 int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
-    ufr_info(link, "booting encoder");
+    ufr_log_ini(link, "booting encoder");
     const int state = link->enc_api->boot(link, args);
+    ufr_log_end(link, "encoder booted");
     return state;
 }
 
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
-    ufr_info(link, "booting gateway");
+    ufr_log_ini(link, "booting gateway");
     const int log_debug = ufr_args_geti(args, "@debug", g_default_log_level);   
     const int state = link->gtw_api->boot(link, args);
+    ufr_log_end(link, "gateway booted");
     return state;
 }
 
 int ufr_start(link_t* link, const ufr_args_t* param_args) {
+    ufr_log_ini(link, "starting link");
+
     // select the arguments avoiding NULL pointer
     const ufr_args_t empty_args = {.text=""};
     const ufr_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
@@ -140,6 +146,7 @@ int ufr_start(link_t* link, const ufr_args_t* param_args) {
     const int error = link->gtw_api->start(link, type, args);
 
     // end
+    ufr_log_end(link, "link started");
     return error;
 }
 
@@ -164,10 +171,13 @@ int ufr_start_connect(link_t* link, const ufr_args_t* args) {
 }
 
 bool ufr_recv(link_t* link) {
+    ufr_log_ini(link, "receiving data from link");
     if ( link->gtw_api == NULL ) {
         return false;
     }
-    return link->gtw_api->recv(link);
+    const bool retval = link->gtw_api->recv(link);
+    ufr_log_end(link, "received data from link");
+    return retval;
 }
 
 bool ufr_recv_async(link_t* link) {
@@ -556,17 +566,7 @@ const char* ufr_args_gets(const ufr_args_t* args, const char* noun, const char* 
     return default_value;
 }
 
-void ufr_log(link_t* link, uint8_t level, const char* format, ...) { 
-    // if ( link->level >= level ) {
-        va_list list;
-        va_start(list, format);
-        vfprintf(stderr, format, list);
-        fprintf(stderr, "\n");
-        va_end(list);
-    // }
-}
-
-void ufr_log_info(link_t* link, uint8_t level, const char* func_name, const char* format, ...) {
+void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char* format, ...) {
     /*if ( level > link->log_level ) {
         return;
     }*/
@@ -574,12 +574,13 @@ void ufr_log_info(link_t* link, uint8_t level, const char* func_name, const char
     va_start(list, format);
     const int space = 24U - strlen(func_name);
     fprintf(stderr, "# info: %s%*s: ", func_name, space, "");
+    fprintf(stderr, "%*s", link->log_ident, "");
     vfprintf(stderr, format, list);
     fprintf(stderr, "\n");
     va_end(list);
 }
 
-int ufr_log_error(link_t* link, int error, const char* func_name, const char* format, ...) {
+int ufr_put_log_error(link_t* link, int error, const char* func_name, const char* format, ...) {
     // copy the error message in the link buffer
     va_list list;
     va_start(list, format);
@@ -600,13 +601,6 @@ int ufr_log_error(link_t* link, int error, const char* func_name, const char* fo
 
 void ufr_assert(bool condition, const char* message) {
     exit(1);
-}
-
-void ufr_funclog_begin(link_t* link) {
-
-}
-
-void ufr_funclog_end(link_t* link) {
 }
 
 bool ufr_is_valid(const link_t* link) {

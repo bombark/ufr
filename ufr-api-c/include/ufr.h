@@ -179,14 +179,14 @@ typedef struct _link {
     const ufr_dcr_api_t* dcr_api;
     void* dcr_obj;
 
-
     uint8_t type_started;   
     uint8_t log_level;
+    uint8_t log_ident;
 
     uint8_t slot_gtw;
     uint8_t slot_enc;
     uint8_t slot_dcr;
-    char errstr[67];
+    char errstr[66];
 } link_t;
 
 
@@ -207,9 +207,7 @@ bool ufr_link_is_server(const link_t* link);
 bool ufr_link_is_client(const link_t* link);
 
 // Start and stop
-void ufr_init_api(link_t* link, ufr_gtw_api_t* gtw_api);
-// int  ufr_boot(link_t* link, const ufr_args_t* args);
-// int  ufr_boot_va(link_t* link, const char* text, ...);
+void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api);
 
 // system new
 int ufr_init(link_t* link, const char* package_name, const char* class_name);
@@ -319,13 +317,18 @@ bool ufr_input_recv();
 
 void ufr_inoutput_init(const char* text);
 
-void ufr_log(link_t* link, uint8_t level, const char* format, ...);
-void ufr_log_info(link_t* link, uint8_t level, const char* func_name, const char* format, ...);
-int  ufr_log_error(link_t* link, int error, const char* func_name, const char* format, ...);
 
-#define ufr_warn(link, ...) ufr_log_info(link, 1, __func__, __VA_ARGS__)
-#define ufr_info(link, ...) ufr_log_info(link, 2, __func__, __VA_ARGS__)
-#define ufr_error(link, error, ...) ufr_log_error(link, error, __func__, __VA_ARGS__)
+void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char* format, ...);
+int  ufr_put_log_error(link_t* link, int error, const char* func_name, const char* format, ...);
+
+
+#define ufr_warn(link, ...) ufr_put_log(link, 1, __func__, __VA_ARGS__)
+#define ufr_info(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
+#define ufr_log(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
+#define ufr_log_end(link, ...) link->log_ident-=1; ufr_put_log(link, 3, __func__, __VA_ARGS__)
+#define ufr_log_ini(link, ...) ufr_put_log(link, 4, __func__, __VA_ARGS__); link->log_ident+=1
+
+#define ufr_error(link, error, ...) ufr_put_log_error(link, error, __func__, __VA_ARGS__)
 
 link_t ufr_sys_open(const char* name, const char* def_args);
 

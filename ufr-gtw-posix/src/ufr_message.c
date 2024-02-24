@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>    // read
 
 #include "ufr_message.h"
 

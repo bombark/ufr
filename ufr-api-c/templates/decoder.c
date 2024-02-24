@@ -10,7 +10,7 @@
 // ============================================================================
 
 static
-int ufr_dcr_pack_boot() {
+int ufr_dcr_pack_boot(link_t* link, const ufr_args_t* args) {
     return UFR_OK;
 }
 
@@ -70,7 +70,7 @@ int ufr_dcr_pack_leave_array(link_t* link) {
 }
 
 static
-lt_decoder_api_t dcr_pack_api = {
+ufr_dcr_api_t dcr_pack_api = {
     .boot = ufr_dcr_pack_boot,
     .close = ufr_dcr_pack_close,
 	.recv = ufr_dcr_pack_recv,

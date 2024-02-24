@@ -108,6 +108,6 @@ ufr_gtw_api_t ufr_zmq_socket_api = {
 };
 
 int ufr_gtw_zmq_new_socket(link_t* link, int type) {
-	ufr_init_api(link, &ufr_zmq_socket_api);
+	ufr_init_link(link, &ufr_zmq_socket_api);
 	return UFR_OK;
 }

@@ -103,7 +103,8 @@ size_t ufr_posix_dir_write(link_t* link, const char* buffer, size_t length) {
 }
 
 static
-void ufr_posix_dir_recv(link_t* link) {
+bool ufr_posix_dir_recv(link_t* link) {
+    return false;
 }
 
 static

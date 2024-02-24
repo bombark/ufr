@@ -7,6 +7,8 @@ add_library(ufr SHARED
     # core
     ./src/ufr_api.c
     ./src/ufr_sys.c
+    ./src/ufr_sys_std_enc.c
+    ./src/ufr_sys_std_dcr.c
     )
 
 # target_compile_options(lt_api PUBLIC -O1 -Wall -Wfloat-conversion)

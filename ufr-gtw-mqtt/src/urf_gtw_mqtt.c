@@ -343,7 +343,7 @@ ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
 // ============================================================================
 
 int ufr_gtw_mqtt_new_topic(link_t* link, int type) {
-	ufr_init_api(link, &urf_gtw_mqtt_socket_api);
+	ufr_init_link(link, &urf_gtw_mqtt_socket_api);
     link->type_started = type;
 	return UFR_OK;
 }

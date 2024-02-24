@@ -49,6 +49,8 @@ char g_ld_lib_path[1024];
 uint8_t g_libraries_len = 1;   // 0: error, 1-255 is loaded library
 ufr_library_t g_libraries[255];
 
+int ufr_enc_sys_new_std(link_t* link, int type);
+
 // ============================================================================
 //  Constructor
 // ============================================================================
@@ -284,6 +286,9 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
         const char* encoder_name = ufr_args_gets(args, "@encoder", coder_name);
         if ( encoder_name != NULL ) {
             sys_ufr_load(link, "enc", encoder_name, boot_type, args);
+        } else {
+            ufr_enc_sys_new_std(link, UFR_START_PUBLISHER);
+            ufr_boot_enc(link, args);
         }
     }
 
@@ -300,7 +305,7 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
 }
 
 int ufr_link_with_type(link_t* link, const char* text, int boot_type) {
-    ufr_init_api(link, NULL);
+    ufr_init_link(link, NULL);
     if ( text == NULL ) {
         return ufr_error(link, 1, "text parameter is null");
     }
