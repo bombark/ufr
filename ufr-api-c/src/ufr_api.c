@@ -43,97 +43,97 @@ uint8_t g_default_log_level = 10;
 //  Link - Meta
 // ============================================================================
 
-const char* lt_api_name(const link_t* link) {
-	if ( link->gw_api == NULL ) {
+const char* ufr_api_name(const link_t* link) {
+	if ( link->gtw_api == NULL ) {
 		return "None";
 	}
-	return link->gw_api->name;
+	return link->gtw_api->name;
 }
 
-int lt_type(const link_t* unit) {
-	if ( unit == NULL || unit->gw_api == NULL || unit->gw_api->type == NULL) {
+int ufr_gtw_type(const link_t* unit) {
+	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->type == NULL) {
 		return LINK_TO_ERROR;
 	}
-	return unit->gw_api->type(unit);
+	return unit->gtw_api->type(unit);
 }
 
-int lt_state(const link_t* unit) {
-	if ( unit == NULL || unit->gw_api == NULL || unit->gw_api->state == NULL) {
+int ufr_gtw_state(const link_t* unit) {
+	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->state == NULL) {
 		return 0;
 	}
-	return unit->gw_api->state(unit);
+	return unit->gtw_api->state(unit);
 }
 
-int ufr_state(const link_t* link) {
+int ufr_link_state(const link_t* link) {
     return link->type_started;
 }
 
 bool ufr_link_is_publisher(const link_t* link) {
-    return link->type_started == LT_START_PUBLISHER;
+    return link->type_started == UFR_START_PUBLISHER;
 }
 
 bool ufr_link_is_subscriber(const link_t* link) {
-    return link->type_started == LT_START_SUBSCRIBER;
+    return link->type_started == UFR_START_SUBSCRIBER;
 }
 
 bool ufr_link_is_server(const link_t* link) {
-    return link->type_started == LT_START_BIND;
+    return link->type_started == UFR_START_BIND;
 }
 
 bool ufr_link_is_client(const link_t* link) {
-    return link->type_started == LT_START_CONNECT;
+    return link->type_started == UFR_START_CONNECT;
 }
 
-size_t lt_size(const link_t* link) {
-	if ( link == NULL || link->gw_api == NULL || link->gw_api->size == NULL) {
+size_t ufr_size(const link_t* link) {
+	if ( link == NULL || link->gtw_api == NULL || link->gtw_api->size == NULL) {
 		return 0;
 	}
-	return link->gw_api->size(link, LT_SIZE_STD);
+	return link->gtw_api->size(link, UFR_SIZE_STD);
 }
 
-size_t lt_size_max(const link_t* link) {
-	if ( link == NULL || link->gw_api == NULL || link->gw_api->size == NULL) {
+size_t ufr_size_max(const link_t* link) {
+	if ( link == NULL || link->gtw_api == NULL || link->gtw_api->size == NULL) {
 		return 0;
 	}
 
-	return link->gw_api->size(link, LT_SIZE_MAX);
+	return link->gtw_api->size(link, UFR_SIZE_MAX);
 }
 
-void lt_init_api(link_t* link, lt_api_t* gw_api) {
-    link->gw_api = gw_api;
-    link->gw_obj = NULL;
-    link->gw_shr = NULL;
-    link->dec_api = NULL;
-    link->dec_obj = NULL;
+void ufr_init_api(link_t* link, ufr_gtw_api_t* gtw_api) {
+    link->gtw_api = gtw_api;
+    link->gtw_obj = NULL;
+    link->gtw_shr = NULL;
+    link->dcr_api = NULL;
+    link->dcr_obj = NULL;
     link->enc_api = NULL;
     link->enc_obj = NULL;
-    link->type_started = LT_START_BLANK;
+    link->type_started = UFR_START_BLANK;
     link->log_level = g_default_log_level;
 }
 
-int ufr_boot_dcr(link_t* link, const lt_args_t* args) {
-    lt_info(link, "booting decoder");
-    const int state = link->dec_api->boot(link, args);
+int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
+    ufr_info(link, "booting decoder");
+    const int state = link->dcr_api->boot(link, args);
     return state;
 }
 
-int ufr_boot_ecr(link_t* link, const lt_args_t* args) {
-    lt_info(link, "booting encoder");
-    const int state = link->ecr_api->boot(link, args);
+int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
+    ufr_info(link, "booting encoder");
+    const int state = link->enc_api->boot(link, args);
     return state;
 }
 
-int ufr_boot_gtw(link_t* link, const lt_args_t* args) {
-    lt_info(link, "booting gateway");
-    const int log_debug = lt_args_geti(args, "@debug", g_default_log_level);   
+int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
+    ufr_info(link, "booting gateway");
+    const int log_debug = ufr_args_geti(args, "@debug", g_default_log_level);   
     const int state = link->gtw_api->boot(link, args);
     return state;
 }
 
-int ufr_start(link_t* link, const lt_args_t* param_args) {
+int ufr_start(link_t* link, const ufr_args_t* param_args) {
     // select the arguments avoiding NULL pointer
-    const lt_args_t empty_args = {.text=""};
-    const lt_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
+    const ufr_args_t empty_args = {.text=""};
+    const ufr_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
 
     // call driver function
     const int type = link->type_started;
@@ -143,55 +143,47 @@ int ufr_start(link_t* link, const lt_args_t* param_args) {
     return error;
 }
 
-int ufr_start_publisher(link_t* link, const lt_args_t* args) {
-    link->type_started = LT_START_PUBLISHER;
+int ufr_start_publisher(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_PUBLISHER;
     return ufr_start(link, args);
 }
 
-int ufr_start_subscriber(link_t* link, const lt_args_t* args) {
-    link->type_started = LT_START_SUBSCRIBER;
+int ufr_start_subscriber(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_SUBSCRIBER;
     return ufr_start(link, args);
 }
 
-int ufr_start_bind(link_t* link, const lt_args_t* args) {
-    link->type_started = LT_START_BIND;
+int ufr_start_bind(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_BIND;
     return ufr_start(link, args);
 }
 
-int ufr_start_connect(link_t* link, const lt_args_t* args) {
-    link->type_started = LT_START_CONNECT;
+int ufr_start_connect(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_CONNECT;
     return ufr_start(link, args);
 }
 
 bool ufr_recv(link_t* link) {
-    if ( link->gw_api == NULL ) {
+    if ( link->gtw_api == NULL ) {
         return false;
     }
-    return link->gw_api->recv(link);
+    return link->gtw_api->recv(link);
 }
 
-bool lt_recv(link_t* link) {
-    return ufr_recv(link);
-}
-
-bool lt_recv_async(link_t* link) {
-    if ( link->gw_api == NULL ) {
+bool ufr_recv_async(link_t* link) {
+    if ( link->gtw_api == NULL ) {
         return false;
     }
-    return link->gw_api->recv_async(link);
+    return link->gtw_api->recv_async(link);
 }
 
 bool ufr_send(link_t* link) {
-    int error = link->gw_api->send(link);
-    return error == LT_OK;
+    int error = link->gtw_api->send(link);
+    return error == UFR_OK;
 }
 
 void ufr_close(link_t* link) {
-    link->gw_api->stop(link, LT_STOP_CLOSE);
-}
-
-void lt_close(link_t* link) {
-    ufr_close(link);
+    link->gtw_api->stop(link, UFR_STOP_CLOSE);
 }
 
 // ============================================================================
@@ -199,29 +191,21 @@ void lt_close(link_t* link) {
 // ============================================================================
 
 size_t ufr_read(link_t* node, char* buffer, size_t maxsize) {
-	if ( node == NULL || node->gw_api == NULL || node->gw_api->read == NULL){
+	if ( node == NULL || node->gtw_api == NULL || node->gtw_api->read == NULL){
 		return 0;
 	}
 
-	// fprintf(stderr, "%s::%s %p\n", node->gw_api->name, __func__, node);
-	return node->gw_api->read(node, buffer, maxsize);
-}
-
-size_t lt_read(link_t* node, char* buffer, size_t maxsize) {
-    return ufr_read(node, buffer, maxsize);
+	// fprintf(stderr, "%s::%s %p\n", node->gtw_api->name, __func__, node);
+	return node->gtw_api->read(node, buffer, maxsize);
 }
 
 size_t ufr_write(link_t* node, const char* buffer, size_t size) {
-	if ( node == NULL || node->gw_api == NULL || node->gw_api->write == NULL) {
+	if ( node == NULL || node->gtw_api == NULL || node->gtw_api->write == NULL) {
 		return 0;
 	}
 
-	// fprintf(stderr, "%s::%s %p\n", node->gw_api->name, __func__, node);
-	return node->gw_api->write(node, buffer, size);
-}
-
-size_t lt_write(link_t* node, const char* buffer, size_t size) {
-    return ufr_write(node, buffer, size);
+	// fprintf(stderr, "%s::%s %p\n", node->gtw_api->name, __func__, node);
+	return node->gtw_api->write(node, buffer, size);
 }
 
 // ============================================================================
@@ -229,8 +213,8 @@ size_t lt_write(link_t* node, const char* buffer, size_t size) {
 // ============================================================================
 
 void ufr_get_va(link_t* link, const char* format, va_list list) {
-    if ( link->dec_api == NULL ) {
-        lt_error(link, 0, "Decoder is not loaded");
+    if ( link->dcr_api == NULL ) {
+        ufr_error(link, 0, "Decoder is not loaded");
         return;
     }
 
@@ -274,7 +258,7 @@ void ufr_get_va(link_t* link, const char* format, va_list list) {
                 } break;
 
                 case '\n': {
-                    // lt_end(link);
+                    // ufr_end(link);
                 } break;
             }
         }
@@ -289,21 +273,14 @@ void ufr_get(link_t* link, char* format, ...) {
     va_end(list);
 }
 
-void lt_get(link_t* link, char* format, ...) {
-    va_list list;
-	va_start(list, format);
-    ufr_get_va(link, format, list);
-    va_end(list);
-}
-
 bool ufr_get_str(link_t* link, char* buffer) {
-    const int is_ok = link->dec_api->copy_str(link, buffer, -1);
-    return is_ok == LT_OK;
+    const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
+    return is_ok == UFR_OK;
 }
 
 void ufr_put_va(link_t* link, const char* format, va_list list) {
-    if ( link->ecr_api == NULL ) {
-        lt_error(link, 0, "Encoder is not loaded");
+    if ( link->enc_api == NULL ) {
+        ufr_error(link, 0, "Encoder is not loaded");
         return;
     }
 
@@ -318,7 +295,7 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 
 		// new line
 		} else if ( type == '\n' ) {
-			link->ecr_api->put_cmd(link, '\n');
+			link->enc_api->put_cmd(link, '\n');
 
 		} else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -328,24 +305,24 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
             }
             const int32_t arr_size = va_arg(list, int32_t);
             const void* arr_ptr = va_arg(list, void*);
-            link->ecr_api->put_arr(link, arr_ptr, arr_type, arr_size);
+            link->enc_api->put_arr(link, arr_ptr, arr_type, arr_size);
 
 		// s, i or f
 		} else {
 			switch (type) {
 				case 's': {
 					const char* str = va_arg(list, const char*);
-					link->ecr_api->put_str(link, str);
+					link->enc_api->put_str(link, str);
 				} break;
 			
 				case 'i': {
 					const int32_t val = va_arg(list, int32_t);
-					link->ecr_api->put_i32(link, val);
+					link->enc_api->put_i32(link, val);
 				} break;
 
 				case 'f': {
 					const double val = va_arg(list, double);
-					link->ecr_api->put_f32(link, val);
+					link->enc_api->put_f32(link, val);
 				} break;
 
 				default:
@@ -363,38 +340,31 @@ void ufr_put(link_t* link, const char* format, ...) {
     va_end(list);
 }
 
-void lt_put(link_t* link, const char* format, ...) {
-    va_list list;
-    va_start(list, format);
-    ufr_put_va(link, format, list);
-    va_end(list);
-}
-
-size_t lt_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
+size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
     size_t arr_size = 0;
     link->dcr_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
     return arr_size;
 }
 
-size_t lt_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
+size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
     size_t arr_size = 0;
     link->dcr_api->copy_arr(link, 'f', arr_size_max, &arr_size, (void*) arr_data);
     return arr_size;
 }
 
 int ufr_enter_array(link_t* link, size_t arr_size_max) {
-    return link->ecr_api->enter_array(link, arr_size_max);
+    return link->enc_api->enter_array(link, arr_size_max);
 }
 
 int ufr_leave_array(link_t* link) {
-    return link->ecr_api->leave_array(link);
+    return link->enc_api->leave_array(link);
 }
 
 // ============================================================================
 //  Arguments
 // ============================================================================
 
-bool lt_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max, const char div) {
+bool ufr_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max, const char div) {
     uint8_t state = 0;
     uint16_t i_token = 0;
     uint16_t i_text = *cursor_ini;
@@ -445,15 +415,15 @@ bool lt_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, const
 }
 
 static
-bool lt_flex_text(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max) {
-    return lt_flex_text_div(text, cursor_ini, token, token_max, ' ');
+bool ufr_flex_text(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max) {
+    return ufr_flex_text_div(text, cursor_ini, token, token_max, ' ');
 }
 
-size_t lt_args_getu(const lt_args_t* args, const char* noun, const size_t default_value) {
+size_t ufr_args_getu(const ufr_args_t* args, const char* noun, const size_t default_value) {
     char token[512];
     uint8_t  count_arg = 0;
     uint16_t cursor = 0;
-    while( lt_flex_text(args->text, &cursor, token, sizeof(token)) ) {
+    while( ufr_flex_text(args->text, &cursor, token, sizeof(token)) ) {
         // jump case word is not noun
         if ( token[0] != '@' ) {
             if ( token[0] == '%' ) {
@@ -464,7 +434,7 @@ size_t lt_args_getu(const lt_args_t* args, const char* noun, const size_t defaul
 
         // check if the noun is correct
         if ( strcmp(noun, token) == 0 ) {
-            lt_flex_text(args->text, &cursor, token, sizeof(token));
+            ufr_flex_text(args->text, &cursor, token, sizeof(token));
             if ( token[0] == '%' ) {
                 if ( token[1] == 'd' ) {
                     return args->arg[count_arg].i32;
@@ -483,11 +453,11 @@ size_t lt_args_getu(const lt_args_t* args, const char* noun, const size_t defaul
     return default_value;
 }
 
-int lt_args_geti(const lt_args_t* args, const char* noun, const int default_value) {
+int ufr_args_geti(const ufr_args_t* args, const char* noun, const int default_value) {
     char token[512];
     uint8_t  count_arg = 0;
     uint16_t cursor = 0;
-    while( lt_flex_text(args->text, &cursor, token, sizeof(token)) ) {
+    while( ufr_flex_text(args->text, &cursor, token, sizeof(token)) ) {
         // jump case word is not noun
         if ( token[0] != '@' ) {
             if ( token[0] == '%' ) {
@@ -498,7 +468,7 @@ int lt_args_geti(const lt_args_t* args, const char* noun, const int default_valu
 
         // check if the noun is correct
         if ( strcmp(noun, token) == 0 ) {
-            lt_flex_text(args->text, &cursor, token, sizeof(token));
+            ufr_flex_text(args->text, &cursor, token, sizeof(token));
             if ( token[0] == '%' ) {
                 if ( token[1] == 'd' ) {
                     return args->arg[count_arg].i32;
@@ -517,11 +487,11 @@ int lt_args_geti(const lt_args_t* args, const char* noun, const int default_valu
     return default_value;
 }
 
-const void* lt_args_getp(const lt_args_t* args, const char* noun, const void* default_value) {
+const void* ufr_args_getp(const ufr_args_t* args, const char* noun, const void* default_value) {
     char token[512];
     uint8_t  count_arg = 0;
     uint16_t cursor = 0;
-    while( lt_flex_text(args->text, &cursor, token, sizeof(token)) ) {
+    while( ufr_flex_text(args->text, &cursor, token, sizeof(token)) ) {
         // jump case word is not noun
         if ( token[0] != '@' ) {
             if ( token[0] == '%' ) {
@@ -532,7 +502,7 @@ const void* lt_args_getp(const lt_args_t* args, const char* noun, const void* de
 
         // check if the noun is correct
         if ( strcmp(noun, token) == 0 ) {
-            lt_flex_text(args->text, &cursor, token, sizeof(token));
+            ufr_flex_text(args->text, &cursor, token, sizeof(token));
             if ( token[0] == '%' ) {
                 if ( token[1] == 'p' ) {
                     return args->arg[count_arg].ptr;
@@ -547,7 +517,7 @@ const void* lt_args_getp(const lt_args_t* args, const char* noun, const void* de
     return default_value;
 }
 
-const char* lt_args_gets(const lt_args_t* args, const char* noun, const char* default_value) {
+const char* ufr_args_gets(const ufr_args_t* args, const char* noun, const char* default_value) {
     static uint8_t shared_i = 0;
     const uint8_t shared_max = 8;
     static char shared_data[8][128];
@@ -555,7 +525,7 @@ const char* lt_args_gets(const lt_args_t* args, const char* noun, const char* de
     char token[512];
     uint8_t  count_arg = 0;
     uint16_t cursor = 0;
-    while( lt_flex_text(args->text, &cursor, token, sizeof(token)) ) {
+    while( ufr_flex_text(args->text, &cursor, token, sizeof(token)) ) {
         // jump case word is not noun
         if ( token[0] != '@' ) {
             if ( token[0] == '%' ) {
@@ -566,7 +536,7 @@ const char* lt_args_gets(const lt_args_t* args, const char* noun, const char* de
 
         // check if the noun is correct
         if ( strcmp(noun, token) == 0 ) {
-            lt_flex_text(args->text, &cursor, token, sizeof(token));
+            ufr_flex_text(args->text, &cursor, token, sizeof(token));
             if ( token[0] == '%' ) {
                 if ( token[1] == 's' ) {
                     return args->arg[count_arg].str;
@@ -586,7 +556,7 @@ const char* lt_args_gets(const lt_args_t* args, const char* noun, const char* de
     return default_value;
 }
 
-void lt_log(link_t* link, uint8_t level, const char* format, ...) { 
+void ufr_log(link_t* link, uint8_t level, const char* format, ...) { 
     // if ( link->level >= level ) {
         va_list list;
         va_start(list, format);
@@ -596,7 +566,7 @@ void lt_log(link_t* link, uint8_t level, const char* format, ...) {
     // }
 }
 
-void lt_log_info(link_t* link, uint8_t level, const char* func_name, const char* format, ...) {
+void ufr_log_info(link_t* link, uint8_t level, const char* func_name, const char* format, ...) {
     /*if ( level > link->log_level ) {
         return;
     }*/
@@ -609,7 +579,7 @@ void lt_log_info(link_t* link, uint8_t level, const char* func_name, const char*
     va_end(list);
 }
 
-int lt_log_error(link_t* link, int error, const char* func_name, const char* format, ...) {
+int ufr_log_error(link_t* link, int error, const char* func_name, const char* format, ...) {
     // copy the error message in the link buffer
     va_list list;
     va_start(list, format);
@@ -628,27 +598,27 @@ int lt_log_error(link_t* link, int error, const char* func_name, const char* for
     return error;
 }
 
-void lt_assert(bool condition, const char* message) {
+void ufr_assert(bool condition, const char* message) {
     exit(1);
 }
 
-void lt_funclog_begin(link_t* link) {
+void ufr_funclog_begin(link_t* link) {
 
 }
 
-void lt_funclog_end(link_t* link) {
+void ufr_funclog_end(link_t* link) {
 }
 
-bool lt_is_valid(const link_t* link) {
+bool ufr_is_valid(const link_t* link) {
     return link->gtw_api != NULL;
 }
 
-bool lt_is_blank(const link_t* link) {
+bool ufr_is_blank(const link_t* link) {
     return link->gtw_api == NULL;
 }
 
 bool ufr_link_is_error(const link_t* link) {
-    return link->slot_lib_gtw == 0;
+    return link->slot_gtw == 0;
 }
 
 const char* ufr_test_args(const link_t* link) {

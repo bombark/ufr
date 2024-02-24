@@ -45,11 +45,11 @@
 // ============================================================================
 
 static
-int ufr_zmq_topic_start(struct _link* link, int type, const lt_args_t* args) {
+int ufr_zmq_topic_start(struct _link* link, int type, const ufr_args_t* args) {
 
-	if ( type == LT_START_PUBLISHER ) {
+	if ( type == UFR_START_PUBLISHER ) {
 
-        const ll_shr_t* obj_args = link->gw_shr;
+        const ll_shr_t* obj_args = link->gtw_shr;
 
         void* socket = zmq_socket(obj_args->context, ZMQ_PUB);
         if ( socket == NULL ) {
@@ -61,17 +61,17 @@ int ufr_zmq_topic_start(struct _link* link, int type, const lt_args_t* args) {
         if ( zmq_bind(socket, url) != 0 ) {
             return 1;
         }
-        lt_info(link, "started publisher on %s binding the port %d", obj_args->host, obj_args->port);
+        ufr_info(link, "started publisher on %s binding the port %d", obj_args->host, obj_args->port);
 
-        ll_obj_t* local = link->gw_obj;
+        ll_obj_t* local = link->gtw_obj;
         local->socket = socket;
 
         // wait for router : Pieter's documentation calls the "slow joiner"
         // https://stackoverflow.com/questions/11634830/zeromq-always-loses-the-first-message
         sleep(1);
 
-    } else if ( type == LT_START_SUBSCRIBER ) {
-        const ll_shr_t* obj_args = link->gw_shr;
+    } else if ( type == UFR_START_SUBSCRIBER ) {
+        const ll_shr_t* obj_args = link->gtw_shr;
 
         void* socket = zmq_socket(obj_args->context, ZMQ_SUB);
         if ( socket == NULL ) {
@@ -85,19 +85,19 @@ int ufr_zmq_topic_start(struct _link* link, int type, const lt_args_t* args) {
         }
         zmq_setsockopt(socket, ZMQ_SUBSCRIBE, "", 0);
 
-        lt_info(link, "started subscriber on %s connecting with the port %d", obj_args->host, obj_args->port);
+        ufr_info(link, "started subscriber on %s connecting with the port %d", obj_args->host, obj_args->port);
 
-        ll_obj_t* local = link->gw_obj;
+        ll_obj_t* local = link->gtw_obj;
         local->socket = socket;
     } else {
-        return lt_error(link, 1, "start type invalid (%d)", type);
+        return ufr_error(link, 1, "start type invalid (%d)", type);
     }
 
     return 0;
 }
 
 static
-lt_api_t ufr_zmq_topic_api = {
+ufr_gtw_api_t ufr_zmq_topic_api = {
 	.type = ufr_zmq_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
@@ -116,6 +116,6 @@ lt_api_t ufr_zmq_topic_api = {
 // ============================================================================
 
 int ufr_gtw_zmq_new_topic(link_t* link, const int type) {
-    lt_init_api(link, &ufr_zmq_topic_api);
-	return LT_OK;
+    ufr_init_api(link, &ufr_zmq_topic_api);
+	return UFR_OK;
 }

@@ -47,42 +47,42 @@ typedef struct {
 // ============================================================================
 
 static
-int lt_posix_pipe_type(const link_t* link) {
+int ufr_posix_pipe_type(const link_t* link) {
 	return 0;
 }
 
 static
-int lt_posix_pipe_state(const link_t* link){
+int ufr_posix_pipe_state(const link_t* link){
 	return 0;
 }
 
 static
-size_t lt_posix_pipe_size(const link_t* link, int type){
+size_t ufr_posix_pipe_size(const link_t* link, int type){
 	return 0;
 }
 
 static
-int lt_posix_pipe_boot(link_t* link, const lt_args_t* args) {
+int ufr_posix_pipe_boot(link_t* link, const ufr_args_t* args) {
     ll_shr_t* shr = malloc(sizeof(ll_shr_t));
 
     if ( pipe( (int*)shr ) < 0 ) {
         return 1;
     }
 	
-    link->gw_shr = shr;
-    link->gw_obj = malloc(BUFFER_SIZE);
+    link->gtw_shr = shr;
+    link->gtw_obj = malloc(BUFFER_SIZE);
 
 	return 0;
 }
 
 static
-int lt_posix_pipe_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_posix_pipe_start(link_t* link, int type, const ufr_args_t* args) {
 	return 0;
 }
 
 static
-void lt_posix_pipe_stop(link_t* link, int type) {
-    ll_shr_t* shr = link->gw_shr;
+void ufr_posix_pipe_stop(link_t* link, int type) {
+    ll_shr_t* shr = link->gtw_shr;
     if ( shr != NULL ) {
         close(shr->fd_read);
         close(shr->fd_wrte);
@@ -91,27 +91,27 @@ void lt_posix_pipe_stop(link_t* link, int type) {
 }
 
 static
-int lt_posix_pipe_copy(link_t* link, link_t* out) {
-    out->gw_shr = link->gw_shr;
+int ufr_posix_pipe_copy(link_t* link, link_t* out) {
+    out->gtw_shr = link->gtw_shr;
 	return 0;
 }
 
 static
-size_t lt_posix_pipe_read(link_t* link, char* buffer, size_t length) {
-	ll_shr_t* shr = link->gw_shr;
+size_t ufr_posix_pipe_read(link_t* link, char* buffer, size_t length) {
+	ll_shr_t* shr = link->gtw_shr;
 	return read(shr->fd_read, buffer, length);
 }
 
 static
-size_t lt_posix_pipe_write(link_t* link, const char* buffer, size_t length) {
-	ll_shr_t* shr = link->gw_shr;
+size_t ufr_posix_pipe_write(link_t* link, const char* buffer, size_t length) {
+	ll_shr_t* shr = link->gtw_shr;
     return write(shr->fd_wrte, buffer, length);
 }
 
 static
-bool lt_posix_pipe_recv(link_t* link) {
-    char* msg_data = (char*) link->gw_obj;
-    ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+bool ufr_posix_pipe_recv(link_t* link) {
+    char* msg_data = (char*) link->gtw_obj;
+    ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
     
     // read one line
     size_t msg_size = 0;
@@ -129,25 +129,25 @@ bool lt_posix_pipe_recv(link_t* link) {
     }
     msg_data[msg_size] = '\0';
 
-    if ( link->dec_api != NULL ){
-        link->dec_api->recv(link, msg_data, msg_size);
+    if ( link->dcr_api != NULL ){
+        link->dcr_api->recv(link, msg_data, msg_size);
     }
 
     return true;
 }
 
 static
-lt_api_t lt_posix_pipe = {
-	.type = lt_posix_pipe_type,
-	.state = lt_posix_pipe_state,
-	.size = lt_posix_pipe_size,
-	.boot = lt_posix_pipe_boot,
-	.start = lt_posix_pipe_start,
-	.stop = lt_posix_pipe_stop,
-	.copy = lt_posix_pipe_copy,
-	.read = lt_posix_pipe_read,
-	.write = lt_posix_pipe_write,
-    .recv = lt_posix_pipe_recv
+ufr_gtw_api_t ufr_posix_pipe = {
+	.type = ufr_posix_pipe_type,
+	.state = ufr_posix_pipe_state,
+	.size = ufr_posix_pipe_size,
+	.boot = ufr_posix_pipe_boot,
+	.start = ufr_posix_pipe_start,
+	.stop = ufr_posix_pipe_stop,
+	.copy = ufr_posix_pipe_copy,
+	.read = ufr_posix_pipe_read,
+	.write = ufr_posix_pipe_write,
+    .recv = ufr_posix_pipe_recv
 };
 
 // ============================================================================
@@ -155,7 +155,7 @@ lt_api_t lt_posix_pipe = {
 // ============================================================================
 
 int ufr_gtw_posix_new_pipe(link_t* link, int type) {
-	link->gtw_api = &lt_posix_pipe;
+	link->gtw_api = &ufr_posix_pipe;
     link->type_started = type;
-    return LT_OK;
+    return UFR_OK;
 }

@@ -73,22 +73,22 @@ void print_hello (GtkWidget* widget, gpointer data) {
 // ============================================================================
 
 static
-int gw_gtk_type(const link_t* link) {
+int gtw_gtk_type(const link_t* link) {
 	return 0;
 }
 
 static
-int gw_gtk_state(const link_t* link){
+int gtw_gtk_state(const link_t* link){
 	return 0;
 }
 
 static
-size_t gw_gtk_size(const link_t* link, int type){
+size_t gtw_gtk_size(const link_t* link, int type){
 	return 0;
 }
 
 static
-int gw_gtk_boot(link_t* link, const lt_args_t* args) {
+int gtw_gtk_boot(link_t* link, const lt_args_t* args) {
     g_started = 0;
     pthread_create(&g_thread, NULL, main_gtk, NULL);
     
@@ -98,28 +98,28 @@ int gw_gtk_boot(link_t* link, const lt_args_t* args) {
 }
 
 static
-int gw_gtk_start(link_t* link, int type, const lt_args_t* args) {
+int gtw_gtk_start(link_t* link, int type, const lt_args_t* args) {
 
 	return 0;
 }
 
 static
-void gw_gtk_stop(link_t* link, int type) {
+void gtw_gtk_stop(link_t* link, int type) {
     pthread_join(g_thread, NULL); 
 }
 
 static
-int gw_gtk_copy(link_t* link, link_t* out) {
+int gtw_gtk_copy(link_t* link, link_t* out) {
 	return 0;
 }
 
 static
-size_t gw_gtk_read(link_t* link, char* buffer, size_t length) {
+size_t gtw_gtk_read(link_t* link, char* buffer, size_t length) {
     return 0;
 }
 
 static
-size_t gw_gtk_write(link_t* link, const char* buffer, size_t length) {
+size_t gtw_gtk_write(link_t* link, const char* buffer, size_t length) {
     printf("%s\n", buffer);
 
     GtkWidget *label = gtk_label_new (NULL);
@@ -134,34 +134,33 @@ size_t gw_gtk_write(link_t* link, const char* buffer, size_t length) {
 }
 
 static
-void gw_gtk_recv(link_t* link) {
+void gtw_gtk_recv(link_t* link) {
 
 }
 
 static
-lt_api_t gw_gtk = {
-	.type = gw_gtk_type,
-	.state = gw_gtk_state,
-	.size = gw_gtk_size,
-	.boot = gw_gtk_boot,
-	.start = gw_gtk_start,
-	.stop = gw_gtk_stop,
-	.copy = gw_gtk_copy,
-	.read = gw_gtk_read,
-	.write = gw_gtk_write,
-    .recv = gw_gtk_recv,
+ufr_gtw_api_t gtw_gtk = {
+	.type = gtw_gtk_type,
+	.state = gtw_gtk_state,
+	.size = gtw_gtk_size,
+	.boot = gtw_gtk_boot,
+	.start = gtw_gtk_start,
+	.stop = gtw_gtk_stop,
+	.copy = gtw_gtk_copy,
+	.read = gtw_gtk_read,
+	.write = gtw_gtk_write,
+    .recv = gtw_gtk_recv,
 };
-
-int lt_new_gtk_socket(link_t* link, const lt_args_t* args) {
-	link->gw_api = &gw_gtk;
-	gw_gtk_boot(link, args);
-	return LT_OK;
-}
 
 // ============================================================================
 //  Public Functions
 // ============================================================================
 
-const char* gw_gtk_list() {
+int lt_new_gtk_socket(link_t* link, int type) {
+	link->gtw_api = &gtw_gtk;
+	return LT_OK;
+}
+
+const char* gtw_gtk_list() {
     return "socket";
 }

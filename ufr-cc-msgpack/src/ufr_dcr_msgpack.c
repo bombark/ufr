@@ -67,14 +67,14 @@ msgpack_object unpack_next_obj(link_t* link) {
 // ============================================================================
 
 static
-int ufr_dcr_msgpack_boot(link_t* link, const lt_args_t* args) {
+int ufr_dcr_msgpack_boot(link_t* link, const ufr_args_t* args) {
 	ll_decoder_t* dcr_obj = malloc( sizeof(ll_decoder_t) );
 	if ( dcr_obj == NULL ) {
-		return lt_error(link, ENOMEM, strerror(ENOMEM));
+		return ufr_error(link, ENOMEM, strerror(ENOMEM));
 	}
 	msgpack_unpacked_init(&dcr_obj->result);
 	link->dcr_obj = dcr_obj;
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
@@ -151,7 +151,7 @@ int ufr_dcr_msgpack_get_str(link_t* link, char** str) {
 	const msgpack_object obj = unpack_next_obj(link);
 	if ( obj.type == MSGPACK_OBJECT_STR ) {
 		*str = (char*) obj.via.str.ptr;
-		return LT_OK;
+		return UFR_OK;
 	}
 
 	return 1;
@@ -170,23 +170,23 @@ int ufr_dcr_msgpack_copy_str(link_t* link, char* buffer, size_t size_max) {
 	if ( obj.type == MSGPACK_OBJECT_STR ) {
 		strncpy(buffer, obj.via.str.ptr, obj.via.str.size);
         buffer[obj.via.str.size] = '\0';
-		return LT_OK;
+		return UFR_OK;
 	} else if ( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
 		const size_t copied = snprintf(buffer, size_max, "%lu", obj.via.u64);
         buffer[copied] = '\0';
-        return LT_OK;
+        return UFR_OK;
     } else if ( obj.type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
         const size_t copied = snprintf(buffer, size_max, "%ld", obj.via.i64);
         buffer[copied] = '\0';
-        return LT_OK;
+        return UFR_OK;
     } else if ( obj.type == MSGPACK_OBJECT_FLOAT32 ) {
         const size_t copied = snprintf(buffer, size_max, "%g", obj.via.f64);
         buffer[copied] = '\0';
-        return LT_OK;
+        return UFR_OK;
     } else if ( obj.type == MSGPACK_OBJECT_FLOAT64 ) {
         const size_t copied = snprintf(buffer, size_max, "%g", obj.via.f64);
         buffer[copied] = '\0';
-        return LT_OK;
+        return UFR_OK;
     }
 
 	return 1;
@@ -202,7 +202,7 @@ int ufr_dcr_msgpack_get_arr(link_t* link, char arr_type, size_t arr_size_max, si
 	const msgpack_object obj = unpack_next_obj(link); 
 	if ( obj.type == MSGPACK_OBJECT_ARRAY ) {
 		// *str = obj.via.str.ptr;
-		return LT_OK;
+		return UFR_OK;
 	}
 
 	return 1;
@@ -212,12 +212,12 @@ static
 int ufr_dcr_msgpack_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
 	ll_decoder_t* load = link->dcr_obj;
 	if ( load == NULL ) {
-		return lt_error(link, 1, "decoder object is null");
+		return ufr_error(link, 1, "decoder object is null");
 	}
 
 	const msgpack_object obj = unpack_next_obj(link); 
 	if ( obj.type != MSGPACK_OBJECT_ARRAY ) {
-		return lt_error(link, 1, "item is not a array");
+		return ufr_error(link, 1, "item is not a array");
 	}
 
 	const size_t l_arr_size = 
@@ -237,11 +237,11 @@ int ufr_dcr_msgpack_copy_arr(link_t* link, char arr_type, size_t arr_size_max, s
 	}
 
 	*arr_size = l_arr_size;
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
-lt_decoder_api_t ufr_dcr_msgpack_api = {
+ufr_dcr_api_t ufr_dcr_msgpack_api = {
 	.boot = ufr_dcr_msgpack_boot,
 	.close = ufr_dcr_msgpack_close,
 
@@ -262,5 +262,5 @@ lt_decoder_api_t ufr_dcr_msgpack_api = {
 
 int ufr_dcr_msgpack_new_obj(link_t* link, const int type) {
 	link->dcr_api = &ufr_dcr_msgpack_api;
-	return LT_OK;
+	return UFR_OK;
 }

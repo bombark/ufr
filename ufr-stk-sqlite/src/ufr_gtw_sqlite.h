@@ -34,4 +34,4 @@
 typedef struct  {
     size_t index;
     sqlite3_stmt* stmt;
-} ll_gw_obj_t;
+} ll_gtw_obj_t;

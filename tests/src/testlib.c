@@ -40,15 +40,15 @@
 
 void test_topic(link_t* link, const char* class_name) {
 
-    int state = ufr_sys_lib_call_new(link, link->slot_lib_gtw, class_name, LT_START_PUBLISHER);
-    assert( state == LT_OK );
+    int state = ufr_sys_lib_call_new(link, link->slot_gtw, class_name, UFR_START_PUBLISHER);
+    assert( state == UFR_OK );
 
     const char* test_args = ufr_test_args(link);
     assert( test_args != NULL );
 
-    lt_args_t args = {.text=test_args};
-    assert( ufr_boot_gtw(link, &args) == LT_OK );
-    assert( ufr_start(link, &args) == LT_OK );
+    ufr_args_t args = {.text=test_args};
+    assert( ufr_boot_gtw(link, &args) == UFR_OK );
+    assert( ufr_start(link, &args) == UFR_OK );
     assert( ufr_write(link, "opa\n", 4) == 4 );
     ufr_close(link);
 }
@@ -66,11 +66,11 @@ int main(int argc, char** argv) {
     char* pack_name = "ufr_gtw_posix";
 
     link_t link;
-    assert( ufr_load_gtw_from_lib(&link, lib_file, pack_name) == LT_OK );
+    assert( ufr_load_gtw_from_lib(&link, lib_file, pack_name) == UFR_OK );
 
     int i=0;
     // for (int i=0; i<10; i++) {
-        const char* class_name = ufr_sys_lib_call_list(link.slot_lib_gtw, i);
+        const char* class_name = ufr_sys_lib_call_list(link.slot_gtw, i);
         if ( class_name == NULL ) {
             // break;
         }

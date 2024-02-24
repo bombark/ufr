@@ -82,18 +82,18 @@ void lex_next_token(ll_decoder_t* decoder, char* out_token) {
 // ============================================================================
 
 static
-int ufr_dcr_csv_boot(link_t* link, const lt_args_t* args) {
+int ufr_dcr_csv_boot(link_t* link, const ufr_args_t* args) {
     // allocate the decoder object
     ll_decoder_t* decoder = malloc(sizeof(ll_decoder_t));
     if ( decoder == NULL ) {
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
     }
 
     // prepare the decoder
-    const char* sep = lt_args_gets(args, "@sep", ",");
+    const char* sep = ufr_args_gets(args, "@sep", ",");
     decoder->sep = sep[0];
     link->dcr_obj = (void*) decoder;
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
@@ -105,76 +105,76 @@ void ufr_dcr_csv_close(link_t* link) {
 }
 
 static
-void lt_dec_csv_recv(link_t* link, char* msg_data, size_t msg_size) {
-	ll_decoder_t* decoder = link->dec_obj;
+void ufr_dcr_csv_recv(link_t* link, char* msg_data, size_t msg_size) {
+	ll_decoder_t* decoder = link->dcr_obj;
 
     // initialize the decoder object with the new line
     decoder->msg_ptr = msg_data;
     decoder->msg_size = msg_size;
     decoder->msg_index = 0;
 
-    // lt_dbg("%s", msg_data);
+    // ufr_dbg("%s", msg_data);
 }
 
 static
-int lt_dec_csv_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_csv_get_i32(link_t* link, int32_t* val) {
     char token[TOKEN_SIZE];
-    ll_decoder_t* decoder = link->dec_obj;
+    ll_decoder_t* decoder = link->dcr_obj;
     lex_next_token(decoder, token);
     *val = atoi(token);
     return 0;
 }
 
 static
-int lt_dec_csv_get_f32(link_t* link, float* val) {
+int ufr_dcr_csv_get_f32(link_t* link, float* val) {
     char token[TOKEN_SIZE];
-    ll_decoder_t* decoder = link->dec_obj;
+    ll_decoder_t* decoder = link->dcr_obj;
     lex_next_token(decoder, token);
     *val = atof(token);
     return 0;
 }
 
 static
-int lt_dec_csv_get_str(link_t* link, char** str) {
+int ufr_dcr_csv_get_str(link_t* link, char** str) {
 	*str = NULL;
-	ll_decoder_t* decoder = link->dec_obj;
+	ll_decoder_t* decoder = link->dcr_obj;
 	return 0;
 }
 
 static
-int lt_dec_csv_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-	ll_decoder_t* decoder = link->dec_obj;
+int ufr_dcr_csv_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
+	ll_decoder_t* decoder = link->dcr_obj;
 	
 }
 
 static
-int lt_dec_csv_copy_str(link_t* link, char* ret_val, size_t size_max) {
-    ll_decoder_t* decoder = link->dec_obj;
+int ufr_dcr_csv_copy_str(link_t* link, char* ret_val, size_t size_max) {
+    ll_decoder_t* decoder = link->dcr_obj;
     lex_next_token(decoder, ret_val);
 }
 
 static
-int lt_dec_csv_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-	ll_decoder_t* decoder = link->dec_obj;
+int ufr_dcr_csv_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
+	ll_decoder_t* decoder = link->dcr_obj;
 	
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
-lt_decoder_api_t lt_dcr_std_csv = {
+ufr_dcr_api_t ufr_dcr_std_csv_api = {
     .boot = ufr_dcr_csv_boot,
     .close = ufr_dcr_csv_close,
 
-	.recv = lt_dec_csv_recv,
+	.recv = ufr_dcr_csv_recv,
 
 	.get_u32 = NULL,
-	.get_i32 = lt_dec_csv_get_i32,
-	.get_f32 = lt_dec_csv_get_f32,
-	.get_str = lt_dec_csv_get_str,
+	.get_i32 = ufr_dcr_csv_get_i32,
+	.get_f32 = ufr_dcr_csv_get_f32,
+	.get_str = ufr_dcr_csv_get_str,
 
-	.get_arr = lt_dec_csv_get_arr,
-    .copy_str = lt_dec_csv_copy_str,
-	.copy_arr = lt_dec_csv_copy_arr
+	.get_arr = ufr_dcr_csv_get_arr,
+    .copy_str = ufr_dcr_csv_copy_str,
+	.copy_arr = ufr_dcr_csv_copy_arr
 };
 
 // ============================================================================
@@ -182,6 +182,6 @@ lt_decoder_api_t lt_dcr_std_csv = {
 // ============================================================================
 
 int ufr_dcr_std_new_csv(link_t* link, int type) {
-    link->dec_api = &lt_dcr_std_csv;
-	return LT_OK;
+    link->dcr_api = &ufr_dcr_std_csv_api;
+	return UFR_OK;
 }

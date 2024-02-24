@@ -44,22 +44,22 @@ typedef struct {
 // ============================================================================
 
 static
-int lt_posix_thread_type(const link_t* link) {
+int ufr_posix_thread_type(const link_t* link) {
 	return 0;
 }
 
 static
-int lt_posix_thread_state(const link_t* link){
+int ufr_posix_thread_state(const link_t* link){
 	return 0;
 }
 
 static
-size_t lt_posix_thread_size(const link_t* link, int type){
+size_t ufr_posix_thread_size(const link_t* link, int type){
 	return 0;
 }
 
 static
-int lt_posix_thread_boot(link_t* link, const lt_args_t* args) {
+int ufr_posix_thread_boot(link_t* link, const ufr_args_t* args) {
     int (*main)(int,char**) = (int(*)(int,char**)) lt_args_getp(args, "@main");
     assert( main!=NULL );
 
@@ -71,7 +71,7 @@ int lt_posix_thread_boot(link_t* link, const lt_args_t* args) {
 }
 
 static
-int lt_posix_thread_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_posix_thread_start(link_t* link, int type, const ufr_args_t* args) {
     ll_thread_t* thread = (ll_thread_t*) link->gw_obj;
 
     int error = pthread_create(thread->id, NULL, thread->main, NULL);
@@ -79,44 +79,43 @@ int lt_posix_thread_start(link_t* link, int type, const lt_args_t* args) {
 }
 
 static
-void lt_posix_thread_stop(link_t* link, int type) {
+void ufr_posix_thread_stop(link_t* link, int type) {
     
 }
 
 static
-int lt_posix_thread_copy(link_t* link, link_t* out) {
+int ufr_posix_thread_copy(link_t* link, link_t* out) {
 	return 0;
 }
 
 static
-size_t lt_posix_thread_read(link_t* link, char* buffer, size_t length) {
+size_t ufr_posix_thread_read(link_t* link, char* buffer, size_t length) {
     return 0;
 }
 
 static
-size_t lt_posix_thread_write(link_t* link, const char* buffer, size_t length) {
+size_t ufr_posix_thread_write(link_t* link, const char* buffer, size_t length) {
     return 0;
 }
 
 static
-lt_api_t lt_posix_thread = {
-	.type = lt_posix_thread_type,
-	.state = lt_posix_thread_state,
-	.size = lt_posix_thread_size,
-	.boot = lt_posix_thread_boot,
-	.start = lt_posix_thread_start,
-	.stop = lt_posix_thread_stop,
-	.copy = lt_posix_thread_copy,
-	.read = lt_posix_thread_read,
-	.write = lt_posix_thread_write,
+ufr_gtw_api_t ufr_posix_thread = {
+	.type = ufr_posix_thread_type,
+	.state = ufr_posix_thread_state,
+	.size = ufr_posix_thread_size,
+	.boot = ufr_posix_thread_boot,
+	.start = ufr_posix_thread_start,
+	.stop = ufr_posix_thread_stop,
+	.copy = ufr_posix_thread_copy,
+	.read = ufr_posix_thread_read,
+	.write = ufr_posix_thread_write,
 };
 
 // ============================================================================
 //  Public Functions
 // ============================================================================
 
-int ufr_new_gtw_posix_thread(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_posix_thread;
-	lt_posix_thread_boot(link, args);
-	return LT_OK;
+int ufr_new_gtw_posix_thread(link_t* link, int type) {
+	link->gtw_api = &ufr_posix_thread;
+	return UFR_OK;
 }

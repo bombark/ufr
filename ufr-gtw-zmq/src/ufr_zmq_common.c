@@ -54,35 +54,35 @@ int ufr_zmq_state(const link_t* link) {
 }
 
 size_t ufr_zmq_size(const link_t* link, int type) {
-    ll_obj_t* local = link->gw_shr;
+    ll_obj_t* local = link->gtw_shr;
     if ( local ) {
         return zmq_msg_size(&local->recv_msg);
     }
     return 0;
 }
 
-int ufr_zmq_boot (link_t* link, const lt_args_t* args) {
+int ufr_zmq_boot (link_t* link, const ufr_args_t* args) {
     // get optional parameter context
-    const char* host = lt_args_gets(args, "@host", "127.0.0.1");
+    const char* host = ufr_args_gets(args, "@host", "127.0.0.1");
 
     // get optional parameter context
-    void* context = (void*) lt_args_getp(args, "@context", NULL);
+    void* context = (void*) ufr_args_getp(args, "@context", NULL);
     if ( context == NULL ) {
         if ( g_context == NULL ) {
-            lt_info(link, "creating zmq context");
+            ufr_info(link, "creating zmq context");
             g_context = zmq_ctx_new();
         }
         context = g_context;
     }
 
     // get optional parameter port
-    const uint32_t port = lt_args_geti(args, "@port", 5000);
+    const uint32_t port = ufr_args_geti(args, "@port", 5000);
 
 	// prepare shared data with the socket parameters
 	const size_t host_str_len = strlen(host);
 	ll_shr_t* shr = malloc( sizeof(ll_shr_t) + host_str_len + 1 );
     if ( shr == NULL ) {
-        return lt_error(link, ENOMEM, "%s", strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, "%s", strerror(ENOMEM));
     }
 	shr->context = context;
 	shr->port = port;
@@ -92,45 +92,45 @@ int ufr_zmq_boot (link_t* link, const lt_args_t* args) {
     ll_obj_t* obj = malloc( sizeof(ll_obj_t) );
     if ( obj == NULL ) {
         free(shr);
-        return lt_error(link, ENOMEM, "%s", strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, "%s", strerror(ENOMEM));
     }
     obj->socket = NULL;
     zmq_msg_init(&obj->recv_msg);
 
     // update the link
-    link->gw_shr = shr;
-    link->gw_obj = obj;
+    link->gtw_shr = shr;
+    link->gtw_obj = obj;
 
     // success
-    return LT_OK;
+    return UFR_OK;
 }
 
 void ufr_zmq_stop(link_t* link, int type) {
-    if ( type == LT_STOP_CLOSE ) {
-        ll_obj_t* obj = link->gw_obj;
+    if ( type == UFR_STOP_CLOSE ) {
+        ll_obj_t* obj = link->gtw_obj;
         zmq_close(obj->socket);
         free(obj);
-        link->gw_obj = NULL;
+        link->gtw_obj = NULL;
     }
 }
 
 bool ufr_zmq_recv(link_t* link) {
-    ll_obj_t* local = link->gw_obj;
+    ll_obj_t* local = link->gtw_obj;
     const size_t msg_size = zmq_msg_recv (&local->recv_msg, local->socket, 0);
 
     local->idx = 0;
 
-    if ( link->dec_api != NULL ) {
+    if ( link->dcr_api != NULL ) {
         uint8_t* recv_msg_data = zmq_msg_data(&local->recv_msg);
         const size_t recv_msg_size = zmq_msg_size(&local->recv_msg);
-        link->dec_api->recv(link, (char*) recv_msg_data, recv_msg_size);
+        link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
     }
 
     return true;
 }
 
 bool ufr_zmq_recv_async(link_t* link) {
-    ll_obj_t* local = link->gw_obj;
+    ll_obj_t* local = link->gtw_obj;
     local->idx = 0;
 
     const int msg_size = zmq_msg_recv (&local->recv_msg, local->socket, ZMQ_DONTWAIT);
@@ -138,10 +138,10 @@ bool ufr_zmq_recv_async(link_t* link) {
         return false;
     }
 
-    if ( link->dec_api != NULL ) {
+    if ( link->dcr_api != NULL ) {
         uint8_t* recv_msg_data = zmq_msg_data(&local->recv_msg);
         const size_t recv_msg_size = zmq_msg_size(&local->recv_msg);
-        link->dec_api->recv(link, (char*) recv_msg_data, recv_msg_size);
+        link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
     }
 
     return true;
@@ -149,7 +149,7 @@ bool ufr_zmq_recv_async(link_t* link) {
 
 
 size_t ufr_zmq_read(link_t* link, char* buffer, size_t max_size) {
-    ll_obj_t* local = link->gw_obj;
+    ll_obj_t* local = link->gtw_obj;
 
     if ( local == NULL ) {
         return 0;
@@ -181,7 +181,7 @@ size_t ufr_zmq_read(link_t* link, char* buffer, size_t max_size) {
 }
 
 size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size) {
-    ll_obj_t* local = link->gw_obj;
+    ll_obj_t* local = link->gtw_obj;
     if ( local == NULL ) {
         return 0;
     }
@@ -191,10 +191,10 @@ size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size) {
     
     const size_t sent = zmq_send (local->socket, buffer, size, 0);
     if ( sent != size ) {
-        return lt_error(link, 0, "%s", zmq_strerror(errno));
+        return ufr_error(link, 0, "%s", zmq_strerror(errno));
     }
 
-    lt_info(link, "sent %ld bytes", sent);
+    ufr_info(link, "sent %ld bytes", sent);
     return sent;
 }
 

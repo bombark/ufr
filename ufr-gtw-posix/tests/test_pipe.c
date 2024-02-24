@@ -43,27 +43,27 @@ int ufr_gtw_posix_new_pipe(link_t* link, int type);
 void test_simple() {
     char buffer[8];
     link_t link;
-    lt_args_t args = {.text=""};
-    assert( ufr_gtw_posix_new_pipe(&link, 0) == LT_OK );
-    assert( ufr_boot_gtw(&link, &args) == LT_OK );
-    assert( ufr_start(&link, &args) == LT_OK );    
+    ufr_args_t args = {.text=""};
+    assert( ufr_gtw_posix_new_pipe(&link, 0) == UFR_OK );
+    assert( ufr_boot_gtw(&link, &args) == UFR_OK );
+    assert( ufr_start(&link, &args) == UFR_OK );    
 
-    assert( lt_write(&link, "Opa!", 4) == 4 );
-    assert( lt_read(&link, buffer, sizeof(buffer)) == 4 );
+    assert( ufr_write(&link, "Opa!", 4) == 4 );
+    assert( ufr_read(&link, buffer, sizeof(buffer)) == 4 );
     buffer[4] = '\0';
     assert( strcmp(buffer, "Opa!") == 0 );
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 void test_new() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( lt_write(&link, "Opa!", 4) == 4 );
-    assert( lt_read(&link, buffer, sizeof(buffer)) == 4 );
+    assert( ufr_write(&link, "Opa!", 4) == 4 );
+    assert( ufr_read(&link, buffer, sizeof(buffer)) == 4 );
     buffer[4] = '\0';
     assert( strcmp(buffer, "Opa!") == 0 );
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 // ============================================================================

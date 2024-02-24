@@ -34,8 +34,8 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_gtw_posix_new_dir(link_t* link, const lt_args_t* args);
-int ufr_new_gtw_posix_pipe(link_t* link, const lt_args_t* args);
+int ufr_gtw_posix_new_dir(link_t* link, const ufr_args_t* args);
+int ufr_new_gtw_posix_pipe(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -44,29 +44,29 @@ int ufr_new_gtw_posix_pipe(link_t* link, const lt_args_t* args);
 void test_pipe() {
 	printf("%s\n", __func__);
 	link_t pipe;
-	lt_args_t args = {.text=""};
-	// assert( lt_new_posix_pipe(&pipe, &args) == LT_OK );
+	ufr_args_t args = {.text=""};
+	// assert( ufr_new_posix_pipe(&pipe, &args) == UFR_OK );
 	
 	char buffer[16];
 	for (int i=0; i<10; i++) {
-		const size_t sent = lt_write(&pipe, "felipe", 6);
+		const size_t sent = ufr_write(&pipe, "felipe", 6);
 		assert(sent == 6);
-		const size_t recv = lt_read(&pipe, buffer, sizeof(buffer));
+		const size_t recv = ufr_read(&pipe, buffer, sizeof(buffer));
 		assert(recv == 6);
 		assert(strcmp(buffer, "felipe") == 0);
 	}
 
-	lt_close(&pipe);
+	ufr_close(&pipe);
 	printf("\tOK\n");
 }
 
 void test_dir() {
 	link_t dir;
-	lt_args_t args = {.text="@path ./pasta"};
-	assert( lt_new_posix_dir(&dir, &args) == LT_OK );
+	ufr_args_t args = {.text="@path ./pasta"};
+	assert( ufr_new_posix_dir(&dir, &args) == UFR_OK );
 
-	// lt_cd(&dir, "name");
-	lt_put(&dir, "^s\n", "felipe bombardelli");
+	// ufr_cd(&dir, "name");
+	ufr_put(&dir, "^s\n", "felipe bombardelli");
 
 }
 

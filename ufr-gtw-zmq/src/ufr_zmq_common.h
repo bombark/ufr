@@ -52,7 +52,7 @@ typedef struct {
 int ufr_zmq_type(const link_t* link);
 int ufr_zmq_state(const link_t* link);
 size_t ufr_zmq_size(const link_t* link, int type);
-int ufr_zmq_boot (link_t* link, const lt_args_t* args);
+int ufr_zmq_boot (link_t* link, const ufr_args_t* args);
 void ufr_zmq_stop(link_t* link, int type);
 bool ufr_zmq_recv(link_t* link);
 bool ufr_zmq_recv_async(link_t* link);

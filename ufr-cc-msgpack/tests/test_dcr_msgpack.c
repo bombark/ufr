@@ -43,14 +43,14 @@ int ufr_dcr_msgpack_new_obj(link_t* link, const int type);
 void test() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_dcr_msgpack_new_obj(&link, 0) == LT_OK );
-    assert( ufr_boot_dcr(&link, NULL) == LT_OK );
+    assert( ufr_dcr_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_boot_dcr(&link, NULL) == UFR_OK );
 
     {
         int recv[8];
         char send[] = {-107,1,2,3,4,5,'\n'};
         ufr_write(&link, send, sizeof(send));
-        lt_get(&link, "^ai", 8, recv);
+        ufr_get(&link, "^ai", 8, recv);
         for (int i=0; i<5; i++) {
             printf("%d ", recv[i]);
         }

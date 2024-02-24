@@ -54,7 +54,7 @@ typedef struct {
 // ============================================================================
 
 static
-int ufr_posix_socket_start_server(link_t* link, int type, const lt_args_t* args) {
+int ufr_posix_socket_start_server(link_t* link, int type, const ufr_args_t* args) {
     // get the parameters for the server
     const uint16_t port = 2000;
 
@@ -62,20 +62,20 @@ int ufr_posix_socket_start_server(link_t* link, int type, const lt_args_t* args)
     struct protoent *protoent;
     protoent = getprotobyname("tcp");
     if (protoent == NULL) {
-        return lt_error(link, 1, "getprotobyname");
+        return ufr_error(link, 1, "getprotobyname");
     }
 
     // start the socket
     int server_sockfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
     if (server_sockfd == -1) {
-        return lt_error(link, 1, "error to open socket");
+        return ufr_error(link, 1, "error to open socket");
     }
 
     // configure the socket
     int enable = 1;
     if (setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
         close(server_sockfd);
-        return lt_error(link, 1, "setsockopt(SO_REUSEADDR) failed");
+        return ufr_error(link, 1, "setsockopt(SO_REUSEADDR) failed");
     }
 
     // bind the socket
@@ -86,27 +86,27 @@ int ufr_posix_socket_start_server(link_t* link, int type, const lt_args_t* args)
     int error = bind( server_sockfd, (struct sockaddr*)&server_address, sizeof(server_address) );
     if ( error == -1 ) {
         perror("bind");
-        return lt_error(link, 1, "error to bind the port");
+        return ufr_error(link, 1, "error to bind the port");
     }
 
     // listen the socket
     if (listen(server_sockfd, 5) == -1) {
         perror("listen");
-        return lt_error(link, 1, "error to listen the socket");
+        return ufr_error(link, 1, "error to listen the socket");
     }
 
     // update the shared object
-    ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+    ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
     shr->server_sockfd = server_sockfd;
-    link->gw_obj = NULL;
+    link->gtw_obj = NULL;
 
     // success
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-void lt_posix_socket_srv_stop(link_t* link, int type) {
-    ll_srv_request_t* request = link->gw_obj;
+void ufr_posix_socket_srv_stop(link_t* link, int type) {
+    ll_srv_request_t* request = link->gtw_obj;
     if ( request != NULL ) {
         if ( request->sockfd > 0 ) {
             close(request->sockfd);
@@ -116,27 +116,27 @@ void lt_posix_socket_srv_stop(link_t* link, int type) {
 }
 
 static
-size_t lt_posix_socket_srv_read(link_t* link, char* buffer, size_t length) {
-	ll_shr_t* shr = link->gw_shr;
+size_t ufr_posix_socket_srv_read(link_t* link, char* buffer, size_t length) {
+	ll_shr_t* shr = link->gtw_shr;
 	return read(shr->server_sockfd, buffer, length);
 }
 
 static
-size_t lt_posix_socket_srv_write(link_t* link, const char* buffer, size_t length) {
-	ll_srv_request_t* request = link->gw_obj;
+size_t ufr_posix_socket_srv_write(link_t* link, const char* buffer, size_t length) {
+	ll_srv_request_t* request = link->gtw_obj;
     return write(request->sockfd, buffer, length);
 }
 
 static
-bool lt_posix_socket_srv_recv(link_t* link) {
-    if ( link->gw_obj == NULL ) {
+bool ufr_posix_socket_srv_recv(link_t* link) {
+    if ( link->gtw_obj == NULL ) {
         ll_srv_request_t* request = malloc(sizeof(ll_srv_request_t));
         message_init(&request->message);
-        link->gw_obj = request;
+        link->gtw_obj = request;
     }
 
-    ll_srv_request_t* request = link->gw_obj;
-    ll_shr_t* shr = link->gw_shr;
+    ll_srv_request_t* request = link->gtw_obj;
+    ll_shr_t* shr = link->gtw_shr;
     
     request->sockfd = accept(shr->server_sockfd, &request->address, &request->lenght);
     message_write_from_fd(&request->message, request->sockfd);
@@ -144,24 +144,24 @@ bool lt_posix_socket_srv_recv(link_t* link) {
 }
 
 static
-int lt_posix_socket_srv_send(struct _link* link) {
-    ll_srv_request_t* request = link->gw_obj;
+int ufr_posix_socket_srv_send(struct _link* link) {
+    ll_srv_request_t* request = link->gtw_obj;
     if ( request != NULL && request->sockfd > 0 ) {
         close(request->sockfd);
         request->sockfd = 0;
     }
 }
 
-lt_api_t ufr_posix_socket_srv = {
-	.type = lt_posix_socket_type,
-	.state = lt_posix_socket_state,
-	.size = lt_posix_socket_size,
-	.boot = lt_posix_socket_boot,
+ufr_gtw_api_t ufr_posix_socket_srv = {
+	.type = ufr_posix_socket_type,
+	.state = ufr_posix_socket_state,
+	.size = ufr_posix_socket_size,
+	.boot = ufr_posix_socket_boot,
 	.start = ufr_posix_socket_start_server,
-	.stop = lt_posix_socket_srv_stop,
-	.copy = lt_posix_socket_copy,
-	.read = lt_posix_socket_srv_read,
-	.write = lt_posix_socket_srv_write,
-    .recv = lt_posix_socket_srv_recv,
-    .send = lt_posix_socket_srv_send
+	.stop = ufr_posix_socket_srv_stop,
+	.copy = ufr_posix_socket_copy,
+	.read = ufr_posix_socket_srv_read,
+	.write = ufr_posix_socket_srv_write,
+    .recv = ufr_posix_socket_srv_recv,
+    .send = ufr_posix_socket_srv_send
 };

@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_ecr_msgpack_new_obj(link_t* link, const int type);
+int ufr_enc_msgpack_new_obj(link_t* link, const int type);
 
 // ============================================================================
 //  Tests
@@ -43,27 +43,27 @@ int ufr_ecr_msgpack_new_obj(link_t* link, const int type);
 void test1() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_ecr_msgpack_new_obj(&link, 0) == LT_OK );
-    assert( ufr_boot_ecr(&link, NULL) == LT_OK );
+    assert( ufr_enc_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_boot_enc(&link, NULL) == UFR_OK );
     
     {
-        lt_put(&link, "iii\n", 10, 20, 30);
-        assert( lt_read(&link, buffer, sizeof(buffer)) == 3 );
+        ufr_put(&link, "iii\n", 10, 20, 30);
+        assert( ufr_read(&link, buffer, sizeof(buffer)) == 3 );
         assert( buffer[0] == 10 );
         assert( buffer[1] == 20 );
         assert( buffer[2] == 30 );
     }
 
     {
-        lt_put(&link, "s\n", "hello");
-        assert( lt_read(&link, buffer, sizeof(buffer)) == 6 );
+        ufr_put(&link, "s\n", "hello");
+        assert( ufr_read(&link, buffer, sizeof(buffer)) == 6 );
         assert( strncmp(&buffer[2], "hello", 4) );
     }
 
     {
         int vet[5] = {1,2,3,4,5};
-        lt_put(&link, "ai\n", 5, vet);
-        assert( lt_read(&link, buffer, sizeof(buffer)) == 6 );
+        ufr_put(&link, "ai\n", 5, vet);
+        assert( ufr_read(&link, buffer, sizeof(buffer)) == 6 );
         assert( buffer[0] == -107 );
         assert( buffer[1] == 1 );
         assert( buffer[2] == 2 );
@@ -72,14 +72,14 @@ void test1() {
         assert( buffer[5] == 5 );
     }
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 
 void test2() {
     link_t link = ufr_publisher("@new posix:file @path saida.txt");
-    assert( ufr_ecr_msgpack_new_obj(&link, 0) == LT_OK );
-    assert( ufr_boot_ecr(&link, NULL) == LT_OK );
+    assert( ufr_enc_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_boot_enc(&link, NULL) == UFR_OK );
 
     ufr_put(&link, "iii", 10, 20, 30);
     ufr_enter_array(&link, 3);

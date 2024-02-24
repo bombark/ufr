@@ -54,7 +54,7 @@ typedef struct {
 // ============================================================================
 
 static
-int ufr_posix_socket_start_client(link_t* link, int type, const lt_args_t* args) {
+int ufr_posix_socket_start_client(link_t* link, int type, const ufr_args_t* args) {
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
 
@@ -77,48 +77,48 @@ int ufr_posix_socket_start_client(link_t* link, int type, const lt_args_t* args)
     // update the link
     ll_conn_t* conn = malloc( sizeof(ll_conn_t) );
     conn->sockfd = sockfd;
-    link->gw_obj = conn;
+    link->gtw_obj = conn;
 
     // change the API function to client
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-void lt_posix_socket_cli_stop(link_t* link, int type) {
+void ufr_posix_socket_cli_stop(link_t* link, int type) {
     
 }
 
 static
-size_t lt_posix_socket_cli_read(link_t* link, char* buffer, size_t length) {
-    ll_conn_t* conn = link->gw_obj;
+size_t ufr_posix_socket_cli_read(link_t* link, char* buffer, size_t length) {
+    ll_conn_t* conn = link->gtw_obj;
     return read(conn->sockfd, buffer, length);
 }
 
 static
-size_t lt_posix_socket_cli_write(link_t* link, const char* buffer, size_t length) {
+size_t ufr_posix_socket_cli_write(link_t* link, const char* buffer, size_t length) {
     return 0;
 }
 
 static
-bool lt_posix_socket_cli_recv(link_t* link) {
+bool ufr_posix_socket_cli_recv(link_t* link) {
     return false;
 }
 
 static
-int lt_posix_socket_cli_send(struct _link* link) {
+int ufr_posix_socket_cli_send(struct _link* link) {
     return 0;
 }
 
-lt_api_t ufr_posix_socket_cli = {
-	.type = lt_posix_socket_type,
-	.state = lt_posix_socket_state,
-	.size = lt_posix_socket_size,
-	.boot = lt_posix_socket_boot,
+ufr_gtw_api_t ufr_posix_socket_cli = {
+	.type = ufr_posix_socket_type,
+	.state = ufr_posix_socket_state,
+	.size = ufr_posix_socket_size,
+	.boot = ufr_posix_socket_boot,
 	.start = ufr_posix_socket_start_client,
-	.stop = lt_posix_socket_cli_stop,
-	.copy = lt_posix_socket_copy,
-	.read = lt_posix_socket_cli_read,
-	.write = lt_posix_socket_cli_write,
-    .recv = lt_posix_socket_cli_recv,
-    .send = lt_posix_socket_cli_send
+	.stop = ufr_posix_socket_cli_stop,
+	.copy = ufr_posix_socket_copy,
+	.read = ufr_posix_socket_cli_read,
+	.write = ufr_posix_socket_cli_write,
+    .recv = ufr_posix_socket_cli_recv,
+    .send = ufr_posix_socket_cli_send
 };

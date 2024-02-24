@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_sqlite_table(link_t* link, const lt_args_t* args);
+int ufr_new_gtw_sqlite_table(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -42,43 +42,43 @@ int ufr_new_gtw_sqlite_table(link_t* link, const lt_args_t* args);
 
 void test_select() {
     link_t link;
-    lt_args_t args_boot = {.text="@file test.db"};
+    ufr_args_t args_boot = {.text="@file test.db"};
     ufr_new_gtw_sqlite_table(&link, &args_boot);
 
-    lt_args_t args_subs = {.text="@sql %s", .arg[0].str="SELECT * FROM pessoa"};
+    ufr_args_t args_subs = {.text="@sql %s", .arg[0].str="SELECT * FROM pessoa"};
     ufr_start_subscriber(&link, &args_subs);
 
     int id;
     char name[64];
     int score;
 
-    lt_get(&link, "^is", &id, name);
+    ufr_get(&link, "^is", &id, name);
     printf("%d %s\n", id, name);
 
-    lt_get(&link, "^is", &id, name);
+    ufr_get(&link, "^is", &id, name);
     printf("%d %s\n", id, name);
 
-    lt_get(&link, "^is", &id, name);
+    ufr_get(&link, "^is", &id, name);
     printf("%d %s\n", id, name);
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 void test_insert() {
     link_t link;
-    lt_args_t args_boot = {.text="@file test.db"};
+    ufr_args_t args_boot = {.text="@file test.db"};
     ufr_new_gtw_sqlite_table(&link, &args_boot);
 
-    lt_args_t args_subs = {.text="@sql %s", .arg[0].str="INSERT INTO pessoa VALUES(?,?,?)"};
+    ufr_args_t args_subs = {.text="@sql %s", .arg[0].str="INSERT INTO pessoa VALUES(?,?,?)"};
     ufr_start_publisher(&link, &args_subs);
 
-    lt_put(&link, "isi\n", 7, "trrr", 80);
-    lt_put(&link, "isi\n", 4, "teste", 50);
-    lt_put(&link, "isi\n", 5, "teste", 60);
-    lt_put(&link, "isi\n", 6, "teste", 70);
+    ufr_put(&link, "isi\n", 7, "trrr", 80);
+    ufr_put(&link, "isi\n", 4, "teste", 50);
+    ufr_put(&link, "isi\n", 5, "teste", 60);
+    ufr_put(&link, "isi\n", 6, "teste", 70);
 
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 // ============================================================================

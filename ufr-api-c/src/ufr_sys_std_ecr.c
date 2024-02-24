@@ -1,6 +1,7 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2023, Felipe Bombardelli
+ * Copyright (c) 2024, Visao Robotica e Imagem (VRI)
+ *  - Felipe Bombardelli <felipebombardelli@gmail.com>
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,45 +30,9 @@
 // ============================================================================
 
 #include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-
-#include "ufr_message.h"
+#include "ufr.h"
 
 // ============================================================================
-//  Message Functions
+//  Default Encoder
 // ============================================================================
 
-void message_init(message_t* message) {
-    message->size = 0;
-    message->max = MESSAGE_ITEM_SIZE;
-    message->ptr = malloc(message->max);
-}
-
-void message_clear(message_t* message) {
-    message->size = 0;
-}
-
-bool message_write_from_fd(message_t* message, int fd) {
-    bool is_ok = true;
-    int count;
-    message->size = 0;
-
-    // tem problema quando recebe um pacote com exatamente com 4096 bytes
-    while(1) {
-        const size_t bytes = read(fd, &message->ptr[0], MESSAGE_ITEM_SIZE);
-        if ( bytes < MESSAGE_ITEM_SIZE ) {
-            message->size += bytes;
-            break;
-        } else if ( bytes == -1 ) {
-            is_ok = false;
-            break;
-        } else {
-            message->size += bytes;
-        }
-    }
-
-    message->ptr[message->size] = '\0';
-
-    return is_ok;
-}

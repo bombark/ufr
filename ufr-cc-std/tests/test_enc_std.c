@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_ecr_std_new_csv(link_t* link, const lt_args_t* args);
+int ufr_enc_std_new_csv(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -42,14 +42,14 @@ int ufr_ecr_std_new_csv(link_t* link, const lt_args_t* args);
 
 void test_simple() {
     link_t link = ufr_new("@new posix:pipe");
-    lt_args_t args = {.text="@sep ;"};  
-    ufr_ecr_std_new_csv(&link, &args);
+    ufr_args_t args = {.text="@sep ;"};  
+    ufr_enc_std_new_csv(&link, &args);
 
     // test 1
     {
         char buffer[128];
-        lt_put(&link, "iii\n", 10, 20, 30);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "iii\n", 10, 20, 30);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "10;20;30\n") == 0 );
@@ -58,8 +58,8 @@ void test_simple() {
     // test 2
     {
         char buffer[128];
-        lt_put(&link, "iii\n", 30, 20, 10);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "iii\n", 30, 20, 10);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "30;20;10\n") == 0 );
@@ -69,26 +69,26 @@ void test_simple() {
     // test 3
     {
         char buffer[128];
-        lt_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 34 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "string com espaco;8759834;-712345\n") == 0 );
     }
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 void test_simple_2() {
     link_t link = ufr_new("@new posix:pipe");
-    lt_args_t args = {.text="@sep ,"};  
-    ufr_ecr_std_new_csv(&link, &args);
+    ufr_args_t args = {.text="@sep ,"};  
+    ufr_enc_std_new_csv(&link, &args);
 
     // test 1
     {
         char buffer[128];
-        lt_put(&link, "iii\n", 10, 20, 30);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "iii\n", 10, 20, 30);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "10,20,30\n") == 0 );
@@ -97,8 +97,8 @@ void test_simple_2() {
     // test 2
     {
         char buffer[128];
-        lt_put(&link, "iii\n", 30, 20, 10);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "iii\n", 30, 20, 10);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "30,20,10\n") == 0 );
@@ -108,14 +108,14 @@ void test_simple_2() {
     // test 3
     {
         char buffer[128];
-        lt_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        int nbytes = lt_read(&link, buffer, sizeof(buffer));
+        ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 34 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "string com espaco,8759834,-712345\n") == 0 );
     }
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 void test3() {
@@ -123,17 +123,17 @@ void test3() {
     link_t link = ufr_publisher("@new posix:file @path saida.txt");
 
     // boot the encoder
-    lt_args_t args = {.text="@sep ,"};  
-    ufr_ecr_std_new_csv(&link, 0);
-    ufr_boot_ecr(&link, &args);
+    ufr_args_t args = {.text="@sep ,"};  
+    ufr_enc_std_new_csv(&link, 0);
+    ufr_boot_enc(&link, &args);
 
     for (int i=0; i<2; i++) {
         // write test data
-        lt_put(&link, "iii", 10,20,30);
+        ufr_put(&link, "iii", 10,20,30);
         ufr_enter_array(&link, 3);
-        lt_put(&link, "iii", 40,50,60);
+        ufr_put(&link, "iii", 40,50,60);
         ufr_leave_array(&link);
-        lt_put(&link, "\n");
+        ufr_put(&link, "\n");
     }
 
     // close the link

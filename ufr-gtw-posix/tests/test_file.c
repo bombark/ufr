@@ -42,30 +42,30 @@ int ufr_gtw_posix_new_file(link_t* link, int type);
 
 void test_write() {
     link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_gtw_posix_new_file(&link, LT_START_PUBLISHER) == LT_OK );
-    assert( ufr_boot_gtw(&link, &args) == LT_OK );
-    assert( ufr_start(&link, &args) == LT_OK );
-    assert( lt_write(&link, "OPA\n", 4) == 4 );
-    // lt_stop(&link);
-    lt_close(&link);
+    ufr_args_t args = {.text="@path ./teste.txt"};
+    assert( ufr_gtw_posix_new_file(&link, UFR_START_PUBLISHER) == UFR_OK );
+    assert( ufr_boot_gtw(&link, &args) == UFR_OK );
+    assert( ufr_start(&link, &args) == UFR_OK );
+    assert( ufr_write(&link, "OPA\n", 4) == 4 );
+    // ufr_stop(&link);
+    ufr_close(&link);
 }
 
 void test_read() {
     char buffer[8];
     link_t link;
-    lt_args_t args = {.text="@path ./teste.txt"};
-    assert( ufr_gtw_posix_new_file(&link, LT_START_SUBSCRIBER) == LT_OK );
-    assert( ufr_boot_gtw(&link, &args) == LT_OK );
-    assert( ufr_start(&link, &args) == LT_OK );    
-    assert( lt_read(&link, buffer, 8) == 4 );
-    lt_close(&link);
+    ufr_args_t args = {.text="@path ./teste.txt"};
+    assert( ufr_gtw_posix_new_file(&link, UFR_START_SUBSCRIBER) == UFR_OK );
+    assert( ufr_boot_gtw(&link, &args) == UFR_OK );
+    assert( ufr_start(&link, &args) == UFR_OK );    
+    assert( ufr_read(&link, buffer, 8) == 4 );
+    ufr_close(&link);
 }
 
 void test_new() {
     link_t link = ufr_new("@new posix:file @path ./teste.txt");
-    assert( ufr_start_publisher(&link, NULL) == LT_OK );
-    lt_close(&link);
+    assert( ufr_start_publisher(&link, NULL) == UFR_OK );
+    ufr_close(&link);
 }
 
 // ============================================================================

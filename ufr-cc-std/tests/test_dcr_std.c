@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_dcr_std_new_csv(link_t* link, const lt_args_t* args);
+int ufr_dcr_std_new_csv(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -42,15 +42,15 @@ int ufr_dcr_std_new_csv(link_t* link, const lt_args_t* args);
 
 void test_simple() {
     link_t link = ufr_new("@new posix:pipe");
-    lt_args_t args = {.text="@sep ;"};  
+    ufr_args_t args = {.text="@sep ;"};  
     ufr_dcr_std_new_csv(&link, &args);
 
     // test 1
     {
         int a=0,b=0,c=0;
         const char* buffer = "10;20;30\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^iii", &a, &b, &c);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^iii", &a, &b, &c);
         printf("%d %d %d\n", a,b,c);
         assert(a == 10);
         assert(b == 20);
@@ -61,28 +61,28 @@ void test_simple() {
     {
         float a=0,b=0,c=0;
         const char* buffer = "10.5;20.125;30.5\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^fff", &a, &b, &c);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^fff", &a, &b, &c);
         printf("%f %f %f\n", a,b,c);
         assert(a == 10.5);
         assert(b == 20.125);
         assert(c == 30.5);
     }
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 void test_simple_2() {
     link_t link = ufr_new("@new posix:pipe");
-    lt_args_t args = {.text="@sep ,"};  
+    ufr_args_t args = {.text="@sep ,"};  
     ufr_dcr_std_new_csv(&link, &args);
 
     // test 1
     {
         int a=0,b=0,c=0;
         const char* buffer = "10,20,30\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^iii", &a, &b, &c);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^iii", &a, &b, &c);
         printf("%d %d %d\n", a,b,c);
         assert(a == 10);
         assert(b == 20);
@@ -93,8 +93,8 @@ void test_simple_2() {
     {
         float a=0,b=0,c=0;
         const char* buffer = "10.5,20.125,30.5\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^fff", &a, &b, &c);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^fff", &a, &b, &c);
         printf("%f %f %f\n", a,b,c);
         assert(a == 10.5);
         assert(b == 20.125);
@@ -105,8 +105,8 @@ void test_simple_2() {
     {
         char text[512];
         const char* buffer = "abcde\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^s", text);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^s", text);
         printf("%s\n", text);
         assert( strcmp(text, "abcde") == 0 );
     }
@@ -116,13 +116,13 @@ void test_simple_2() {
     {
         char text[8];
         const char* buffer = "aaabbbcccddd\n";
-        lt_write(&link, buffer, strlen(buffer));
-        lt_get(&link, "^s", text);
+        ufr_write(&link, buffer, strlen(buffer));
+        ufr_get(&link, "^s", text);
         assert( strcmp(text, "aaabbbc") == 0 );
     }
     */
 
-    lt_close(&link);
+    ufr_close(&link);
 }
 
 // ============================================================================

@@ -41,23 +41,23 @@
 // ============================================================================
 
 static
-int lt_posix_dir_type(const link_t* link) {
+int ufr_posix_dir_type(const link_t* link) {
 	return 0;
 }
 
 static
-int lt_posix_dir_state(const link_t* link){
+int ufr_posix_dir_state(const link_t* link){
 	return 0;
 }
 
 static
-size_t lt_posix_dir_size(const link_t* link, int type){
+size_t ufr_posix_dir_size(const link_t* link, int type){
 	return 0;
 }
 
 static
-int lt_posix_dir_boot(link_t* link, const lt_args_t* args) {
-	const char* path_arg = lt_args_gets(args, "@path", NULL);
+int ufr_posix_dir_boot(link_t* link, const ufr_args_t* args) {
+	const char* path_arg = ufr_args_gets(args, "@path", NULL);
     if ( path_arg == NULL ) {
         return EINVAL;
     }
@@ -68,67 +68,67 @@ int lt_posix_dir_boot(link_t* link, const lt_args_t* args) {
         return ENOMEM;
     }
     strcpy(path, path_arg);
-    link->gw_shr = path;
+    link->gtw_shr = path;
 
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-int lt_posix_dir_start(link_t* link, int type, const lt_args_t* args) {
-	return LT_OK;
+int ufr_posix_dir_start(link_t* link, int type, const ufr_args_t* args) {
+	return UFR_OK;
 }
 
 static
-void lt_posix_dir_stop(link_t* link, int type) {
-    char* path = link->gw_shr;
+void ufr_posix_dir_stop(link_t* link, int type) {
+    char* path = link->gtw_shr;
     if ( path ) {
         free(path);
     }
-    link->gw_shr = NULL;
+    link->gtw_shr = NULL;
 }
 
 static
-int lt_posix_dir_copy(link_t* link, link_t* out) {
+int ufr_posix_dir_copy(link_t* link, link_t* out) {
 	return 0;
 }
 
 static
-size_t lt_posix_dir_read(link_t* link, char* buffer, size_t length) {
+size_t ufr_posix_dir_read(link_t* link, char* buffer, size_t length) {
 	return 0;
 }
 
 static
-size_t lt_posix_dir_write(link_t* link, const char* buffer, size_t length) {
+size_t ufr_posix_dir_write(link_t* link, const char* buffer, size_t length) {
     return 0;
 }
 
 static
-void lt_posix_dir_recv(link_t* link) {
+void ufr_posix_dir_recv(link_t* link) {
 }
 
 static
-bool lt_posix_dir_recv_async(link_t* link) {
+bool ufr_posix_dir_recv_async(link_t* link) {
     return false;
 }
 
 static
-bool lt_posix_dir_open(link_t* link, int a) {
+bool ufr_posix_dir_open(link_t* link, int a) {
     return false;
 }
 
 static
-lt_api_t lt_posix_dir = {
-	.type = lt_posix_dir_type,
-	.state = lt_posix_dir_state,
-	.size = lt_posix_dir_size,
-	.boot = lt_posix_dir_boot,
-	.start = lt_posix_dir_start,
-	.stop = lt_posix_dir_stop,
-	.copy = lt_posix_dir_copy,
-	.read = lt_posix_dir_read,
-	.write = lt_posix_dir_write,
-    .recv = lt_posix_dir_recv,
-    .recv_async = lt_posix_dir_recv_async
+ufr_gtw_api_t ufr_posix_dir = {
+	.type = ufr_posix_dir_type,
+	.state = ufr_posix_dir_state,
+	.size = ufr_posix_dir_size,
+	.boot = ufr_posix_dir_boot,
+	.start = ufr_posix_dir_start,
+	.stop = ufr_posix_dir_stop,
+	.copy = ufr_posix_dir_copy,
+	.read = ufr_posix_dir_read,
+	.write = ufr_posix_dir_write,
+    .recv = ufr_posix_dir_recv,
+    .recv_async = ufr_posix_dir_recv_async
 };
 
 // ============================================================================
@@ -136,6 +136,6 @@ lt_api_t lt_posix_dir = {
 // ============================================================================
 
 int ufr_new_gtw_posix_dir(link_t* link, int type) {
-	link->gtw_api = &lt_posix_dir;
-	return LT_OK;
+	link->gtw_api = &ufr_posix_dir;
+	return UFR_OK;
 }

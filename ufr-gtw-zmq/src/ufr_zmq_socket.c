@@ -44,35 +44,35 @@
 // ============================================================================
 
 static
-int ufr_zmq_socket_start(struct _link* link, int type, const lt_args_t* args) {
+int ufr_zmq_socket_start(struct _link* link, int type, const ufr_args_t* args) {
 
 
-    if ( type == LT_START_CONNECT ) {
-        lt_info(link, "creating a socket");
-        const ll_shr_t* shr = link->gw_shr;
+    if ( type == UFR_START_CONNECT ) {
+        ufr_info(link, "creating a socket");
+        const ll_shr_t* shr = link->gtw_shr;
         void* socket = zmq_socket (shr->context, ZMQ_REQ);
         if ( socket == NULL ) {
-            return lt_error(link, errno, "%s (context: %p)", zmq_strerror(errno), shr->context);
+            return ufr_error(link, errno, "%s (context: %p)", zmq_strerror(errno), shr->context);
         }
 
         // connect
         char url[512];
         snprintf(url, sizeof(url), "tcp://%s:%d", shr->host, shr->port);
-        lt_info(link, "connecting to the URL %s", url);
+        ufr_info(link, "connecting to the URL %s", url);
         if ( zmq_connect (socket, url) != 0 ) {
-            return lt_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_error(link, errno, "%s", zmq_strerror(errno));
         }
 
-        // update the gw_obj
-        ll_obj_t* obj = link->gw_obj;
+        // update the gtw_obj
+        ll_obj_t* obj = link->gtw_obj;
         obj->socket = socket;
 
-    } else if ( type == LT_START_BIND ) {
+    } else if ( type == UFR_START_BIND ) {
         //
-        const ll_shr_t* shr_data = link->gw_shr;
+        const ll_shr_t* shr_data = link->gtw_shr;
         void* socket = zmq_socket (shr_data->context, ZMQ_REP);
         if ( socket == NULL ) {
-            return lt_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_error(link, errno, "%s", zmq_strerror(errno));
         }
 
         //
@@ -81,11 +81,11 @@ int ufr_zmq_socket_start(struct _link* link, int type, const lt_args_t* args) {
 fprintf(stderr, "server %s\n", url);
         int error = zmq_bind (socket, url);
         if ( error != 0 ) {
-            return lt_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_error(link, errno, "%s", zmq_strerror(errno));
         }
 
         //
-        ll_obj_t* local = link->gw_obj;
+        ll_obj_t* local = link->gtw_obj;
         local->socket = socket;
     }
 
@@ -93,7 +93,7 @@ fprintf(stderr, "server %s\n", url);
 }
 
 static
-lt_api_t ufr_zmq_socket_api = {
+ufr_gtw_api_t ufr_zmq_socket_api = {
 	.type = ufr_zmq_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
@@ -108,6 +108,6 @@ lt_api_t ufr_zmq_socket_api = {
 };
 
 int ufr_gtw_zmq_new_socket(link_t* link, int type) {
-	lt_init_api(link, &ufr_zmq_socket_api);
-	return LT_OK;
+	ufr_init_api(link, &ufr_zmq_socket_api);
+	return UFR_OK;
 }

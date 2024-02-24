@@ -3,7 +3,7 @@ project(ufr-gtw-sqlite)
 
 add_library(ufr_gtw_sqlite SHARED
     ./src/ufr_gtw_sqlite.c
-    ./src/ufr_ecr_sqlite.c
+    ./src/ufr_enc_sqlite.c
     ./src/ufr_dcr_sqlite.c
     )
 

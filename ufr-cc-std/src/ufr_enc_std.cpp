@@ -48,30 +48,30 @@ struct encoder_obj_t {
 // ============================================================================
 
 static
-int ufr_ecr_csv_boot(link_t* link, const lt_args_t* args) {
+int ufr_enc_csv_boot(link_t* link, const ufr_args_t* args) {
     // allocate the encoder
     encoder_obj_t* enc_obj = new encoder_obj_t();
     if ( enc_obj == NULL ) {
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
     }
 
     // fill the encoder data
-    const char* sep = lt_args_gets(args, "@sep", ",");
+    const char* sep = ufr_args_gets(args, "@sep", ",");
     enc_obj->sep = sep;
     link->enc_obj = enc_obj;
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-void ufr_ecr_csv_close(link_t* link) {
-    if ( link->ecr_obj != NULL ) {
-        free(link->ecr_obj);
-        link->ecr_obj = NULL;
+void ufr_enc_csv_close(link_t* link) {
+    if ( link->enc_obj != NULL ) {
+        free(link->enc_obj);
+        link->enc_obj = NULL;
     }
 }
 
 static
-int lt_enc_csv_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_csv_put_u32(link_t* link, uint32_t val) {
 	char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
 	const char* sep = enc_obj->sep;
@@ -88,7 +88,7 @@ int lt_enc_csv_put_u32(link_t* link, uint32_t val) {
 }
 
 static
-int lt_enc_csv_put_i32(link_t* link, int32_t val) {
+int ufr_enc_csv_put_i32(link_t* link, int32_t val) {
 	char buffer[32];
 	encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
 	const char* sep = enc_obj->sep;
@@ -105,7 +105,7 @@ int lt_enc_csv_put_i32(link_t* link, int32_t val) {
 }
 
 static
-int lt_enc_csv_put_f32(link_t* link, float val) {
+int ufr_enc_csv_put_f32(link_t* link, float val) {
 	char buffer[32];
 	encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
 	const char* sep = enc_obj->sep;
@@ -122,7 +122,7 @@ int lt_enc_csv_put_f32(link_t* link, float val) {
 }
 
 static
-int lt_enc_csv_put_str(link_t* link, const char* val) {
+int ufr_enc_csv_put_str(link_t* link, const char* val) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
 
     if ( enc_obj->line.size() == 0 ) {
@@ -136,49 +136,49 @@ int lt_enc_csv_put_str(link_t* link, const char* val) {
 }
 
 static
-int lt_enc_csv_put_cmd(link_t* link, char cmd) {
+int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
     if ( cmd == '\n' ) {
         encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
         enc_obj->line += '\n';
-        lt_write(link, enc_obj->line.c_str(), enc_obj->line.size());
+        ufr_write(link, enc_obj->line.c_str(), enc_obj->line.size());
         enc_obj->line.clear();
     }
     return 0;
 }
 
-int ufr_ecr_enter_array(link_t* link, size_t maxsize) {
+int ufr_enc_enter_array(link_t* link, size_t maxsize) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
     if ( enc_obj->line.size() > 0 ) {
         enc_obj->line += enc_obj->sep;
     }
     enc_obj->line += "#ENTER_ARRAY";
-    return LT_OK;
+    return UFR_OK;
 }
 
 
-int ufr_ecr_leave_array(link_t* link) {
+int ufr_enc_leave_array(link_t* link) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
     if ( enc_obj->line.size() > 0 ) {
         enc_obj->line += enc_obj->sep;
     }
     enc_obj->line += "#LEAVE_ARRAY";
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-lt_encoder_api_t ufr_ecr_std_csv_api = {
-    .boot = ufr_ecr_csv_boot,
-    .close = ufr_ecr_csv_close,
+ufr_enc_api_t ufr_enc_std_csv_api = {
+    .boot = ufr_enc_csv_boot,
+    .close = ufr_enc_csv_close,
 
-	.put_u32 = lt_enc_csv_put_u32,
-	.put_i32 = lt_enc_csv_put_i32,
-	.put_f32 = lt_enc_csv_put_f32,
-	.put_str = lt_enc_csv_put_str,
+	.put_u32 = ufr_enc_csv_put_u32,
+	.put_i32 = ufr_enc_csv_put_i32,
+	.put_f32 = ufr_enc_csv_put_f32,
+	.put_str = ufr_enc_csv_put_str,
 
-	.put_cmd = lt_enc_csv_put_cmd,
+	.put_cmd = ufr_enc_csv_put_cmd,
 
-    .enter_array = ufr_ecr_enter_array,
-    .leave_array = ufr_ecr_leave_array
+    .enter_array = ufr_enc_enter_array,
+    .leave_array = ufr_enc_leave_array
 };
 
 // ============================================================================
@@ -186,8 +186,8 @@ lt_encoder_api_t ufr_ecr_std_csv_api = {
 // ============================================================================
 
 extern "C"
-int ufr_ecr_std_new_csv(link_t* link, int type) {
-	link->ecr_api = &ufr_ecr_std_csv_api;
-	return LT_OK;
+int ufr_enc_std_new_csv(link_t* link, int type) {
+	link->enc_api = &ufr_enc_std_csv_api;
+	return UFR_OK;
 }
 

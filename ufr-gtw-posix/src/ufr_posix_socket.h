@@ -38,15 +38,15 @@ typedef struct {
 //  Public Functions
 // ============================================================================
 
-int    lt_posix_socket_type(const link_t* link);
-int    lt_posix_socket_state(const link_t* link);
-size_t lt_posix_socket_size(const link_t* link, int type);
-int    lt_posix_socket_boot(link_t* link, const lt_args_t* args);
-int    lt_posix_socket_start(link_t* link, int type, const lt_args_t* args);
-void   lt_posix_socket_stop(link_t* link, int type);
-int    lt_posix_socket_copy(link_t* link, link_t* out);
-size_t lt_posix_socket_read(link_t* link, char* buffer, size_t length);
-size_t lt_posix_socket_write(link_t* link, const char* buffer, size_t length);
+int    ufr_posix_socket_type(const link_t* link);
+int    ufr_posix_socket_state(const link_t* link);
+size_t ufr_posix_socket_size(const link_t* link, int type);
+int    ufr_posix_socket_boot(link_t* link, const ufr_args_t* args);
+int    ufr_posix_socket_start(link_t* link, int type, const ufr_args_t* args);
+void   ufr_posix_socket_stop(link_t* link, int type);
+int    ufr_posix_socket_copy(link_t* link, link_t* out);
+size_t ufr_posix_socket_read(link_t* link, char* buffer, size_t length);
+size_t ufr_posix_socket_write(link_t* link, const char* buffer, size_t length);
 
-int ufr_posix_start_server(link_t* link, const lt_args_t* args);
-int ufr_posix_start_client(link_t* link, const lt_args_t* args);
+int ufr_posix_start_server(link_t* link, const ufr_args_t* args);
+int ufr_posix_start_client(link_t* link, const ufr_args_t* args);

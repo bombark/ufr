@@ -105,7 +105,7 @@ static void ufr_dcr_ros_humble_recv(link_t* link, char* msg_data, size_t msg_siz
 }
 
 static
-lt_decoder_api_t ufr_dcr_ros_driver = {
+ufr_dcr_api_t ufr_dcr_ros_driver = {
     .recv = ufr_dcr_ros_humble_recv,
 	.get_u32 = ufr_dcr_ros_humble_get_u32,
 	.get_i32 = ufr_dcr_ros_humble_get_i32,
@@ -121,7 +121,7 @@ extern "C"
 int ufr_new_dcr_ros_humble_string(link_t* link, const lt_args_t* args) {
 	std::string topic_name = lt_args_gets(args, "@topic", "topico");
 
-    ll_gateway_t* gtw = (ll_gateway_t*) link->gw_obj;
+    ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
 	ll_decoder_t* dcr = new ll_decoder_t(gtw, topic_name);
     link->dec_obj = (void*) dcr;
 

@@ -49,19 +49,19 @@ typedef struct {
     FILE* fd;
     size_t recv_buffer_size;
     char recv_buffer[];
-} ll_gw_obj_t;
+} ll_gtw_obj_t;
 
 // ============================================================================
 //  Private Funtions
 // ============================================================================
 
 static
-ll_gw_obj_t* new_gw_obj(FILE* fd, size_t recv_buffer_size) {
-    ll_gw_obj_t* gw_obj = malloc( sizeof(ll_gw_obj_t) + recv_buffer_size );
-    assert( gw_obj != NULL );
-    gw_obj->fd = fd;
-    gw_obj->recv_buffer_size = recv_buffer_size;
-    return gw_obj;
+ll_gtw_obj_t* new_gtw_obj(FILE* fd, size_t recv_buffer_size) {
+    ll_gtw_obj_t* gtw_obj = malloc( sizeof(ll_gtw_obj_t) + recv_buffer_size );
+    assert( gtw_obj != NULL );
+    gtw_obj->fd = fd;
+    gtw_obj->recv_buffer_size = recv_buffer_size;
+    return gtw_obj;
 }
 
 // ============================================================================
@@ -84,10 +84,10 @@ size_t ufr_gtw_posix_file_size(const link_t* link, int type){
 }
 
 static
-int ufr_gtw_posix_file_boot(link_t* link, const lt_args_t* args) {
-	const char* path = lt_args_gets(args, "@path", NULL);
+int ufr_gtw_posix_file_boot(link_t* link, const ufr_args_t* args) {
+	const char* path = ufr_args_gets(args, "@path", NULL);
     if ( path == NULL ) {
-        lt_error(link, EINVAL, "Parameter @path is blank");
+        ufr_error(link, EINVAL, "Parameter @path is blank");
         return EINVAL;
     }
 
@@ -96,67 +96,67 @@ int ufr_gtw_posix_file_boot(link_t* link, const lt_args_t* args) {
     ll_shr_t* shr = malloc( sizeof(ll_shr_t) + size + 1 );
     shr->count = 1;
     strncpy(shr->path, path, size);
-    link->gw_shr = shr;
+    link->gtw_shr = shr;
 
     // start the link, case mode is present
-	const char* mode = lt_args_gets(args, "@mode", NULL);
+	const char* mode = ufr_args_gets(args, "@mode", NULL);
     if ( mode != NULL ) {
         FILE* fd = fopen(shr->path, mode);
         if ( fd == NULL ) {
-            lt_error(link, EINVAL, "File not found");
+            ufr_error(link, EINVAL, "File not found");
             return EINVAL;
         }
-        link->gw_obj = new_gw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
+        link->gtw_obj = new_gtw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
     }
 
     // success
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
-int ufr_gtw_posix_file_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_file_start(link_t* link, int type, const ufr_args_t* args) {
     // start publisher
-    if ( type == LT_START_PUBLISHER ) {
-        ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+    if ( type == UFR_START_PUBLISHER ) {
+        ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
         FILE* fd = fopen(shr->path, "w");
         if ( fd == NULL ) {
-            return lt_error(link, errno, strerror(errno));
+            return ufr_error(link, errno, strerror(errno));
         }
-        link->gw_obj = new_gw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
+        link->gtw_obj = new_gtw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
 
     // start subscriber
-    } else if ( type == LT_START_SUBSCRIBER ) {
-        ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+    } else if ( type == UFR_START_SUBSCRIBER ) {
+        ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
         FILE* fd = fopen(shr->path, "r");
         if ( fd == NULL ) {
-            return lt_error(link, errno, strerror(errno));
+            return ufr_error(link, errno, strerror(errno));
         }
-        link->gw_obj = new_gw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
+        link->gtw_obj = new_gtw_obj(fd, RECV_BUFFER_SIZE_DEFAULT);
 
     // error
     } else {
-        return lt_error(link, 1, "parameter type(%d) is invalid", type);
+        return ufr_error(link, 1, "parameter type(%d) is invalid", type);
     }
 
     // success
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
 void ufr_gtw_posix_file_stop(link_t* link, int type) {
-    if ( link->gw_obj != NULL ) {
-        ll_gw_obj_t* gw_obj = link->gw_obj;
-        fclose(gw_obj->fd);
-        free(gw_obj);
-        link->gw_obj = NULL;
+    if ( link->gtw_obj != NULL ) {
+        ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+        fclose(gtw_obj->fd);
+        free(gtw_obj);
+        link->gtw_obj = NULL;
     }
 
-    if ( link->gw_shr != NULL ) {
-        ll_shr_t* shr = (ll_shr_t*) link->gw_shr;
+    if ( link->gtw_shr != NULL ) {
+        ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
         if ( shr->count <= 1 ) {
             shr->count = 0;
             free(shr);
-            link->gw_shr = NULL;
+            link->gtw_shr = NULL;
         } else {
             shr->count -= 1;
         }
@@ -165,15 +165,15 @@ void ufr_gtw_posix_file_stop(link_t* link, int type) {
 
 static 
 bool ufr_gtw_posix_file_recv(link_t* link) {
-    ll_gw_obj_t* gw_obj = link->gw_obj;
-    const char* buf = fgets(gw_obj->recv_buffer, gw_obj->recv_buffer_size, gw_obj->fd);
+    ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+    const char* buf = fgets(gtw_obj->recv_buffer, gtw_obj->recv_buffer_size, gtw_obj->fd);
     if ( buf == NULL ) {
         return false;
     }
 
-    if ( link->dec_api != NULL ) {
-        const size_t size_recv = strlen(gw_obj->recv_buffer);
-        link->dec_api->recv(link, gw_obj->recv_buffer, size_recv);
+    if ( link->dcr_api != NULL ) {
+        const size_t size_recv = strlen(gtw_obj->recv_buffer);
+        link->dcr_api->recv(link, gtw_obj->recv_buffer, size_recv);
     }
 
     return true;
@@ -186,29 +186,29 @@ int ufr_gtw_posix_file_copy(link_t* link, link_t* out) {
 
 static
 size_t ufr_gtw_posix_file_read(link_t* link, char* buffer, size_t length) {
-	ll_gw_obj_t* gw_obj = link->gw_obj;
-    if ( gw_obj == NULL ) {
-        lt_error(link, 1, "gw_obj is null");
+	ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+    if ( gtw_obj == NULL ) {
+        ufr_error(link, 1, "gtw_obj is null");
         return 0;
     }
-	const size_t nbytes = fread(buffer, 1, length, gw_obj->fd);
-    lt_info(link, "read %ld bytes", nbytes);
+	const size_t nbytes = fread(buffer, 1, length, gtw_obj->fd);
+    ufr_info(link, "read %ld bytes", nbytes);
     return nbytes;
 }
 
 static
 size_t ufr_gtw_posix_file_write(link_t* link, const char* buffer, size_t length) {
-	ll_gw_obj_t* gw_obj = link->gw_obj;
-    if ( gw_obj == NULL ) {
-        lt_error(link, 1, "gw_obj is null");
+	ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+    if ( gtw_obj == NULL ) {
+        ufr_error(link, 1, "gtw_obj is null");
         return 0;
     }
-    if ( gw_obj->fd == NULL ) {
-        lt_error(link, 1, "gw_obj->fd is null");
+    if ( gtw_obj->fd == NULL ) {
+        ufr_error(link, 1, "gtw_obj->fd is null");
         return 0;
     }
-    const size_t nbytes = fwrite(buffer, 1, length, gw_obj->fd);
-    lt_info(link, "wrote %ld bytes", nbytes);
+    const size_t nbytes = fwrite(buffer, 1, length, gtw_obj->fd);
+    ufr_info(link, "wrote %ld bytes", nbytes);
     return nbytes;
 }
 
@@ -217,7 +217,7 @@ const char* ufr_gtw_posix_file_test_args(const link_t* link) {
 }
 
 static
-lt_api_t ufr_gtw_posix_file_api = {
+ufr_gtw_api_t ufr_gtw_posix_file_api = {
     .name = "file",
     .type = ufr_gtw_posix_file_type,
     .state = ufr_gtw_posix_file_state,
@@ -237,18 +237,18 @@ lt_api_t ufr_gtw_posix_file_api = {
 // ============================================================================
 
 static
-int ufr_gtw_posix_stdout_boot(link_t* link, const lt_args_t* args) {
-    link->gw_shr = NULL;
-    link->gw_obj = new_gw_obj(stdout, 0);
+int ufr_gtw_posix_stdout_boot(link_t* link, const ufr_args_t* args) {
+    link->gtw_shr = NULL;
+    link->gtw_obj = new_gtw_obj(stdout, 0);
 
     // success
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
-int ufr_gtw_posix_stdout_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_stdout_start(link_t* link, int type, const ufr_args_t* args) {
     // success
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
@@ -257,7 +257,7 @@ void ufr_gtw_posix_stdout_stop(link_t* link, int type) {
 }
 
 static
-lt_api_t ufr_gtw_posix_stdout_api = {
+ufr_gtw_api_t ufr_gtw_posix_stdout_api = {
     .name = "Posix:File",
     .type = ufr_gtw_posix_file_type,
     .state = ufr_gtw_posix_file_state,
@@ -276,16 +276,16 @@ lt_api_t ufr_gtw_posix_stdout_api = {
 // ============================================================================
 
 static
-int ufr_gtw_posix_stdin_boot(link_t* link, const lt_args_t* args) {
-    link->gw_shr = NULL;
-    link->gw_obj = new_gw_obj(stdin, RECV_BUFFER_SIZE_DEFAULT);
-	return LT_OK;
+int ufr_gtw_posix_stdin_boot(link_t* link, const ufr_args_t* args) {
+    link->gtw_shr = NULL;
+    link->gtw_obj = new_gtw_obj(stdin, RECV_BUFFER_SIZE_DEFAULT);
+	return UFR_OK;
 }
 
 static
-int ufr_gtw_posix_stdin_start(link_t* link, int type, const lt_args_t* args) {
+int ufr_gtw_posix_stdin_start(link_t* link, int type, const ufr_args_t* args) {
     // success
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
@@ -294,7 +294,7 @@ void ufr_gtw_posix_stdin_stop(link_t* link, int type) {
 }
 
 static
-lt_api_t ufr_gtw_posix_stdin_api = {
+ufr_gtw_api_t ufr_gtw_posix_stdin_api = {
     .name = "Posix:File",
     .type = ufr_gtw_posix_file_type,
     .state = ufr_gtw_posix_file_state,
@@ -315,17 +315,17 @@ lt_api_t ufr_gtw_posix_stdin_api = {
 int ufr_gtw_posix_new_file(link_t* link, int type) {
     link->gtw_api = &ufr_gtw_posix_file_api;
     link->type_started = type;
-    return LT_OK;
+    return UFR_OK;
 }
 
 int ufr_gtw_posix_new_stdout(link_t* link, int type) {
     link->gtw_api = &ufr_gtw_posix_stdout_api;
     link->type_started = type;
-    return LT_OK;
+    return UFR_OK;
 }
 
 int ufr_gtw_posix_new_stdin(link_t* link, int type) {
     link->gtw_api = &ufr_gtw_posix_stdin_api;
     link->type_started = type;
-    return LT_OK;
+    return UFR_OK;
 }

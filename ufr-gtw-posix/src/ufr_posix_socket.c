@@ -56,34 +56,34 @@ typedef struct {
     message_t message;
 } ll_srv_request_t;
 
-extern lt_api_t ufr_posix_socket_cli;
-extern lt_api_t ufr_posix_socket_srv;
+extern ufr_gtw_api_t ufr_posix_socket_cli;
+extern ufr_gtw_api_t ufr_posix_socket_srv;
 
 // ============================================================================
 //  Common Socket Driver
 // ============================================================================
 
-int lt_posix_socket_type(const link_t* link) {
+int ufr_posix_socket_type(const link_t* link) {
 	return 0;
 }
 
-int lt_posix_socket_state(const link_t* link){
+int ufr_posix_socket_state(const link_t* link){
 	return 0;
 }
 
-size_t lt_posix_socket_size(const link_t* link, int type){
+size_t ufr_posix_socket_size(const link_t* link, int type){
 	return 0;
 }
 
-int lt_posix_socket_boot(link_t* link, const lt_args_t* args) {
+int ufr_posix_socket_boot(link_t* link, const ufr_args_t* args) {
     ll_shr_t* shr = malloc(sizeof(ll_shr_t));
     shr->server_sockfd = 0;
-    link->gw_shr = shr;
+    link->gtw_shr = shr;
 	return 0;
 }
 
-void lt_posix_socket_stop(link_t* link, int type) {
-    ll_srv_request_t* request = link->gw_obj;
+void ufr_posix_socket_stop(link_t* link, int type) {
+    ll_srv_request_t* request = link->gtw_obj;
     if ( request != NULL ) {
         if ( request->sockfd > 0 ) {
             close(request->sockfd);
@@ -92,8 +92,8 @@ void lt_posix_socket_stop(link_t* link, int type) {
     }
 }
 
-int lt_posix_socket_copy(link_t* link, link_t* out) {
-    out->gw_shr = link->gw_shr;
+int ufr_posix_socket_copy(link_t* link, link_t* out) {
+    out->gtw_shr = link->gtw_shr;
 	return 0;
 }
 
@@ -103,14 +103,14 @@ int lt_posix_socket_copy(link_t* link, link_t* out) {
 // ============================================================================
 
 int ufr_gtw_posix_new_socket(link_t* link, int type) {
-    if ( type == LT_START_CONNECT ) {
-        link->gw_api = &ufr_posix_socket_cli;
-    } else if ( type == LT_START_BIND ) {
-        link->gw_api = &ufr_posix_socket_srv;
+    if ( type == UFR_START_CONNECT ) {
+        link->gtw_api = &ufr_posix_socket_cli;
+    } else if ( type == UFR_START_BIND ) {
+        link->gtw_api = &ufr_posix_socket_srv;
     } else {
         return 1;
     }
 
     link->type_started = type;
-	return LT_OK;
+	return UFR_OK;
 }

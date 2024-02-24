@@ -50,9 +50,9 @@ void ufr_dcr_sqlite_recv(link_t* link, char* msg_data, size_t msg_size) {
 
 static
 int ufr_dcr_sqlite_get_i32(link_t* link, int32_t* val) {
-    ll_gw_obj_t* gw_obj = link->gw_obj;
-    *val = sqlite3_column_int64(gw_obj->stmt, gw_obj->index);
-    gw_obj->index += 1;
+    ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+    *val = sqlite3_column_int64(gtw_obj->stmt, gtw_obj->index);
+    gtw_obj->index += 1;
 
 	// success
 	return true;
@@ -60,9 +60,9 @@ int ufr_dcr_sqlite_get_i32(link_t* link, int32_t* val) {
 
 static
 int ufr_dcr_sqlite_get_f32(link_t* link, float* val) {
-    ll_gw_obj_t* gw_obj = link->gw_obj;
-    *val = sqlite3_column_double(gw_obj->stmt, gw_obj->index);
-    gw_obj->index += 1;
+    ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+    *val = sqlite3_column_double(gtw_obj->stmt, gtw_obj->index);
+    gtw_obj->index += 1;
 
 	// success
 	return true;
@@ -70,16 +70,16 @@ int ufr_dcr_sqlite_get_f32(link_t* link, float* val) {
 
 static
 int ufr_dcr_sqlite_get_str(link_t* link, char** str) {
-    ll_gw_obj_t* gw_obj = link->gw_obj;
-	*str = (char*) sqlite3_column_text(gw_obj->stmt, gw_obj->index);
+    ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+	*str = (char*) sqlite3_column_text(gtw_obj->stmt, gtw_obj->index);
 
 	return 1;
 }
 
 static
 int ufr_dcr_sqlite_copy_str(link_t* link, char* buffer, size_t size_max) {
-    ll_gw_obj_t* gw_obj = link->gw_obj;
-	const char* text = sqlite3_column_text(gw_obj->stmt, gw_obj->index);
+    ll_gtw_obj_t* gtw_obj = link->gtw_obj;
+	const char* text = sqlite3_column_text(gtw_obj->stmt, gtw_obj->index);
     strcpy(buffer, text);
 	return 1;
 }
@@ -95,10 +95,10 @@ static
 int ufr_dcr_sqlite_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
 	
 	
-	return LT_OK;
+	return UFR_OK;
 }
 
-lt_decoder_api_t ufr_dcr_sqlite_api = {
+ufr_dcr_api_t ufr_dcr_sqlite_api = {
 	.recv = ufr_dcr_sqlite_recv,
 
 	.get_u32 = NULL,

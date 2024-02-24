@@ -35,7 +35,7 @@ fazer:
 
 erros:
  - iniciar com publisher mas tentar receber dados
- - lt_new cria um link temporario e nao pode ser guardado na estrutura
+ - ufr_new cria um link temporario e nao pode ser guardado na estrutura
   - solucao foi colocar a inicializacao do cliente na funcao start
 */
 
@@ -79,7 +79,7 @@ size_t g_mosq_count = 0;
 static
 void urf_gtw_mqtt_recv_cb(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message) {
     ll_obj_t* obj = userdata;
-    // lt_info(link, "received %ld bytes %p", message->payloadlen, obj);
+    // ufr_info(link, "received %ld bytes %p", message->payloadlen, obj);
     // printf("received %ld bytes %p\n", message->payloadlen, obj);
 
     // expand the buffer case payload is bigger
@@ -116,7 +116,7 @@ size_t urf_gtw_mqtt_size(const link_t* link, int type) {
 }
 
 static
-int urf_gtw_mqtt_boot (link_t* link, const lt_args_t* args) {
+int urf_gtw_mqtt_boot (link_t* link, const ufr_args_t* args) {
     // initialize the mosquitto library on first time
     if ( g_mosq_count == 0 ) {
         mosquitto_lib_init();
@@ -124,18 +124,18 @@ int urf_gtw_mqtt_boot (link_t* link, const lt_args_t* args) {
         //Get libmosquitto version info
         int major, minor, revision;
         mosquitto_lib_version(&major, &minor, &revision);
-        lt_info(link, "Libmosquitto version: %d.%d.%d", major, minor, revision);
+        ufr_info(link, "Libmosquitto version: %d.%d.%d", major, minor, revision);
     }
     
     // get the arguments
-    const char* host = lt_args_gets(args, "@host", "127.0.0.1");
-    const uint16_t port = lt_args_geti(args, "@port", 1883);
-    const char* topic = lt_args_gets(args, "@topic", "");
+    const char* host = ufr_args_gets(args, "@host", "127.0.0.1");
+    const uint16_t port = ufr_args_geti(args, "@port", 1883);
+    const char* topic = ufr_args_gets(args, "@topic", "");
 
     // prepare the shared object
     ll_shr_t* shr = malloc(sizeof(ll_shr_t));
     if ( shr == NULL ) {
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
     }
     strcpy(shr->broker_hostname, host);
     strcpy(shr->topic_name, topic);
@@ -145,86 +145,86 @@ int urf_gtw_mqtt_boot (link_t* link, const lt_args_t* args) {
     ll_obj_t* obj = malloc(sizeof(ll_obj_t));
     if ( obj == NULL ) {
         free(shr);
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
     }
 
     obj->start_type = 0;
     obj->msg_size_max = 4096;
     obj->msg_data = malloc(obj->msg_size_max);
     if ( obj->msg_data == NULL ) {
-        return lt_error(link, ENOMEM, strerror(ENOMEM));
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
     }
 
     obj->is_received = false;
     obj->mosq = NULL;
 
     // success
-    link->gw_shr = shr;
-    link->gw_obj = obj;
+    link->gtw_shr = shr;
+    link->gtw_obj = obj;
     g_mosq_count += 1;
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
-int urf_gtw_mqtt_start (link_t* link, int type, const lt_args_t* args) {
-    ll_shr_t* shr = link->gw_shr;
-    ll_obj_t* obj = link->gw_obj;
+int urf_gtw_mqtt_start (link_t* link, int type, const ufr_args_t* args) {
+    ll_shr_t* shr = link->gtw_shr;
+    ll_obj_t* obj = link->gtw_obj;
 
-    if ( type == LT_START_PUBLISHER ) {
-        lt_info(link, "starting publisher");
+    if ( type == UFR_START_PUBLISHER ) {
+        ufr_info(link, "starting publisher");
 
         // initialize the mosquitto client
         // *** iniatilize the client in the start function instead of boot
         obj->mosq = mosquitto_new(NULL, true, obj);
         if ( obj->mosq == NULL ) {
-            return lt_error(link, 1, "failed to create mosquitto client");
+            return ufr_error(link, 1, "failed to create mosquitto client");
         }
 
         // connect the mosquitto client
         if ( mosquitto_connect(obj->mosq, shr->broker_hostname, shr->broker_port, 60) != MOSQ_ERR_SUCCESS) {
-            return lt_error(link, 1, "connecting to MQTT broker failed");
+            return ufr_error(link, 1, "connecting to MQTT broker failed");
         }
-        lt_info(link, "connected");
-        obj->start_type = LT_START_PUBLISHER;
+        ufr_info(link, "connected");
+        obj->start_type = UFR_START_PUBLISHER;
 
-    } else if ( type == LT_START_SUBSCRIBER ) {
-        lt_info(link, "starting subscriber");
+    } else if ( type == UFR_START_SUBSCRIBER ) {
+        ufr_info(link, "starting subscriber");
 
         // initialize the mosquitto client
         obj->mosq = mosquitto_new(NULL, true, obj);
         if ( obj->mosq == NULL ) {
-            return lt_error(link, 1, "failed to create mosquitto client");
+            return ufr_error(link, 1, "failed to create mosquitto client");
         }
 
         // connect the mosquitto client
         if ( mosquitto_connect(obj->mosq, shr->broker_hostname, shr->broker_port, 60) != MOSQ_ERR_SUCCESS) {
-            return lt_error(link, 1, "connecting to MQTT broker failed");
+            return ufr_error(link, 1, "connecting to MQTT broker failed");
         }
 
         // configure the subscriber
         mosquitto_subscribe(obj->mosq, NULL, shr->topic_name, 0);
         mosquitto_message_callback_set(obj->mosq, urf_gtw_mqtt_recv_cb);
-        lt_info(link, "connected");
-        obj->start_type = LT_START_SUBSCRIBER;
+        ufr_info(link, "connected");
+        obj->start_type = UFR_START_SUBSCRIBER;
     }
 
     // success
-    return LT_OK;
+    return UFR_OK;
 }
 
 static
 void urf_gtw_mqtt_stop(link_t* link, int type) {
-    if ( type == LT_STOP_CLOSE ) {
+    if ( type == UFR_STOP_CLOSE ) {
         // free the private object
-        lt_info(link, "close link");
-        ll_obj_t* obj = link->gw_obj;
+        ufr_info(link, "close link");
+        ll_obj_t* obj = link->gtw_obj;
         mosquitto_destroy(obj->mosq);
         free(obj);
-        link->gw_obj = NULL;
+        link->gtw_obj = NULL;
 
         // free library
         if ( g_mosq_count == 1 ) {
-            lt_info(link, "closing the libmosquitto library");
+            ufr_info(link, "closing the libmosquitto library");
             mosquitto_lib_cleanup();
             g_mosq_count = 0;
         } else {
@@ -235,9 +235,9 @@ void urf_gtw_mqtt_stop(link_t* link, int type) {
 
 static
 bool urf_gtw_mqtt_recv(link_t* link) {
-    ll_obj_t* obj = link->gw_obj;
-    if (obj->start_type != LT_START_SUBSCRIBER) {
-        lt_error(link, 1, "link is not subscriber");
+    ll_obj_t* obj = link->gtw_obj;
+    if (obj->start_type != UFR_START_SUBSCRIBER) {
+        ufr_error(link, 1, "link is not subscriber");
         return false;
     }
 
@@ -248,8 +248,8 @@ bool urf_gtw_mqtt_recv(link_t* link) {
     obj->is_received = false;
 
     // decoder the message
-    if ( link->dec_api != NULL ) {
-        link->dec_api->recv(link, obj->msg_data, obj->msg_size);
+    if ( link->dcr_api != NULL ) {
+        link->dcr_api->recv(link, obj->msg_data, obj->msg_size);
     }
 
     return true;
@@ -257,9 +257,9 @@ bool urf_gtw_mqtt_recv(link_t* link) {
 
 static
 bool urf_gtw_mqtt_recv_async(link_t* link) {
-    ll_obj_t* obj = link->gw_obj;
-    if (obj->start_type != LT_START_SUBSCRIBER) {
-        lt_error(link, 1, "link is not subscriber");
+    ll_obj_t* obj = link->gtw_obj;
+    if (obj->start_type != UFR_START_SUBSCRIBER) {
+        ufr_error(link, 1, "link is not subscriber");
         return false;
     }
 
@@ -271,8 +271,8 @@ bool urf_gtw_mqtt_recv_async(link_t* link) {
         obj->is_received = false;
 
         // decoder the message
-        if ( link->dec_api != NULL ) {
-            link->dec_api->recv(link, obj->msg_data, obj->msg_size);
+        if ( link->dcr_api != NULL ) {
+            link->dcr_api->recv(link, obj->msg_data, obj->msg_size);
         }
 
         // there is a message
@@ -285,7 +285,7 @@ bool urf_gtw_mqtt_recv_async(link_t* link) {
 
 static
 size_t urf_gtw_mqtt_read(link_t* link, char* buffer, size_t max_size) {
-    ll_obj_t* obj = link->gw_obj;
+    ll_obj_t* obj = link->gtw_obj;
 
     if ( obj == NULL || obj->msg_data == NULL ) {
         return 0;
@@ -308,23 +308,23 @@ size_t urf_gtw_mqtt_read(link_t* link, char* buffer, size_t max_size) {
 
 static
 size_t urf_gtw_mqtt_write(link_t* link, const char* buffer, size_t size) {
-    ll_shr_t* shr = link->gw_shr;
-    ll_obj_t* obj = link->gw_obj;
-    if (obj->start_type != LT_START_PUBLISHER) {
-        lt_error(link, 1, "link is not publisher");
+    ll_shr_t* shr = link->gtw_shr;
+    ll_obj_t* obj = link->gtw_obj;
+    if (obj->start_type != UFR_START_PUBLISHER) {
+        ufr_error(link, 1, "link is not publisher");
         return 0;
     }
 
-    lt_info(link, "writing %ld bytes on %s", size, shr->topic_name);
+    ufr_info(link, "writing %ld bytes on %s", size, shr->topic_name);
     const int error = mosquitto_publish(obj->mosq, NULL, shr->topic_name, size, buffer, MQTT_QOS_0, false);
     if ( error != MOSQ_ERR_SUCCESS ) {
-        return lt_error(link, 0, "error");
+        return ufr_error(link, 0, "error");
     }
     return size;
 }
 
 static
-lt_api_t urf_gtw_mqtt_socket_api = {
+ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
 	.type = urf_gtw_mqtt_type,
 	.state = urf_gtw_mqtt_state,
 	.size = urf_gtw_mqtt_size,
@@ -343,9 +343,9 @@ lt_api_t urf_gtw_mqtt_socket_api = {
 // ============================================================================
 
 int ufr_gtw_mqtt_new_topic(link_t* link, int type) {
-	lt_init_api(link, &urf_gtw_mqtt_socket_api);
+	ufr_init_api(link, &urf_gtw_mqtt_socket_api);
     link->type_started = type;
-	return LT_OK;
+	return UFR_OK;
 }
 
 const char* urf_gtw_mqtt_list(uint8_t idx) {

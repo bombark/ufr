@@ -87,7 +87,7 @@ void ufr_sys_init() {
         return;
     }
 
-    // Initialize the g_file_in with LT_APP_command_STDIN parameters
+    // Initialize the g_file_in with UFR_APP_command_STDIN parameters
     snprintf(env_name, sizeof(env_name), "UFR_APP_%s_STDOUT", command);
     const char* link_params = getenv(env_name);
     if ( link_params != NULL ) {
@@ -97,7 +97,7 @@ void ufr_sys_init() {
         g_file_out = ufr_new("@new posix:stdout @encoder std:csv");
     }
 
-    // Initialize the g_file_in with LT_APP_command_STDIN parameters
+    // Initialize the g_file_in with UFR_APP_command_STDIN parameters
     snprintf(env_name, sizeof(env_name), "UFR_APP_%s_STDIN", command);
     const char* link_params_in = getenv(env_name);
     if ( link_params_in != NULL ) {
@@ -137,11 +137,11 @@ int ufr_sys_lib_call_new (
     snprintf(func_name, sizeof(func_name), "%s_new_%s", library->name, name);
     dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(library->handle, func_name);
     if ( dl_func_new == NULL ) {
-        return lt_error(link, 1, dlerror());
+        return ufr_error(link, 1, dlerror());
     }
 
     // execute the function
-    lt_info(link, "calling the function %s(%p)", func_name, dl_func_new);
+    ufr_info(link, "calling the function %s(%p)", func_name, dl_func_new);
     return dl_func_new(link, type);
 }
 
@@ -153,12 +153,12 @@ int sys_ufr_load_library (
     link_t* link, const char* lib_file, const char* lib_fullname,
     uint8_t* out_slot
 ) {
-    lt_info(link, "loading library %s", lib_fullname);
+    ufr_info(link, "loading library %s", lib_fullname);
 
     // open the dinamic library handle
     void* dl_handle = dlopen(lib_file, RTLD_LAZY);
     if ( dl_handle == NULL ) {
-        return lt_error(link, 1, dlerror());
+        return ufr_error(link, 1, dlerror());
     }
 
     // find if this handle was already opened
@@ -178,7 +178,7 @@ int sys_ufr_load_library (
     // -- create new slot for the library
     if ( is_not_loaded ) {
         slot = g_libraries_len;
-        lt_info(link, "loaded library %s no slot %d", lib_fullname, slot);
+        ufr_info(link, "loaded library %s no slot %d", lib_fullname, slot);
         g_libraries_len += 1;
         library = &g_libraries[slot];
         library->count = 0;
@@ -193,35 +193,35 @@ int sys_ufr_load_library (
     // end
     library->count += 1;
     *out_slot = slot;
-    return LT_OK;
+    return UFR_OK;
 }
 
 int ufr_load_gtw_from_lib(link_t* link, const char* lib_file, const char* lib_name) {
     uint8_t slot;
     const int state = sys_ufr_load_library(link, lib_file, lib_name, &slot);
-    if ( state != LT_OK ) {
+    if ( state != UFR_OK ) {
         return state;
     }
 
-    link->slot_lib_gtw = slot;
-    return LT_OK;
+    link->slot_gtw = slot;
+    return UFR_OK;
 }
 
 /** load the library, ex: 'gtw' and 'posix' -> libufr_gtw_posix.so
- * @param[in] library_type Type of the library (ex: gtw,ecr,dcr)
+ * @param[in] library_type Type of the library (ex: gtw,enc,dcr)
  * @param[in] library_name nam of library (ex: posix, msgpack, std)
  */
 static
 int sys_ufr_load (
     link_t* link, const char* library_type, 
-    const char* class_path, int boot_type, const lt_args_t* args
+    const char* class_path, int boot_type, const ufr_args_t* args
 ) {
     //
     char lib_name[128];
     char class_name[128];
     uint16_t flex_cursor = 0;
-    lt_flex_text_div(class_path, &flex_cursor, lib_name, sizeof(lib_name), ':');
-    lt_flex_text_div(class_path, &flex_cursor, class_name, sizeof(class_name), ':');
+    ufr_flex_text_div(class_path, &flex_cursor, lib_name, sizeof(lib_name), ':');
+    ufr_flex_text_div(class_path, &flex_cursor, class_name, sizeof(class_name), ':');
 
     // load the library
     uint8_t slot;
@@ -230,81 +230,81 @@ int sys_ufr_load (
     snprintf(lib_fullname, sizeof(lib_fullname), "ufr_%s_%s", library_type, lib_name);
     snprintf(lib_file, sizeof(lib_file), "lib%s.so", lib_fullname);
     const int state1 = sys_ufr_load_library(link, lib_file, lib_fullname, &slot);
-    if ( state1 != LT_OK ) {
+    if ( state1 != UFR_OK ) {
         return state1;
     }
 
-    // fill the link->[dcr,ecr or gtw]_api
+    // fill the link->[dcr,enc or gtw]_api
     ufr_sys_lib_call_new(link, slot, class_name, boot_type);
 
     // store the slot and call the boot
     if ( strcmp(library_type, "dcr") == 0 ) {
-        link->slot_lib_dcr = slot;
+        link->slot_dcr = slot;
         ufr_boot_dcr(link, args);
-    } else if ( strcmp(library_type, "ecr") == 0 ) {
-        link->slot_lib_ecr = slot;
-        ufr_boot_ecr(link, args);
+    } else if ( strcmp(library_type, "enc") == 0 ) {
+        link->slot_enc = slot;
+        ufr_boot_enc(link, args);
     } else if ( strcmp(library_type, "gtw") == 0 ) {
-        link->slot_lib_gtw = slot;
+        link->slot_gtw = slot;
         ufr_boot_gtw(link, args);
     } else {
-        return lt_error(link, 1, "invalid boot type");
+        return ufr_error(link, 1, "invalid boot type");
     }
 
     // end
-    return LT_OK;
+    return UFR_OK;
 }
 
 /**
  * 
  */
-int sys_ufr_new_link(link_t* link, int boot_type, const lt_args_t* args) {
-    lt_info(link, "creating link");
+int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
+    ufr_info(link, "creating link");
 
     // load and boot the gateway
-    const char* arg_new = lt_args_gets(args, "@new", NULL);
+    const char* arg_new = ufr_args_gets(args, "@new", NULL);
     if ( arg_new == NULL ) {
-    	link->slot_lib_gtw = 0;
-        return lt_error(link, EINVAL, "Parameter @new is not present");
+    	link->slot_gtw = 0;
+        return ufr_error(link, EINVAL, "Parameter @new is not present");
     }
 
     sys_ufr_load(link, "gtw", arg_new, boot_type, args);
 
     // start the gateway, case specified (publisher, subscriver, server or client)
     link->type_started = boot_type;
-    if ( boot_type != LT_START_BLANK ) {
+    if ( boot_type != UFR_START_BLANK ) {
         ufr_start(link, args);
     }
 
     // load default encoder or decoder
-    const char* coder_name = lt_args_gets(args, "@coder", NULL);
+    const char* coder_name = ufr_args_gets(args, "@coder", NULL);
 
     // load the encoder, when indicated
-    if ( boot_type != LT_START_SUBSCRIBER ) {
-        const char* encoder_name = lt_args_gets(args, "@encoder", coder_name);
+    if ( boot_type != UFR_START_SUBSCRIBER ) {
+        const char* encoder_name = ufr_args_gets(args, "@encoder", coder_name);
         if ( encoder_name != NULL ) {
-            sys_ufr_load(link, "ecr", encoder_name, boot_type, args);
+            sys_ufr_load(link, "enc", encoder_name, boot_type, args);
         }
     }
 
     // load the decoder, when indicated
-    if ( boot_type != LT_START_PUBLISHER ) {
-        const char* decoder_name = lt_args_gets(args, "@decoder", coder_name);
+    if ( boot_type != UFR_START_PUBLISHER ) {
+        const char* decoder_name = ufr_args_gets(args, "@decoder", coder_name);
         if ( decoder_name != NULL ) {
             sys_ufr_load(link, "dcr", decoder_name, boot_type, args);
         }
     }
 
     // success
-    return LT_OK;
+    return UFR_OK;
 }
 
 int ufr_link_with_type(link_t* link, const char* text, int boot_type) {
-    lt_init_api(link, NULL);
+    ufr_init_api(link, NULL);
     if ( text == NULL ) {
-        return lt_error(link, 1, "text parameter is null");
+        return ufr_error(link, 1, "text parameter is null");
     }
-    const lt_args_t args = {.text=text};
+    const ufr_args_t args = {.text=text};
     return sys_ufr_new_link(link, boot_type, &args);
 }
 
@@ -320,7 +320,7 @@ link_t ufr_link(const char* text) {
 
 link_t ufr_publisher(const char* text) {
     link_t link;
-    ufr_link_with_type(&link, text, LT_START_PUBLISHER);
+    ufr_link_with_type(&link, text, UFR_START_PUBLISHER);
     return link;
 }
 
@@ -336,7 +336,7 @@ link_t ufr_sys_publisher(const char* name, const char* default_text) {
 
 link_t ufr_subscriber(const char* text) {
     link_t link;
-    ufr_link_with_type(&link, text, LT_START_SUBSCRIBER);
+    ufr_link_with_type(&link, text, UFR_START_SUBSCRIBER);
     return link;
 }
 
@@ -352,7 +352,7 @@ link_t ufr_sys_subscriber(const char* name, const char* default_text) {
 
 link_t ufr_server(const char* text) {
     link_t link;
-    ufr_link_with_type(&link, text, LT_START_BIND);
+    ufr_link_with_type(&link, text, UFR_START_BIND);
     return link;
 }
 
@@ -397,11 +397,11 @@ void ufr_inoutput_init(const char* text) {
 }
 
 bool ufr_input_recv() {
-    return lt_recv(g_file_in_ptr);
+    return ufr_recv(g_file_in_ptr);
 }
 
 link_t ufr_sys_open(const char* name, const char* def_args) {
-    link_t link = {.gw_api = NULL, .dec_api = NULL, .enc_api = NULL};
+    link_t link = {.gtw_api = NULL, .dcr_api = NULL, .enc_api = NULL};
     char env_name[512];
     snprintf(env_name, sizeof(env_name), "UFR_SYS_%s", name);
     const char* link_params = getenv(env_name);
