@@ -37,7 +37,7 @@
 
 #include "ufr.h"
 
-uint8_t g_default_log_level = 10;
+uint8_t g_default_log_level = 2;
 
 // ============================================================================
 //  Link - Meta
@@ -108,8 +108,9 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->enc_api = NULL;
     link->enc_obj = NULL;
     link->type_started = UFR_START_BLANK;
-    link->log_level = g_default_log_level;
-    link->log_ident = 0;
+    // pensar sobre isso
+    // - link->log_level = g_default_log_level;
+    // - link->log_ident = 0;
 }
 
 int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
@@ -128,7 +129,6 @@ int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
 
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
     ufr_log_ini(link, "booting gateway");
-    const int log_debug = ufr_args_geti(args, "@debug", g_default_log_level);   
     const int state = link->gtw_api->boot(link, args);
     ufr_log_end(link, "gateway booted");
     return state;
@@ -567,13 +567,13 @@ const char* ufr_args_gets(const ufr_args_t* args, const char* noun, const char* 
 }
 
 void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char* format, ...) {
-    /*if ( level > link->log_level ) {
+    if ( level > link->log_level ) {
         return;
-    }*/
+    }
     va_list list;
     va_start(list, format);
     const int space = 24U - strlen(func_name);
-    fprintf(stderr, "# info: %s%*s: ", func_name, space, "");
+    fprintf(stderr, "# info:%d %d: %s%*s: ", level, link->log_level, func_name, space, "");
     fprintf(stderr, "%*s", link->log_ident, "");
     vfprintf(stderr, format, list);
     fprintf(stderr, "\n");

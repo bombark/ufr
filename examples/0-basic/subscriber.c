@@ -38,7 +38,7 @@
 
 int main() {
     // configure the output
-    ufr_input_init("@new zmq:topic");
+    ufr_input_init("@new zmq:topic @coder msgpack");
     // ufr_output_init("@new mqtt:topic");
     // ufr_output_init("@new ros_humble:topic");
 
@@ -47,6 +47,7 @@ int main() {
         // ^: wait for the message, ii: read 2 integers
         int a,b;
         ufr_input("^ii", &a, &b);
+        printf("%d %d\n", a, b);
     }
 
     // end

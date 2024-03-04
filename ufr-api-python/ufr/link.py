@@ -25,17 +25,17 @@ class Link(ctypes.Structure):
     dll = ctypes.CDLL(f"libufr.so")
     # dll.urf_sys_set_ld_path( bytes(_base_path, 'utf-8') );
 
-    dll.lt_type.argtypes = [ ctypes.c_void_p ]
-    dll.lt_type.restype =  ctypes.c_int32
+    dll.ufr_gtw_type.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_gtw_type.restype =  ctypes.c_int32
 
-    dll.lt_state.argtypes = [ ctypes.c_void_p ]
-    dll.lt_state.restype =  ctypes.c_int32
+    dll.ufr_gtw_state.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_gtw_state.restype =  ctypes.c_int32
 
-    dll.lt_size.argtypes = [ ctypes.c_void_p ]
-    dll.lt_size.restype =  ctypes.c_size_t
+    dll.ufr_size.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_size.restype =  ctypes.c_size_t
 
-    dll.lt_size_max.argtypes = [ ctypes.c_void_p ]
-    dll.lt_size_max.restype =  ctypes.c_size_t
+    dll.ufr_size_max.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_size_max.restype =  ctypes.c_size_t
 
     dll.ufr_start.argtypes = [ ctypes.c_void_p ]
     dll.ufr_start.restype = ctypes.c_int32
@@ -43,17 +43,8 @@ class Link(ctypes.Structure):
     dll.ufr_link_with_type.argtypes = [ ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32 ]
     dll.ufr_link_with_type.restype = ctypes.c_int32
 
-    # dll.lt_stop.argtypes = [ ctypes.c_void_p ]
-    # dll.lt_stop.restype = ctypes.c_int32
-
     dll.ufr_close.argtypes = [ ctypes.c_void_p ]
     dll.ufr_close.restype = ctypes.c_int32
-
-    # dll.lt_puts.argtypes = [ ctypes.c_void_p, ctypes.c_char_p  ]
-    # dll.lt_puts.restype = ctypes.c_int32
-
-    dll.lt_api_name.argtypes = [ ctypes.c_void_p ]
-    dll.lt_api_name.restype =  ctypes.c_char_p
 
     dll.ufr_link.argtypes = [ ctypes.c_void_p, ctypes.c_char_p ]
     dll.ufr_link.restype =  ctypes.c_int32
@@ -69,11 +60,13 @@ class Link(ctypes.Structure):
 
         ('type_started', ctypes.c_ubyte),
         ('log_level', ctypes.c_ubyte),
+        ('log_ident', ctypes.c_ubyte),
+
         ('slot_gtw', ctypes.c_ubyte),
         ('slot_ecr', ctypes.c_ubyte),
         ('slot_dcr', ctypes.c_ubyte),
 
-        ('errstr', ctypes.c_ubyte * 67)
+        ('errstr', ctypes.c_ubyte * 66)
     ]
 
     def __init__(self, text: str, type: int):
@@ -86,11 +79,11 @@ class Link(ctypes.Structure):
         # self.close()
         pass
 
-    def lt_type_code(self):
-        return Link.dll.lt_type( ctypes.pointer(self) )
+    def type_code(self):
+        return Link.dll.ufr_type( ctypes.pointer(self) )
 
-    def lt_type(self):
-        type_code = Link.dll.lt_type( ctypes.pointer(self) )
+    def gtw_type(self):
+        type_code = Link.dll.ufr_type( ctypes.pointer(self) )
         if type_code == 0:
             return "Error"
         if type_code == 1:
@@ -104,7 +97,7 @@ class Link(ctypes.Structure):
         return "Invalid"
 
     def state(self):
-        state_code = Link.dll.lt_state( ctypes.pointer(self) )
+        state_code = Link.dll.ufr_state( ctypes.pointer(self) )
         if state_code == 0:
             return "Reset"
         if state_code == 1:
@@ -140,17 +133,17 @@ class Link(ctypes.Structure):
             raise Exception("error in the connection")
 
     def stop(self):
-        Link.dll.lt_stop( ctypes.pointer(self) )
+        Link.dll.ufr_stop( ctypes.pointer(self) )
 
     def close(self):
-        Link.dll.lt_close( ctypes.pointer(self) )
+        Link.dll.ufr_close( ctypes.pointer(self) )
 
     def __str__(self):
-        api_name = Link.dll.lt_api_name( ctypes.pointer(self) ).decode('utf-8')
+        api_name = Link.dll.ufr_api_name( ctypes.pointer(self) ).decode('utf-8')
         return api_name
 
     def recv(self):
-        Link.dll.lt_recv( ctypes.pointer(self) )
+        Link.dll.ufr_recv( ctypes.pointer(self) )
 
     def read(self):
         max_size = 1024 * 1024
@@ -173,33 +166,33 @@ class Link(ctypes.Structure):
         
 
     def write(self, value):
-        Link.dll.lt_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
+        Link.dll.ufr_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
 
     def putln(self, *args):
         for arg in args:
             if type(arg) == int:
                 value = ctypes.c_int64(arg)
-                Link.dll.lt_put (
+                Link.dll.ufr_put (
                     ctypes.pointer(self), 
                     bytes('i', 'utf-8'), 
                     value
                 )
             elif type(arg) == float:
                 value = ctypes.c_float(arg)
-                Link.dll.lt_put ( 
+                Link.dll.ufr_put ( 
                     ctypes.pointer(self), 
                     bytes('f', 'utf-8'), 
                     value 
                 )
             elif type(arg) == str:
-                Link.dll.lt_put ( 
+                Link.dll.ufr_put ( 
                     ctypes.pointer(self), 
                     bytes('s', 'utf-8'), 
                     bytes(arg, 'utf-8') 
                 )
             else:
                 Exception(f"The variable {arg} is not allowed to serialize")
-        Link.dll.lt_put( ctypes.pointer(self), bytes('\n', 'utf-8') )
+        Link.dll.ufr_put( ctypes.pointer(self), bytes('\n', 'utf-8') )
         
 
     def get(self, format: str):
@@ -281,22 +274,22 @@ Talvez apagar
 class CDev(Link):
     def read(self):
         buffer = (ctypes.c_ubyte * 256)()
-        Link.dll.lt_read( ctypes.pointer(self), ctypes.pointer(buffer), 256 )
+        Link.dll.ufr_read( ctypes.pointer(self), ctypes.pointer(buffer), 256 )
         return bytes(buffer).decode()
 
     def write(self, value):
-        Link.dll.lt_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
+        Link.dll.ufr_write( ctypes.pointer(self), bytes(value, 'utf-8'), len(value) )
 
 
 class File(CDev):
     def size(self):
-        return Link.dll.lt_size( ctypes.pointer(self) )
+        return Link.dll.ufr_size( ctypes.pointer(self) )
 
     def seek(self):
         pass
 
     def __str__(self):
-        api_name = Link.dll.lt_api_name( ctypes.pointer(self) ).decode('utf-8')
+        api_name = Link.dll.ufr_api_name( ctypes.pointer(self) ).decode('utf-8')
 
         data = {}
         data[".state"] = self.state()

@@ -315,12 +315,21 @@ size_t urf_gtw_mqtt_write(link_t* link, const char* buffer, size_t size) {
         return 0;
     }
 
+    if ( obj->mosq == NULL ) {
+        return ufr_error(link, 1, "aaa");
+    }
+
     ufr_info(link, "writing %ld bytes on %s", size, shr->topic_name);
     const int error = mosquitto_publish(obj->mosq, NULL, shr->topic_name, size, buffer, MQTT_QOS_0, false);
     if ( error != MOSQ_ERR_SUCCESS ) {
         return ufr_error(link, 0, "error");
     }
     return size;
+}
+
+static
+int urf_gtw_mqtt_send(link_t* link) {
+    return UFR_OK;
 }
 
 static
@@ -336,6 +345,7 @@ ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
     .recv_async = urf_gtw_mqtt_recv_async,
 	.read = urf_gtw_mqtt_read,
 	.write = urf_gtw_mqtt_write,
+    .send = urf_gtw_mqtt_send
 };
 
 // ============================================================================

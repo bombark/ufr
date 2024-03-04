@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_dcr_std_new_csv(link_t* link, const ufr_args_t* args);
+int ufr_dcr_std_new(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
@@ -43,7 +43,7 @@ int ufr_dcr_std_new_csv(link_t* link, const ufr_args_t* args);
 void test_simple() {
     link_t link = ufr_new("@new posix:pipe");
     ufr_args_t args = {.text="@sep ;"};  
-    ufr_dcr_std_new_csv(&link, &args);
+    ufr_dcr_csv_new(&link, &args);
 
     // test 1
     {
@@ -75,7 +75,7 @@ void test_simple() {
 void test_simple_2() {
     link_t link = ufr_new("@new posix:pipe");
     ufr_args_t args = {.text="@sep ,"};  
-    ufr_dcr_std_new_csv(&link, &args);
+    ufr_dcr_csv_new(&link, &args);
 
     // test 1
     {

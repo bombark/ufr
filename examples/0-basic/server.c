@@ -30,6 +30,7 @@
 // ============================================================================
 
 #include <stdio.h>
+#include <string.h>
 #include <ufr.h>
 
 // ============================================================================
@@ -38,17 +39,19 @@
 
 int main() {
     // configure the output
-    ufr_server_init("@new zmq:topic");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
+    link_t link = ufr_server("@new zmq:socket @coder msgpack");
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
-        int vel, rotvel;
-        scanf("%d %d", &vel, &rotvel);
+        char command[512];
+        ufr_get(&link, "^s", command);
+        printf("[LOG]: %s\n", command);
 
-        // ii\n : 2 integers and send message
-        ufr_output("ii\n", vel, rotvel);
+        if ( strcmp(command, "AT") == 0 ) {
+            ufr_put(&link, "s\n", "OK");
+        } else {
+            ufr_put(&link, "s\n", "ERROR");
+        }
     }
 
     // end

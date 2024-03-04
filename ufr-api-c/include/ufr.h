@@ -53,6 +53,8 @@
 #define UFR_STOP_CLOSE       1
 
 
+#define UFR_TYPE_SOCKET 1
+#define UFR_TYPE_TOPIC  2
 
 #ifdef __cplusplus
 extern "C" {
@@ -206,7 +208,7 @@ bool ufr_link_is_subscriber(const link_t* link);
 bool ufr_link_is_server(const link_t* link);
 bool ufr_link_is_client(const link_t* link);
 
-// Start and stop
+// Set zeros to link
 void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api);
 
 // system new

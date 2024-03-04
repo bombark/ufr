@@ -51,6 +51,8 @@ ufr_library_t g_libraries[255];
 
 int ufr_enc_sys_new_std(link_t* link, int type);
 
+extern uint8_t g_default_log_level;
+
 // ============================================================================
 //  Constructor
 // ============================================================================
@@ -132,11 +134,19 @@ const char* ufr_sys_lib_call_list (const uint8_t slot, const uint8_t list_idx) {
 int ufr_sys_lib_call_new (
     link_t* link, const uint8_t slot, const char* name, const int type
 ) {
+    if ( name == NULL ) {
+        return ufr_error(link, 1, "name is null");
+    }
 
     // get the function pointer
     char func_name[512];
     ufr_library_t* library = &g_libraries[slot];
-    snprintf(func_name, sizeof(func_name), "%s_new_%s", library->name, name);
+    if ( name[0] == '\0' ) {
+        snprintf(func_name, sizeof(func_name), "%s_new", library->name);
+    } else {
+        snprintf(func_name, sizeof(func_name), "%s_new_%s", library->name, name);
+    }
+    
     dl_func_new_t dl_func_new = (dl_func_new_t) dlsym(library->handle, func_name);
     if ( dl_func_new == NULL ) {
         return ufr_error(link, 1, dlerror());
@@ -306,10 +316,13 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
 
 int ufr_link_with_type(link_t* link, const char* text, int boot_type) {
     ufr_init_link(link, NULL);
+    link->log_ident = 0;
+
     if ( text == NULL ) {
         return ufr_error(link, 1, "text parameter is null");
     }
     const ufr_args_t args = {.text=text};
+    link->log_level = ufr_args_geti(&args, "@debug", g_default_log_level);
     return sys_ufr_new_link(link, boot_type, &args);
 }
 
@@ -358,6 +371,12 @@ link_t ufr_sys_subscriber(const char* name, const char* default_text) {
 link_t ufr_server(const char* text) {
     link_t link;
     ufr_link_with_type(&link, text, UFR_START_BIND);
+    return link;
+}
+
+link_t ufr_client(const char* text) {
+    link_t link;
+    ufr_link_with_type(&link, text, UFR_START_CONNECT);
     return link;
 }
 

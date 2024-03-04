@@ -181,7 +181,7 @@ ufr_dcr_api_t ufr_dcr_std_csv_api = {
 //  Public Functions
 // ============================================================================
 
-int ufr_dcr_std_new_csv(link_t* link, int type) {
+int ufr_dcr_csv_new(link_t* link, int type) {
     link->dcr_api = &ufr_dcr_std_csv_api;
 	return UFR_OK;
 }

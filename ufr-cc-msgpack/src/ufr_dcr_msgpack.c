@@ -260,7 +260,7 @@ ufr_dcr_api_t ufr_dcr_msgpack_api = {
 //  Public
 // ============================================================================
 
-int ufr_dcr_msgpack_new_obj(link_t* link, const int type) {
+int ufr_dcr_msgpack_new(link_t* link, const int type) {
 	link->dcr_api = &ufr_dcr_msgpack_api;
 	return UFR_OK;
 }

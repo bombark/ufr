@@ -80,7 +80,11 @@ int ufr_enc_sys_put_str(link_t* link, const char* val) {
 }
 
 int ufr_enc_sys_put_cmd(link_t* link, char cmd) {
-    ufr_write(link, &cmd, 1);
+    if ( cmd == '\n' ) {
+        link->gtw_api->send(link);
+    } else {
+        ufr_write(link, &cmd, 1);
+    }
     return UFR_OK;
 }
 

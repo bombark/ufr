@@ -43,6 +43,7 @@ typedef struct {
     void* socket;
     zmq_msg_t recv_msg;
     size_t idx;
+    size_t bytes_wrote;
 } ll_obj_t;
 
 // ============================================================================
@@ -58,6 +59,7 @@ bool ufr_zmq_recv(link_t* link);
 bool ufr_zmq_recv_async(link_t* link);
 size_t ufr_zmq_read(link_t* link, char* buffer, size_t max_size);
 size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size);
+int ufr_zmq_send(link_t* link);
 
 // ============================================================================
 //  Public Functions

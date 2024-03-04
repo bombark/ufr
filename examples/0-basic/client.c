@@ -38,18 +38,13 @@
 
 int main() {
     // configure the output
-    ufr_output_init("@new zmq:topic");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
+    link_t link = ufr_client("@new zmq:socket @coder msgpack");
 
-    // publish 5 messages
-    for (int i=0; i<5; i++) {
-        int vel, rotvel;
-        scanf("%d %d", &vel, &rotvel);
-
-        // ii\n : 2 integers and send message
-        ufr_output("ii\n", vel, rotvel);
-    }
+    // send data and receive the answer
+    char buffer[512];
+    ufr_put(&link, "s\n", "AT");
+    ufr_get(&link, "^s", buffer);
+    printf("%s\n", buffer);
 
     // end
     return 0;

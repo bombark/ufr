@@ -141,6 +141,7 @@ int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
         encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
         enc_obj->line += '\n';
         ufr_write(link, enc_obj->line.c_str(), enc_obj->line.size());
+        ufr_send(link);
         enc_obj->line.clear();
     }
     return 0;
@@ -186,7 +187,7 @@ ufr_enc_api_t ufr_enc_std_csv_api = {
 // ============================================================================
 
 extern "C"
-int ufr_enc_std_new_csv(link_t* link, int type) {
+int ufr_enc_csv_new(link_t* link, int type) {
 	link->enc_api = &ufr_enc_std_csv_api;
 	return UFR_OK;
 }

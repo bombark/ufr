@@ -45,6 +45,11 @@
 // ============================================================================
 
 static
+int ufr_zmq_topic_type(const link_t* link) {
+    return UFR_TYPE_TOPIC;
+}
+
+static
 int ufr_zmq_topic_start(struct _link* link, int type, const ufr_args_t* args) {
     // Publisher
 	if ( type == UFR_START_PUBLISHER ) {
@@ -117,7 +122,7 @@ int ufr_zmq_topic_start(struct _link* link, int type, const ufr_args_t* args) {
 
 static
 ufr_gtw_api_t ufr_zmq_topic_api = {
-	.type = ufr_zmq_type,
+	.type = ufr_zmq_topic_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
 	.boot = ufr_zmq_boot,
@@ -128,6 +133,7 @@ ufr_gtw_api_t ufr_zmq_topic_api = {
 	.recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
 	.write = ufr_zmq_write,
+    .send = ufr_zmq_send
 };
 
 // ============================================================================

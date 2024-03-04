@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_dcr_msgpack_new_obj(link_t* link, const int type);
+int ufr_dcr_msgpack_new(link_t* link, const int type);
 
 // ============================================================================
 //  Tests
@@ -43,7 +43,7 @@ int ufr_dcr_msgpack_new_obj(link_t* link, const int type);
 void test() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_dcr_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_dcr_msgpack_new(&link, 0) == UFR_OK );
     assert( ufr_boot_dcr(&link, NULL) == UFR_OK );
 
     {

@@ -32,18 +32,29 @@
 #include <stdio.h>
 #include "ufr.h"
 
+typedef struct {
+    char* ptr;
+    size_t size;
+    size_t idx;
+} decoder_t;
+
 // ============================================================================
 //  Default Decoder
 // ============================================================================
 
 static
 int ufr_dcr_sys_boot(link_t* link, const ufr_args_t* args) {
+    decoder_t* dcr = malloc(sizeof(decoder_t));
+    link->dcr_obj = dcr;
     return UFR_OK;
 }
 
 static
 void ufr_dcr_sys_close(link_t* link) {
-
+    if ( link->dcr_obj != NULL ) {
+        free(link->dcr_obj);
+        link->dcr_obj = NULL;
+    }
 }
 
 static
@@ -53,6 +64,7 @@ void ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
 
 static
 int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val) {
+    // sscanf();
     return UFR_OK;
 }
 

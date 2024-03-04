@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_enc_msgpack_new_obj(link_t* link, const int type);
+int ufr_enc_msgpack_new(link_t* link, const int type);
 
 // ============================================================================
 //  Tests
@@ -43,7 +43,7 @@ int ufr_enc_msgpack_new_obj(link_t* link, const int type);
 void test1() {
     char buffer[8];
     link_t link = ufr_new("@new posix:pipe");
-    assert( ufr_enc_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_enc_msgpack_new(&link, 0) == UFR_OK );
     assert( ufr_boot_enc(&link, NULL) == UFR_OK );
     
     {
@@ -78,7 +78,7 @@ void test1() {
 
 void test2() {
     link_t link = ufr_publisher("@new posix:file @path saida.txt");
-    assert( ufr_enc_msgpack_new_obj(&link, 0) == UFR_OK );
+    assert( ufr_enc_msgpack_new(&link, 0) == UFR_OK );
     assert( ufr_boot_enc(&link, NULL) == UFR_OK );
 
     ufr_put(&link, "iii", 10, 20, 30);
