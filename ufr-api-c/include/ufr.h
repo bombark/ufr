@@ -109,7 +109,6 @@ typedef struct {
 	bool (*recv)(struct _link* link);
 	bool (*recv_async)(struct _link* link);
 
-    // int (*send)(struct _link* link);
     int (*accept)(struct _link* link, struct _link* out_client);
 
     // tests

@@ -39,18 +39,21 @@
 
 int main() {
     // configure the output
-    link_t link = ufr_server("@new zmq:socket @coder msgpack");
+    link_t server = ufr_server("@new zmq:socket @coder msgpack");
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
+        link_t client;
         char command[512];
-        ufr_get(&link, "^s", command);
+
+        ufr_accept(&server, &client);
+        ufr_get(&client, "^s", command);
         printf("[LOG]: %s\n", command);
 
         if ( strcmp(command, "AT") == 0 ) {
-            ufr_put(&link, "s\n", "OK");
+            ufr_put(&client, "s\n", "OK");
         } else {
-            ufr_put(&link, "s\n", "ERROR");
+            ufr_put(&client, "s\n", "ERROR");
         }
     }
 
