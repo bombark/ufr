@@ -328,11 +328,6 @@ size_t urf_gtw_mqtt_write(link_t* link, const char* buffer, size_t size) {
 }
 
 static
-int urf_gtw_mqtt_send(link_t* link) {
-    return UFR_OK;
-}
-
-static
 ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
 	.type = urf_gtw_mqtt_type,
 	.state = urf_gtw_mqtt_state,
@@ -344,8 +339,7 @@ ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
     .recv = urf_gtw_mqtt_recv,
     .recv_async = urf_gtw_mqtt_recv_async,
 	.read = urf_gtw_mqtt_read,
-	.write = urf_gtw_mqtt_write,
-    .send = urf_gtw_mqtt_send
+	.write = urf_gtw_mqtt_write
 };
 
 // ============================================================================

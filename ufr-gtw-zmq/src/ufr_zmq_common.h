@@ -43,7 +43,6 @@ typedef struct {
     void* socket;
     zmq_msg_t recv_msg;
     size_t idx;
-    size_t bytes_wrote;
 } ll_obj_t;
 
 // ============================================================================

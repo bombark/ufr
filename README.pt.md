@@ -143,3 +143,8 @@ compilação: gcc client.c -o client -lufr
 - stk: stack
 - cc: decoder and encoder
 - app: application
+
+# Documentacao
+
+Gateway:
+ - Envia mensagem e deve-se evitar um buffer no gateway assim diminuir a realização de uma cópia dos dados. O encoder é encarregado de armazenar a mensagem e realizar o envio apenas quando a mensagem estiver completa.

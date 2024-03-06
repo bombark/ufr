@@ -95,7 +95,6 @@ int ufr_zmq_boot (link_t* link, const ufr_args_t* args) {
         return ufr_error(link, ENOMEM, "%s", strerror(ENOMEM));
     }
     obj->socket = NULL;
-    obj->bytes_wrote = 0;
     zmq_msg_init(&obj->recv_msg);
 
     // update the link
@@ -188,21 +187,13 @@ size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size) {
     }
 
     // send the data to buffer
-    const size_t sent = zmq_send (local->socket, buffer, size, ZMQ_SNDMORE);
+    // const size_t sent = zmq_send (local->socket, buffer, size, ZMQ_SNDMORE);
+    const size_t sent = zmq_send (local->socket, buffer, size, 0);
     if ( sent != size ) {
         return ufr_error(link, 0, "%s", zmq_strerror(errno));
     }
-    local->bytes_wrote += sent;
-
+    ufr_info(link, "sent %ld bytes", sent);
     return sent;
-}
-
-int ufr_zmq_send(link_t* link) {
-    ll_obj_t* local = link->gtw_obj;
-    const size_t sent = zmq_send (local->socket, "", 0, 0);
-    ufr_info(link, "sent %ld bytes", local->bytes_wrote);
-    local->bytes_wrote = 0;
-    return UFR_OK;
 }
 
 // ============================================================================

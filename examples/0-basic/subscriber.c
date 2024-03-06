@@ -38,7 +38,8 @@
 
 int main() {
     // configure the output
-    ufr_input_init("@new zmq:topic @coder msgpack");
+    ufr_input_init("@new zmq:topic");
+    // ufr_input_init("@new posix:file @path saida.txt");
     // ufr_output_init("@new mqtt:topic");
     // ufr_output_init("@new ros_humble:topic");
 

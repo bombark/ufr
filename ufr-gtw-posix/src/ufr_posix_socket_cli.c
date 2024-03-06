@@ -105,11 +105,6 @@ bool ufr_posix_socket_cli_recv(link_t* link) {
     return false;
 }
 
-static
-int ufr_posix_socket_cli_send(struct _link* link) {
-    return 0;
-}
-
 ufr_gtw_api_t ufr_posix_socket_cli = {
 	.type = ufr_posix_socket_type,
 	.state = ufr_posix_socket_state,
@@ -121,5 +116,4 @@ ufr_gtw_api_t ufr_posix_socket_cli = {
 	.read = ufr_posix_socket_cli_read,
 	.write = ufr_posix_socket_cli_write,
     .recv = ufr_posix_socket_cli_recv,
-    .send = ufr_posix_socket_cli_send
 };

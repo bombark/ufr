@@ -109,7 +109,7 @@ typedef struct {
 	bool (*recv)(struct _link* link);
 	bool (*recv_async)(struct _link* link);
 
-    int (*send)(struct _link* link);
+    // int (*send)(struct _link* link);
     int (*accept)(struct _link* link, struct _link* out_client);
 
     // tests
@@ -240,7 +240,6 @@ void ufr_close(link_t* link);
 bool ufr_recv(link_t* link);
 bool ufr_recv(link_t* link);
 bool ufr_recv_async(link_t* link);
-bool ufr_send(link_t* link);
 
 size_t ufr_read(link_t* node, char* buffer, size_t size);
 size_t ufr_read(link_t* node, char* buffer, size_t size);
@@ -257,7 +256,12 @@ bool ufr_get_str(link_t* link, char* buffer);
 
 void ufr_put_va(link_t* link, const char* format, va_list list);
 void ufr_put(link_t* link, const char* format, ...);
-void ufr_put(link_t* link, const char* format, ...);
+
+void ufr_put_au32(link_t* link, const uint32_t* array, size_t size);
+void ufr_put_ai32(link_t* link, const int32_t* array, size_t size);
+void ufr_put_af32(link_t* link, const float* array, size_t size);
+bool ufr_send(link_t* link);
+
 
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data);
 size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data);
@@ -341,6 +345,29 @@ const char* ufr_sys_lib_call_list (const uint8_t slot, const uint8_t list_idx);
 int ufr_sys_lib_call_new (link_t* link, const uint8_t slot, const char* name, const int type);
 
 void urf_sys_set_ld_path(char* path);
+
+// ============================================================================
+//  Buffer Implementation for Encoders
+// ============================================================================
+
+#define MESSAGE_ITEM_SIZE 4096
+
+typedef struct {
+    size_t size;
+    size_t max;
+    char* ptr;
+} ufr_buffer_t;
+
+ufr_buffer_t* ufr_buffer_new();
+void ufr_buffer_init(ufr_buffer_t* buffer);
+void ufr_buffer_clear(ufr_buffer_t* buffer);
+void ufr_buffer_free(ufr_buffer_t* buffer);
+void ufr_buffer_put(ufr_buffer_t* buffer, char* text, size_t size);
+void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val);
+void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
+void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
+void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);
+void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text);
 
 #ifdef __cplusplus
 }

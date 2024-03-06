@@ -141,7 +141,6 @@ int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
         encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
         enc_obj->line += '\n';
         ufr_write(link, enc_obj->line.c_str(), enc_obj->line.size());
-        ufr_send(link);
         enc_obj->line.clear();
     }
     return 0;

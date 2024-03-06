@@ -33,22 +33,32 @@
 #include <ufr.h>
 
 // ============================================================================
+//  Publishers
+// ============================================================================
+
+void example1() {
+    ufr_output_init("@new posix:file @path saida1.txt");
+    for (int i=0; i<5; i++) {
+        ufr_output("iifs\n", i, i*10, 1.2*i, "opa");
+    }
+}
+
+void example2() {
+    link_t link = ufr_publisher("@new posix:file @path saida2.txt @coder msgpack");
+    for (int i=0; i<5; i++) {
+        int sonars[8] = {1,2,3,4,5,6,7,8};
+        ufr_put_ai32(&link, sonars, 8);
+        ufr_put(&link, "ii\n", i, i*10);
+    }
+    ufr_close(&link);
+}
+
+// ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    // configure the output
-    ufr_output_init("@new zmq:topic @coder csv");
-    // ufr_output_init("@new posix:file @path saida.txt @debug 2");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
-
-    // publish 5 messages
-    for (int i=0; i<5; i++) {
-        // ii: write 2 integers in the message, \n: send the message
-        ufr_output("ii\n", i, i*10);
-    }
-
-    // end
+    // example1();
+    example2();
     return 0;
 }

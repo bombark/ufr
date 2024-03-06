@@ -188,7 +188,7 @@ bool ufr_recv_async(link_t* link) {
 }
 
 bool ufr_send(link_t* link) {
-    int error = link->gtw_api->send(link);
+    int error = link->enc_api->put_cmd(link, '\n');
     return error == UFR_OK;
 }
 
@@ -335,7 +335,17 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 					link->enc_api->put_f32(link, val);
 				} break;
 
+                // pensar se adotar essa notacao
+                case '[': {
+                    link->enc_api->enter_array(link, 100);
+                } break;
+
+                case ']': {
+                    link->enc_api->leave_array(link);
+                } break;
+
 				default:
+                    ufr_warn(link, "Operador '%c' nao definido", type);
 					break;
 			}
 		}
@@ -348,6 +358,30 @@ void ufr_put(link_t* link, const char* format, ...) {
     va_start(list, format);
     ufr_put_va(link, format, list);
     va_end(list);
+}
+
+void ufr_put_au32(link_t* link, const uint32_t* array, size_t size) {
+    ufr_enter_array(link, size);
+    for (size_t i=0; i<size; i++) {
+        link->enc_api->put_u32(link, array[i]);
+    }
+    ufr_leave_array(link);
+}
+
+void ufr_put_ai32(link_t* link, const int32_t* array, size_t size) {
+    ufr_enter_array(link, size);
+    for (size_t i=0; i<size; i++) {
+        link->enc_api->put_i32(link, array[i]);
+    }
+    ufr_leave_array(link);
+}
+
+void ufr_put_af32(link_t* link, const float* array, size_t size) {
+    ufr_enter_array(link, size);
+    for (size_t i=0; i<size; i++) {
+        link->enc_api->put_f32(link, array[i]);
+    }
+    ufr_leave_array(link);
 }
 
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
@@ -635,3 +669,68 @@ bool ufr_dummy_recv(link_t* link) {
 int ufr_dummy_send(link_t* link) {
     return 0;
 }
+
+// ============================================================================
+//  Buffer
+// ============================================================================
+
+ufr_buffer_t* ufr_buffer_new() {
+    ufr_buffer_t* buffer = malloc(sizeof(ufr_buffer_t));
+    if ( buffer != NULL ) {
+        ufr_buffer_init(buffer);
+    }
+    return buffer;
+}
+
+void ufr_buffer_init(ufr_buffer_t* buffer) {
+    buffer->size = 0;
+    buffer->max = MESSAGE_ITEM_SIZE;
+    buffer->ptr = malloc(buffer->max);
+}
+
+void ufr_buffer_clear(ufr_buffer_t* buffer) {
+    buffer->size = 0;
+}
+
+void ufr_buffer_free(ufr_buffer_t* buffer) {
+    if ( buffer->ptr != NULL ) {
+        free(buffer->ptr);
+        buffer->ptr = NULL;
+    }
+    buffer->max = 0;
+    buffer->size = 0;
+}
+
+void ufr_buffer_put(ufr_buffer_t* buffer, char* text, size_t size) {
+    memcpy(&buffer->ptr[buffer->size], text, size);
+    buffer->size += size;
+}
+
+void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val) {
+    buffer->ptr[buffer->size] = val;
+    buffer->size += 1;
+}
+
+void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val) {
+    char* base = &buffer->ptr[buffer->size];
+    const size_t size = snprintf(base, 32, "%u ", val);
+    buffer->size += size;
+}
+
+void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val) {
+    char* base = &buffer->ptr[buffer->size];
+    const size_t size = snprintf(base, 32, "%d ", val);
+    buffer->size += size;
+}
+
+void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val) {
+    char* base = &buffer->ptr[buffer->size];
+    const size_t size = snprintf(base, 32, "%f ", val);
+    buffer->size += size;
+}
+
+void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text) {
+    const size_t size = strlen(text);
+    ufr_buffer_put(buffer, text, size);
+}
+

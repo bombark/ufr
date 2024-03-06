@@ -131,7 +131,6 @@ int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
 		const size_t size = enc_obj->sbuf.size;
 		const char* data = enc_obj->sbuf.data;
 		ufr_write(link, data, size);
-        ufr_send(link);
 		msgpack_sbuffer_clear(&enc_obj->sbuf);
 	}
 

@@ -94,28 +94,6 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
     return 0;
 }
 
-size_t ufr_zmq_socket_write(link_t* link, const char* buffer, size_t size) {
-    ll_obj_t* local = link->gtw_obj;
-    if ( local == NULL ) {
-        return 0;
-    }
-
-    // send the data to buffer
-    const size_t sent = zmq_send (local->socket, buffer, size, 0);
-    if ( sent != size ) {
-        return ufr_error(link, 0, "%s", zmq_strerror(errno));
-    }
-    ufr_info(link, "sent %d bytes", sent);
-    local->bytes_wrote = 0;
-
-    // end
-    return sent;
-}
-
-int ufr_zmq_socket_send(link_t* link) {
-    return UFR_OK;
-}
-
 static
 ufr_gtw_api_t ufr_zmq_socket_api = {
 	.type = ufr_zmq_socket_type,
@@ -128,8 +106,7 @@ ufr_gtw_api_t ufr_zmq_socket_api = {
     .recv = ufr_zmq_recv,
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
-	.write = ufr_zmq_socket_write,
-    .send = ufr_zmq_socket_send
+	.write = ufr_zmq_write,
 };
 
 int ufr_gtw_zmq_new_socket(link_t* link, int type) {

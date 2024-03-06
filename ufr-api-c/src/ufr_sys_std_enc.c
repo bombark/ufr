@@ -31,20 +31,67 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "ufr.h"
+
+// ============================================================================
+//  Functions
+// ============================================================================
+
+bool str_needs_quote(const char* str, const size_t size) {
+    bool is_need = false;
+
+    // check if the first is '[' or ']'
+    const char first = str[0];
+    if ( first == '[' || first == ']' ) {
+        return true;
+    }
+
+    // Check if string has ' '
+    for (size_t i=0; i<size; i++) {
+        const char c = str[i];
+        if ( c == ' ' ) {
+            is_need = true;
+            break;
+        }
+    }
+
+    // end
+    return is_need;
+}
+
+void copy_str_replacing_symbols(ufr_buffer_t* buffer, const char* str, const size_t size) {
+    for (size_t i=0; i<size; i++) {
+        const char c = str[i];
+        if ( c == '\n' ) {
+            ufr_buffer_put_str(buffer, "\\n");
+        } else {
+            ufr_buffer_put_chr(buffer, c);
+        }
+    }
+}
 
 // ============================================================================
 //  Default Encoder
 // ============================================================================
 
 int ufr_enc_sys_boot(link_t* link, const ufr_args_t* args) {
+    link->enc_obj = ufr_buffer_new();
     return UFR_OK;
 }
 
 void ufr_enc_sys_close(link_t* link) {
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    if ( buffer != NULL ) {
+        ufr_buffer_free(buffer);
+        free(buffer);
+        link->enc_obj = NULL;
+    }
 }
 
 void ufr_enc_sys_clear(link_t* link) {
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_clear(buffer);
 }
 
 int ufr_enc_sys_set_header(link_t* link, const char* header) {
@@ -53,37 +100,44 @@ int ufr_enc_sys_set_header(link_t* link, const char* header) {
 
 
 int ufr_enc_sys_put_u32(link_t* link, uint32_t val) {
-    char buffer[32];
-    const size_t size = snprintf(buffer, sizeof(buffer), "%u ", val);
-    ufr_write(link, buffer, size);
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_u32_as_str(buffer, val);
     return UFR_OK;
 }
 
 int ufr_enc_sys_put_i32(link_t* link, int32_t val) {
-    char buffer[32];
-    const size_t size = snprintf(buffer, sizeof(buffer), "%d ", val);
-    ufr_write(link, buffer, size);
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_i32_as_str(buffer, val);
     return UFR_OK;
 }
 
 int ufr_enc_sys_put_f32(link_t* link, float val) {
-    char buffer[32];
-    const size_t size = snprintf(buffer, sizeof(buffer), "%f ", val);
-    ufr_write(link, buffer, size);
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_f32_as_str(buffer, val);
     return UFR_OK;
 }
 
 int ufr_enc_sys_put_str(link_t* link, const char* val) {
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
     const size_t size = strlen(val);
-    ufr_write(link, val, size);
+    if ( str_needs_quote(val, size) ) {
+        ufr_buffer_put_chr(buffer, '\"');
+        copy_str_replacing_symbols(buffer, val, size);
+        ufr_buffer_put_str(buffer, "\" ");
+    } else {
+        copy_str_replacing_symbols(buffer, val, size);
+        ufr_buffer_put_chr(buffer, ' ');
+    }
+    
     return UFR_OK;
 }
 
 int ufr_enc_sys_put_cmd(link_t* link, char cmd) {
     if ( cmd == '\n' ) {
-        link->gtw_api->send(link);
-    } else {
-        ufr_write(link, &cmd, 1);
+        ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+        ufr_buffer_put_chr(buffer, '\n');
+        ufr_write(link, buffer->ptr, buffer->size);
+        ufr_buffer_clear(buffer);
     }
     return UFR_OK;
 }
@@ -99,14 +153,14 @@ int ufr_enc_sys_put_mat(link_t* link, const void* vet, char type, size_t rows, s
 
 
 int ufr_enc_sys_enter_array(link_t* link, size_t maxsize) {
-    const char c = '[';
-    ufr_write(link, &c, 1);
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_str(buffer, "[ ");
     return UFR_OK;
 }
 
 int ufr_enc_sys_leave_array(link_t* link) {
-    const char c = ']';
-    ufr_write(link, &c, 1);
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_str(buffer, "] ");
     return UFR_OK;
 }
 

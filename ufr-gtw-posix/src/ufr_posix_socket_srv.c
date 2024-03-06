@@ -124,7 +124,9 @@ size_t ufr_posix_socket_srv_read(link_t* link, char* buffer, size_t length) {
 static
 size_t ufr_posix_socket_srv_write(link_t* link, const char* buffer, size_t length) {
 	ll_srv_request_t* request = link->gtw_obj;
-    return write(request->sockfd, buffer, length);
+    const size_t wrote = write(request->sockfd, buffer, length);
+    close(request->sockfd);
+    return wrote;
 }
 
 static
@@ -143,15 +145,6 @@ bool ufr_posix_socket_srv_recv(link_t* link) {
     return true;
 }
 
-static
-int ufr_posix_socket_srv_send(struct _link* link) {
-    ll_srv_request_t* request = link->gtw_obj;
-    if ( request != NULL && request->sockfd > 0 ) {
-        close(request->sockfd);
-        request->sockfd = 0;
-    }
-}
-
 ufr_gtw_api_t ufr_posix_socket_srv = {
 	.type = ufr_posix_socket_type,
 	.state = ufr_posix_socket_state,
@@ -163,5 +156,4 @@ ufr_gtw_api_t ufr_posix_socket_srv = {
 	.read = ufr_posix_socket_srv_read,
 	.write = ufr_posix_socket_srv_write,
     .recv = ufr_posix_socket_srv_recv,
-    .send = ufr_posix_socket_srv_send
 };
