@@ -43,10 +43,9 @@ int main() {
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
-        link_t client;
         char command[512];
 
-        ufr_accept(&server, &client);
+        link_t client = ufr_accept(&server);
         ufr_get(&client, "^s", command);
         printf("[LOG]: %s\n", command);
 

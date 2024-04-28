@@ -94,6 +94,10 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
     return 0;
 }
 
+int ufr_zmq_socket_accept(link_t* link, link_t* out_client) {
+    return UFR_OK;
+}
+
 static
 ufr_gtw_api_t ufr_zmq_socket_api = {
 	.type = ufr_zmq_socket_type,
@@ -107,6 +111,7 @@ ufr_gtw_api_t ufr_zmq_socket_api = {
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
 	.write = ufr_zmq_write,
+    .accept = ufr_zmq_socket_accept
 };
 
 int ufr_gtw_zmq_new_socket(link_t* link, int type) {

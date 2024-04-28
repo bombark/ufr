@@ -670,6 +670,12 @@ int ufr_dummy_send(link_t* link) {
     return 0;
 }
 
+link_t ufr_accept(link_t* link) {
+    link_t client;
+    link->gtw_api->accept(link, &client);
+    return client;
+}
+
 // ============================================================================
 //  Buffer
 // ============================================================================

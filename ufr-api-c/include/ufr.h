@@ -283,6 +283,8 @@ bool ufr_link_is_error(const link_t* link);
 
 const char* ufr_test_args(const link_t* link);
 
+link_t ufr_accept(link_t* link);
+
 // ============================================================================
 //  Dummy functions
 // ============================================================================
