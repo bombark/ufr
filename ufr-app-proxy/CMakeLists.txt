@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(ufr-app-proxy)
 
 add_executable(ufr_proxy ./src/ufr_proxy.c)

@@ -96,6 +96,7 @@ int ufr_gtw_posix_file_boot(link_t* link, const ufr_args_t* args) {
     ll_shr_t* shr = malloc( sizeof(ll_shr_t) + size + 1 );
     shr->count = 1;
     strncpy(shr->path, path, size);
+    shr->path[size] = '\0';
     link->gtw_shr = shr;
 
     // start the link, case mode is present

@@ -1,6 +1,6 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2024, Visao Robotica e Imagem (VRI)
+ * Copyright (c) 2023, Visao Robotica e Imagem (VRI)
  *  - Felipe Bombardelli <felipebombardelli@gmail.com>
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,44 @@
 // ============================================================================
 
 #include <stdio.h>
+#include <string.h>
 #include <ufr.h>
+#include <unistd.h>
+#include <assert.h>
+
+// ============================================================================
+//  Test
+// ============================================================================
+
+void server() {
+    link_t server = ufr_server("@new zmq:socket @port 2000 @coder msgpack");
+
+    
+}
+
+void client() {
+    link_t client = ufr_client("@new zmq:socket @port 2000 @coder msgpack");
+
+    // test 1
+    {
+        int a=0,b=0;
+        ufr_get(&client, "^ii", &a, &b);
+        assert( a == 10 );
+        assert( b == 20 );
+    }
+
+}
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    // configure the output
-    // ufr_input_init("@new zmq:topic");
-    // ufr_input_init("@new posix:file @path saida.txt");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
-    link_t link = ufr_subscriber("@new posix:file @path saida2.txt @coder msgpack @debug 10");
-
-    // read 5 messages
-    for (int i=0; i<5; i++) {
-        // ^: wait for the message, ii: read 2 integers
-        int a,b;
-        ufr_get(&link, "^ii", &a, &b);
-
-        // ufr_enter_array(&link);
-
-
-
-        printf("%d %d\n", a, b);
+    int pid = fork();
+    if ( pid == 0 ) {
+        server();
+    } else {
+        client();
     }
-
-    // end
     return 0;
 }

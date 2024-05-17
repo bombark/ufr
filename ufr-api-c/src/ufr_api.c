@@ -77,11 +77,11 @@ bool ufr_link_is_subscriber(const link_t* link) {
 }
 
 bool ufr_link_is_server(const link_t* link) {
-    return link->type_started == UFR_START_BIND;
+    return link->type_started == UFR_START_SERVER;
 }
 
 bool ufr_link_is_client(const link_t* link) {
-    return link->type_started == UFR_START_CONNECT;
+    return link->type_started == UFR_START_CLIENT;
 }
 
 size_t ufr_size(const link_t* link) {
@@ -160,13 +160,13 @@ int ufr_start_subscriber(link_t* link, const ufr_args_t* args) {
     return ufr_start(link, args);
 }
 
-int ufr_start_bind(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_BIND;
+int ufr_start_server(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_SERVER;
     return ufr_start(link, args);
 }
 
-int ufr_start_connect(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_CONNECT;
+int ufr_start_client(link_t* link, const ufr_args_t* args) {
+    link->type_started = UFR_START_CLIENT;
     return ufr_start(link, args);
 }
 
@@ -283,6 +283,10 @@ void ufr_get(link_t* link, char* format, ...) {
     va_end(list);
 }
 
+char ufr_get_type(link_t* link) {
+    return link->dcr_api->get_type(link);
+}
+
 bool ufr_get_str(link_t* link, char* buffer) {
     const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
     return is_ok == UFR_OK;
@@ -314,8 +318,16 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
                 break;
             }
             const int32_t arr_size = va_arg(list, int32_t);
-            const void* arr_ptr = va_arg(list, void*);
-            link->enc_api->put_arr(link, arr_ptr, arr_type, arr_size);
+            if ( arr_type == 'i' ) {
+                const int32_t* arr_ptr = va_arg(list, int32_t*);
+                ufr_put_ai32(link, arr_ptr, arr_size);
+            } else if ( arr_type == 'f' ) {
+                const float* arr_ptr = va_arg(list, float*);
+                ufr_put_af32(link, arr_ptr, arr_size);
+            } else if ( arr_type == 'b' ) {
+                const int8_t* arr_ptr = va_arg(list, int8_t*);
+                ufr_put_ai8(link, arr_ptr, arr_size);
+            } 
 
 		// s, i or f
 		} else {
@@ -360,6 +372,22 @@ void ufr_put(link_t* link, const char* format, ...) {
     va_end(list);
 }
 
+void ufr_put_au8(link_t* link, const uint8_t* array, size_t size) {
+    ufr_enter_array(link, size);
+    for (size_t i=0; i<size; i++) {
+        link->enc_api->put_u8(link, array[i]);
+    }
+    ufr_leave_array(link);
+}
+
+void ufr_put_ai8(link_t* link, const int8_t* array, size_t size) {
+    ufr_enter_array(link, size);
+    for (size_t i=0; i<size; i++) {
+        link->enc_api->put_i8(link, array[i]);
+    }
+    ufr_leave_array(link);
+}
+
 void ufr_put_au32(link_t* link, const uint32_t* array, size_t size) {
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
@@ -397,10 +425,18 @@ size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
 }
 
 int ufr_enter_array(link_t* link, size_t arr_size_max) {
+    if (link->enc_api->enter_array == NULL ) {
+        return ufr_error(link, 1, "enter array pointer is NULL");
+    }
+
     return link->enc_api->enter_array(link, arr_size_max);
 }
 
 int ufr_leave_array(link_t* link) {
+    if (link->enc_api->enter_array == NULL ) {
+        return ufr_error(link, 1, "leave array pointer is NULL");
+    }
+
     return link->enc_api->leave_array(link);
 }
 
@@ -707,29 +743,60 @@ void ufr_buffer_free(ufr_buffer_t* buffer) {
     buffer->size = 0;
 }
 
+static
+void ufr_buffer_check_size(ufr_buffer_t* buffer, size_t size) {
+    if ( buffer->size + size >= buffer->max ) {
+        const size_t new_max = buffer->max * 2;
+        char* new_ptr = realloc(buffer->ptr, new_max);
+        if ( new_ptr ) {
+            buffer->max = new_max;
+            buffer->ptr = new_ptr;
+        }
+    }
+}
+
 void ufr_buffer_put(ufr_buffer_t* buffer, char* text, size_t size) {
+    ufr_buffer_check_size(buffer, size);
     memcpy(&buffer->ptr[buffer->size], text, size);
     buffer->size += size;
 }
 
 void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val) {
+    ufr_buffer_check_size(buffer, 1);
     buffer->ptr[buffer->size] = val;
     buffer->size += 1;
 }
 
+void ufr_buffer_put_u8_as_str(ufr_buffer_t* buffer, uint8_t val) {
+    ufr_buffer_check_size(buffer, 8);
+    char* base = &buffer->ptr[buffer->size];
+    const size_t size = snprintf(base, 8, "%u ", val);
+    buffer->size += size;
+}
+
+void ufr_buffer_put_i8_as_str(ufr_buffer_t* buffer, int8_t val) {
+    ufr_buffer_check_size(buffer, 8);
+    char* base = &buffer->ptr[buffer->size];
+    const size_t size = snprintf(base, 8, "%u ", val);
+    buffer->size += size;
+}
+
 void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val) {
+    ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
     const size_t size = snprintf(base, 32, "%u ", val);
     buffer->size += size;
 }
 
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val) {
+    ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
     const size_t size = snprintf(base, 32, "%d ", val);
     buffer->size += size;
 }
 
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val) {
+    ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
     const size_t size = snprintf(base, 32, "%f ", val);
     buffer->size += size;
@@ -737,6 +804,7 @@ void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val) {
 
 void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text) {
     const size_t size = strlen(text);
+    ufr_buffer_check_size(buffer, size);
     ufr_buffer_put(buffer, text, size);
 }
 

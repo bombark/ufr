@@ -9,3 +9,9 @@ target_link_libraries(server ufr)
 
 add_executable(client 0-basic/client.c)
 target_link_libraries(client ufr)
+
+
+find_package(OpenCV REQUIRED )
+add_executable(publisher_image 0-basic/publisher_image.cpp)
+target_link_libraries(publisher_image ufr ${OpenCV_LIBS})
+target_include_directories(publisher_image PUBLIC "${OPENCV_INCLUDE_DIR}")

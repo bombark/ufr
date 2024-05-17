@@ -47,8 +47,9 @@ void example2() {
     link_t link = ufr_publisher("@new posix:file @path saida2.txt @coder msgpack");
     for (int i=0; i<5; i++) {
         int sonars[8] = {1,2,3,4,5,6,7,8};
+        ufr_put(&link, "iis", i, i, "opa");
         ufr_put_ai32(&link, sonars, 8);
-        ufr_put(&link, "ii\n", i, i*10);
+        ufr_send(&link);
     }
     ufr_close(&link);
 }

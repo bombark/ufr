@@ -45,8 +45,8 @@
 #define UFR_SIZE_MAX        1
 
 #define UFR_START_BLANK      0
-#define UFR_START_CONNECT    1
-#define UFR_START_BIND       2
+#define UFR_START_SERVER     1
+#define UFR_START_CLIENT     2
 #define UFR_START_PUBLISHER  3
 #define UFR_START_SUBSCRIBER 4
 
@@ -89,6 +89,12 @@ typedef struct {
 struct _link;
 
 typedef struct {
+    int flag;
+    size_t size;
+    int32_t* data;
+} ufr_ai32_t;
+
+typedef struct {
 	const char* name;
 
 	// certo
@@ -120,6 +126,7 @@ typedef struct {
     void (*close)(struct _link* link);
 
 	void (*recv)(struct _link* link, char* msg_data, size_t msg_size);
+    char (*get_type)(struct _link* link);
 
 	int (*get_u32)(struct _link* link, uint32_t* val);
 	int (*get_i32)(struct _link* link, int32_t* val);
@@ -127,6 +134,8 @@ typedef struct {
 	int (*get_str)(struct _link* link, char** ret_val);
     
 	int (*get_arr)(struct _link* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr);
+
+    int (*get_ai32)(struct _link* link, ufr_ai32_t* array);
 
     int (*copy_str)(struct _link* link, char* ret_val, size_t size_max);
 
@@ -140,17 +149,31 @@ typedef struct {
     int (*boot)(struct _link* link, const ufr_args_t* args);
     void (*close)(struct _link* link);
     void (*clear)(struct _link* link);
+
+    // remover
     int (*set_header)(struct _link* link, const char* header);
 
+    // 8 bits
+    int (*put_u8)(struct _link* link, uint8_t val);
+    int (*put_i8)(struct _link* link, int8_t val);
+    int (*put_cmd)(struct _link* link, char cmd);
+    int (*put_str)(struct _link* link, const char* val);
+
+    // 32 bits
 	int (*put_u32)(struct _link* link, uint32_t val);
 	int (*put_i32)(struct _link* link, int32_t val);
 	int (*put_f32)(struct _link* link, float val);
-	int (*put_str)(struct _link* link, const char* val);
-	int (*put_cmd)(struct _link* link, char cmd);
 
+    // 64 bits
+    int (*put_u64)(struct _link* link, uint64_t val);
+	int (*put_i64)(struct _link* link, int64_t val);
+	int (*put_f64)(struct _link* link, double val);
+
+    // pensar se mantem
 	int (*put_arr)(struct _link* link, const void* array, char type, size_t size);
 	int (*put_mat)(struct _link* link, const void* vet, char type, size_t rows, size_t cols);
 
+    // acho que tah bom, talvez colocar o tipo
     int (*enter_array)(struct _link* link, size_t maxsize);
     int (*leave_array)(struct _link* link);
 
@@ -223,13 +246,12 @@ int ufr_boot_dcr(link_t* link, const ufr_args_t* args);
 int ufr_boot_enc(link_t* link, const ufr_args_t* args);
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args);
 
-
 // start
 int ufr_start(link_t* link, const ufr_args_t* param_args);
 int ufr_start_publisher(link_t* link, const ufr_args_t* args);
 int ufr_start_subscriber(link_t* link, const ufr_args_t* args);
-int ufr_start_bind(link_t* link, const ufr_args_t* args);
-int ufr_start_connect(link_t* link, const ufr_args_t* args);
+int ufr_start_server(link_t* link, const ufr_args_t* args);
+int ufr_start_client(link_t* link, const ufr_args_t* args);
 
 // stop
 void ufr_stop(link_t* link);
@@ -249,13 +271,15 @@ size_t ufr_write(link_t* node, const char* buffer, size_t size);
 void ufr_get_va(link_t* link, const char* format, va_list list);
 void ufr_get(link_t* link, char* format, ...);
 
-void ufr_get(link_t* link, char* format, ...);
+char ufr_get_type(link_t* link);
 
 bool ufr_get_str(link_t* link, char* buffer);
 
 void ufr_put_va(link_t* link, const char* format, va_list list);
 void ufr_put(link_t* link, const char* format, ...);
 
+void ufr_put_au8(link_t* link, const uint8_t* array, size_t size);
+void ufr_put_ai8(link_t* link, const int8_t* array, size_t size);
 void ufr_put_au32(link_t* link, const uint32_t* array, size_t size);
 void ufr_put_ai32(link_t* link, const int32_t* array, size_t size);
 void ufr_put_af32(link_t* link, const float* array, size_t size);
@@ -365,6 +389,8 @@ void ufr_buffer_clear(ufr_buffer_t* buffer);
 void ufr_buffer_free(ufr_buffer_t* buffer);
 void ufr_buffer_put(ufr_buffer_t* buffer, char* text, size_t size);
 void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val);
+void ufr_buffer_put_u8_as_str(ufr_buffer_t* buffer, uint8_t val);
+void ufr_buffer_put_i8_as_str(ufr_buffer_t* buffer, int8_t val);
 void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);

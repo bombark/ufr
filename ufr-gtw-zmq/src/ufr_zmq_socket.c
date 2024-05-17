@@ -50,7 +50,7 @@ int ufr_zmq_socket_type(const link_t* link) {
 
 static
 int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
-    if ( type == UFR_START_CONNECT ) {
+    if ( type == UFR_START_CLIENT ) {
         ufr_info(link, "creating a socket");
         const ll_shr_t* shr = link->gtw_shr;
         void* socket = zmq_socket (shr->context, ZMQ_REQ);
@@ -70,7 +70,7 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
         ll_obj_t* obj = link->gtw_obj;
         obj->socket = socket;
 
-    } else if ( type == UFR_START_BIND ) {
+    } else if ( type == UFR_START_SERVER ) {
         //
         const ll_shr_t* shr_data = link->gtw_shr;
         void* socket = zmq_socket (shr_data->context, ZMQ_REP);

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(ufr)
 
 # include UFR API
@@ -7,12 +7,12 @@ include_directories(./ufr-api-c/include)
 # Build libraries with no dependencies
 add_subdirectory(./ufr-api-c)
 add_subdirectory(./ufr-gtw-posix)
-add_subdirectory(./ufr-cc-std)
+add_subdirectory(./ufr-cdr-std)
 
 # Configure compilation
 option(BUILD_UFR_GTW_ZMQ     "build the gateway for ZMQ"    OFF)
 option(BUILD_UFR_GTW_MQTT    "build the gateway for MQTT"   OFF)
-option(BUILD_UFR_CC_MSGPACK  "build the coder for Msgpack"  OFF)
+option(BUILD_UFR_CDR_MSGPACK "build the coder for MsgPack"  OFF)
 option(BUILD_UFR_STK_SQLITE  "build the stack for Sqlite3"  OFF)
 option(BUILD_EXAMPLES        "build the examples"           ON )
 option(BUILD_TESTS           "build the tests"              ON )
@@ -29,10 +29,10 @@ if(BUILD_UFR_GTW_MQTT)
     add_subdirectory(./ufr-gtw-mqtt)
 endif(BUILD_UFR_GTW_MQTT)
 
-if(BUILD_UFR_CC_MSGPACK)
+if(BUILD_UFR_CDR_MSGPACK)
     # debian/ubuntu: sudo apt install libmsgpack-dev
-    add_subdirectory(./ufr-cc-msgpack)
-endif(BUILD_UFR_CC_MSGPACK)
+    add_subdirectory(./ufr-cdr-msgpack)
+endif(BUILD_UFR_CDR_MSGPACK)
 
 if(BUILD_UFR_STK_SQLITE)
     # debian/ubuntu: sudo apt install libsqlite3-dev
@@ -47,4 +47,8 @@ endif(BUILD_EXAMPLES)
 # Build tests
 if(BUILD_TESTS)
     add_subdirectory(./tests/)
+    enable_testing()
+    # add_test(NAME test_gtw_zmq COMMAND ./tests/test_topic "@new zmq:topic @port 2000")
 endif(BUILD_TESTS)
+
+install(FILES ./etc/init.bash DESTINATION .)

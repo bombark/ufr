@@ -40,6 +40,7 @@
 typedef struct {
 	msgpack_unpacked result;
 	char* msg_data;
+    uint8_t stack;
 	uint32_t msg_size;
     size_t cursor;
 } ll_decoder_t;
@@ -91,6 +92,27 @@ void ufr_dcr_msgpack_recv(link_t* link, char* msg_data, size_t msg_size) {
 	decoder->msg_data = msg_data;
 	decoder->msg_size = msg_size;
     decoder->cursor = 0;
+}
+
+static
+char ufr_dcr_msgpack_get_type(link_t* link) {
+    ll_decoder_t* decoder = link->dcr_obj;
+    msgpack_object obj = decoder->result.data;
+    if ( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+        return 'i';
+    }
+
+    if ( obj.type == MSGPACK_OBJECT_FLOAT32 ) {
+        return 'f';
+    }
+
+    if ( obj.type == MSGPACK_OBJECT_ARRAY ) {
+        return 'a';
+    }
+
+    if ( obj.type == MSGPACK_OBJECT_STR ) {
+        return 's';
+    }
 }
 
 static
@@ -165,7 +187,6 @@ int ufr_dcr_msgpack_copy_str(link_t* link, char* buffer, size_t size_max) {
 		return 1;
 	}
 
-	// link->idx[0].u64 = read_buffer(load, link->idx[0].u64);
 	const msgpack_object obj = unpack_next_obj(link); 
 	if ( obj.type == MSGPACK_OBJECT_STR ) {
 		strncpy(buffer, obj.via.str.ptr, obj.via.str.size);
@@ -240,17 +261,45 @@ int ufr_dcr_msgpack_copy_arr(link_t* link, char arr_type, size_t arr_size_max, s
 	return UFR_OK;
 }
 
+int ufr_dcr_msgpack_get_ai32(link_t* link, ufr_ai32_t* array) {
+    ll_decoder_t* load = link->dcr_obj;
+	if ( load == NULL ) {
+		return ufr_error(link, 1, "decoder object is null");
+	}
+
+	const msgpack_object obj = unpack_next_obj(link); 
+    if ( obj.type != MSGPACK_OBJECT_ARRAY ) {
+		return ufr_error(link, 1, "item is not a array");
+	}
+
+    const size_t size = obj.via.array.size;
+    int32_t* data = malloc(sizeof(int32_t) * size);
+    if ( data == NULL ) {
+        return ufr_error(link, 1, "no memory");
+    }
+
+    for (size_t i=0; i<size; i++) {
+        data[i] = obj.via.array.ptr[i].via.i64;
+    }
+
+    array->size = size;
+    array->data = data;
+    return UFR_OK;
+}
+
 static
 ufr_dcr_api_t ufr_dcr_msgpack_api = {
 	.boot = ufr_dcr_msgpack_boot,
 	.close = ufr_dcr_msgpack_close,
 
 	.recv = ufr_dcr_msgpack_recv,
+    .get_type = ufr_dcr_msgpack_get_type,
 
 	.get_u32 = NULL,
 	.get_i32 = ufr_dcr_msgpack_get_i32,
 	.get_f32 = ufr_dcr_msgpack_get_f32,
 	.get_str = ufr_dcr_msgpack_get_str,
+    .get_ai32 = ufr_dcr_msgpack_get_ai32,
     .copy_str = ufr_dcr_msgpack_copy_str,
 	.get_arr = ufr_dcr_msgpack_get_arr,
 	.copy_arr = ufr_dcr_msgpack_copy_arr

@@ -98,6 +98,17 @@ int ufr_enc_sys_set_header(link_t* link, const char* header) {
     return UFR_OK;
 }
 
+int ufr_enc_sys_put_u8(link_t* link, uint8_t val) {
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_u8_as_str(buffer, val);
+    return UFR_OK;
+}
+
+int ufr_enc_sys_put_i8(link_t* link, int8_t val) {
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    ufr_buffer_put_u8_as_str(buffer, val);
+    return UFR_OK;
+}
 
 int ufr_enc_sys_put_u32(link_t* link, uint32_t val) {
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
@@ -170,11 +181,14 @@ ufr_enc_api_t ufr_enc_sys_api = {
     .clear = ufr_enc_sys_clear,
     .set_header = ufr_enc_sys_set_header,
 
+    .put_u8 = ufr_enc_sys_put_u8,
+    .put_i8 = ufr_enc_sys_put_i8,
+    .put_cmd = ufr_enc_sys_put_cmd,
+    .put_str = ufr_enc_sys_put_str,
+
     .put_u32 = ufr_enc_sys_put_u32,
     .put_i32 = ufr_enc_sys_put_i32,
     .put_f32 = ufr_enc_sys_put_f32,
-    .put_str = ufr_enc_sys_put_str,
-    .put_cmd = ufr_enc_sys_put_cmd,
 
     .put_arr = ufr_enc_sys_put_arr,
     .put_mat = ufr_enc_sys_put_mat,

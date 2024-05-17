@@ -86,7 +86,7 @@ void ufr_sys_init() {
     const char* link_inout_params = getenv(env_name);
     if ( link_inout_params != NULL ) {
         g_file_out = ufr_new(link_inout_params);
-        ufr_start_bind(&g_file_out, NULL);
+        ufr_start_server(&g_file_out, NULL);
         g_file_in_ptr = &g_file_out;
 
         // exit
@@ -375,13 +375,13 @@ link_t ufr_sys_subscriber(const char* name, const char* default_text) {
 
 link_t ufr_server(const char* text) {
     link_t link;
-    ufr_link_with_type(&link, text, UFR_START_BIND);
+    ufr_link_with_type(&link, text, UFR_START_SERVER);
     return link;
 }
 
 link_t ufr_client(const char* text) {
     link_t link;
-    ufr_link_with_type(&link, text, UFR_START_CONNECT);
+    ufr_link_with_type(&link, text, UFR_START_CLIENT);
     return link;
 }
 
@@ -421,7 +421,7 @@ void ufr_input(const char* format, ...) {
 
 void ufr_inoutput_init(const char* text) {
     g_file_out = ufr_publisher(text);
-    ufr_start_bind(&g_file_out, NULL);
+    ufr_start_server(&g_file_out, NULL);
     g_file_in_ptr = &g_file_out;
 }
 

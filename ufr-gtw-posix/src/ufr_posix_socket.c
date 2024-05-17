@@ -103,9 +103,9 @@ int ufr_posix_socket_copy(link_t* link, link_t* out) {
 // ============================================================================
 
 int ufr_gtw_posix_new_socket(link_t* link, int type) {
-    if ( type == UFR_START_CONNECT ) {
+    if ( type == UFR_START_CLIENT ) {
         link->gtw_api = &ufr_posix_socket_cli;
-    } else if ( type == UFR_START_BIND ) {
+    } else if ( type == UFR_START_SERVER ) {
         link->gtw_api = &ufr_posix_socket_srv;
     } else {
         return 1;

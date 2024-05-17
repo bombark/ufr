@@ -68,6 +68,11 @@ void ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
 }
 
 static
+int ufr_dcr_sys_get_type(link_t* link) {
+    return 0;
+}
+
+static
 int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
