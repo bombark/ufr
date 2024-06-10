@@ -45,7 +45,7 @@ void test_publisher() {
     ufr_args_t args = {.text="@host 185.209.160.8 @topic test/topic"};
     assert( ufr_gtw_mqtt_new_topic(&link, UFR_START_PUBLISHER) == UFR_OK );
     assert( ufr_boot_gtw(&link, &args) == UFR_OK );
-    assert( ufr_start(&link, &args) == UFR_OK );
+    assert( ufr_start_publisher(&link, &args) == UFR_OK );
     assert( ufr_write(&link, "teste", 5) == 5 );
     ufr_close(&link);
 }
@@ -57,7 +57,7 @@ void test_subscriber() {
     
     assert( ufr_gtw_mqtt_new_topic(&link, UFR_START_SUBSCRIBER) == UFR_OK );
     assert( ufr_boot_gtw(&link, &args) == UFR_OK );
-    assert( ufr_start(&link, &args) == UFR_OK );
+    assert( ufr_start_subscriber(&link, &args) == UFR_OK );
     ufr_recv(&link);
     ufr_read(&link, buffer, sizeof(buffer));
     printf("%s\n", buffer);

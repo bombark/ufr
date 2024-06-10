@@ -281,13 +281,11 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
     	link->slot_gtw = 0;
         return ufr_error(link, EINVAL, "Parameter @new is not present");
     }
-
     sys_ufr_load(link, "gtw", arg_new, boot_type, args);
 
     // start the gateway, case specified (publisher, subscriver, server or client)
-    link->type_started = boot_type;
     if ( boot_type != UFR_START_BLANK ) {
-        ufr_start(link, args);
+        ufr_start(link, boot_type, args);
     }
 
     // load default encoder or decoder

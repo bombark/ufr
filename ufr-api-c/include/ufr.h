@@ -247,7 +247,7 @@ int ufr_boot_enc(link_t* link, const ufr_args_t* args);
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args);
 
 // start
-int ufr_start(link_t* link, const ufr_args_t* param_args);
+int ufr_start(link_t* link, int type, const ufr_args_t* param_args);
 int ufr_start_publisher(link_t* link, const ufr_args_t* args);
 int ufr_start_subscriber(link_t* link, const ufr_args_t* args);
 int ufr_start_server(link_t* link, const ufr_args_t* args);

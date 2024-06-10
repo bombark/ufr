@@ -62,9 +62,11 @@ void ufr_dcr_sys_close(link_t* link) {
 static
 void ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
     decoder_t* dcr = link->dcr_obj;
-    dcr->msg_ptr = msg_data;
-    dcr->msg_size = msg_size;
-    dcr->msg_idx = 0;
+    if ( dcr != NULL ) {
+        dcr->msg_ptr = msg_data;
+        dcr->msg_size = msg_size;
+        dcr->msg_idx = 0;
+    }
 }
 
 static

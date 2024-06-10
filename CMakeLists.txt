@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(ufr)
 
-# include UFR API
-include_directories(./ufr-api-c/include)
-
-# Build libraries with no dependencies
-add_subdirectory(./ufr-api-c)
-add_subdirectory(./ufr-gtw-posix)
-add_subdirectory(./ufr-cdr-std)
 
 # Configure compilation
 option(BUILD_UFR_GTW_ZMQ     "build the gateway for ZMQ"    OFF)
@@ -16,7 +9,23 @@ option(BUILD_UFR_CDR_MSGPACK "build the coder for MsgPack"  OFF)
 option(BUILD_UFR_STK_SQLITE  "build the stack for Sqlite3"  OFF)
 option(BUILD_EXAMPLES        "build the examples"           ON )
 option(BUILD_TESTS           "build the tests"              ON )
+option(COVERAGE_TEST         "coverage test"                OFF)
 # option(BUILD_APPLICATION        "build the applications"       ON )
+
+
+if(COVERAGE_TEST)
+    SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage --coverage -g -O0")
+    SET(GCC_COVERAGE_LINK_FLAGS "-lgcov")
+    # gcovr -r ..
+endif(COVERAGE_TEST)
+
+# include UFR API
+include_directories(./ufr-api-c/include)
+
+# Build libraries with no dependencies
+add_subdirectory(./ufr-api-c)
+add_subdirectory(./ufr-gtw-posix)
+add_subdirectory(./ufr-cdr-std)
 
 # Build libraries with dependencies
 if(BUILD_UFR_GTW_ZMQ)

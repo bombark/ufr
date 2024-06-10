@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
-project(ufr)
+project(ufr-api-c)
+
+# Coverage test
+# SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage --coverage -g -O0")
+# SET(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 
 include_directories(./include)
 
@@ -19,7 +23,12 @@ install(TARGETS ufr DESTINATION lib)
 install(FILES ./include/ufr.h DESTINATION include)
 
 # test
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     enable_testing()
     add_subdirectory(./tests)
-endif()
+
+# endif()
+
+add_custom_target(coverage
+    COMMAND gcovr ${PROJECT_BINARY_DIR}
+    )

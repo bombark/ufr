@@ -45,7 +45,7 @@ void test_write() {
     ufr_args_t args = {.text="@path ./teste.txt"};
     assert( ufr_gtw_posix_new_file(&link, UFR_START_PUBLISHER) == UFR_OK );
     assert( ufr_boot_gtw(&link, &args) == UFR_OK );
-    assert( ufr_start(&link, &args) == UFR_OK );
+    assert( ufr_start_publisher(&link, &args) == UFR_OK );
     assert( ufr_write(&link, "OPA\n", 4) == 4 );
     // ufr_stop(&link);
     ufr_close(&link);
@@ -57,7 +57,7 @@ void test_read() {
     ufr_args_t args = {.text="@path ./teste.txt"};
     assert( ufr_gtw_posix_new_file(&link, UFR_START_SUBSCRIBER) == UFR_OK );
     assert( ufr_boot_gtw(&link, &args) == UFR_OK );
-    assert( ufr_start(&link, &args) == UFR_OK );    
+    assert( ufr_start_subscriber(&link, &args) == UFR_OK );
     assert( ufr_read(&link, buffer, 8) == 4 );
     ufr_close(&link);
 }

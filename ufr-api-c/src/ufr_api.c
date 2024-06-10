@@ -44,7 +44,7 @@ uint8_t g_default_log_level = 2;
 // ============================================================================
 
 const char* ufr_api_name(const link_t* link) {
-	if ( link->gtw_api == NULL ) {
+	if ( link == NULL || link->gtw_api == NULL ) {
 		return "None";
 	}
 	return link->gtw_api->name;
@@ -134,7 +134,7 @@ int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
     return state;
 }
 
-int ufr_start(link_t* link, const ufr_args_t* param_args) {
+int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
     ufr_log_ini(link, "starting link");
 
     // select the arguments avoiding NULL pointer
@@ -142,32 +142,30 @@ int ufr_start(link_t* link, const ufr_args_t* param_args) {
     const ufr_args_t* args = ( param_args != NULL ) ? param_args : &empty_args;
 
     // call driver function
-    const int type = link->type_started;
     const int error = link->gtw_api->start(link, type, args);
 
-    // end
-    ufr_log_end(link, "link started");
+    // done
+    if ( error == UFR_OK ) {
+        link->type_started = type;
+        ufr_log_end(link, "link started");
+    }
     return error;
 }
 
 int ufr_start_publisher(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_PUBLISHER;
-    return ufr_start(link, args);
+    return ufr_start(link, UFR_START_PUBLISHER, args);
 }
 
 int ufr_start_subscriber(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_SUBSCRIBER;
-    return ufr_start(link, args);
+    return ufr_start(link, UFR_START_SUBSCRIBER, args);
 }
 
 int ufr_start_server(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_SERVER;
-    return ufr_start(link, args);
+    return ufr_start(link, UFR_START_SERVER, args);
 }
 
 int ufr_start_client(link_t* link, const ufr_args_t* args) {
-    link->type_started = UFR_START_CLIENT;
-    return ufr_start(link, args);
+    return ufr_start(link, UFR_START_CLIENT, args);
 }
 
 bool ufr_recv(link_t* link) {

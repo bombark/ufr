@@ -9,7 +9,7 @@ void test() {
     link_t link;
     assert( ufr_gtw_posix_new_socket(&link, UFR_START_SERVER) == UFR_OK );
     assert( ufr_boot_gtw(&link, NULL) == UFR_OK );
-    assert( ufr_start(&link, NULL) == UFR_OK );
+    assert( ufr_start_server(&link, NULL) == UFR_OK );
     assert( ufr_link_is_server(&link) == true );
 
     while(1) {
@@ -31,7 +31,7 @@ void test2() {
     link_t link;
     assert( ufr_gtw_posix_new_socket(&link, UFR_START_SERVER) == UFR_OK );
     assert( ufr_boot_gtw(&link, NULL) == UFR_OK );
-    assert( ufr_start(&link, NULL) == UFR_OK );
+    assert( ufr_start_server(&link, NULL) == UFR_OK );
     assert( ufr_link_is_server(&link) == true );
 
     while(1) {

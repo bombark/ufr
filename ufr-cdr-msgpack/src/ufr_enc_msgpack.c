@@ -108,16 +108,16 @@ static
 int ufr_enc_msgpack_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
 	ll_encoder_t* enc_obj = link->enc_obj;
 	if ( type == 'i' ) {
-		const int* arr_i32_ptr = (int*) arr_ptr;
+		const int* ai32_ptr = (int*) arr_ptr;
 		msgpack_pack_array(&enc_obj->pk, arr_size);
 		for (size_t i=0; i<arr_size; i++) {
-			msgpack_pack_int(&enc_obj->pk, arr_i32_ptr[i]);
+			msgpack_pack_int(&enc_obj->pk, ai32_ptr[i]);
 		}
 	} else if ( type == 'f' ) {
-		const float* arr_f32_ptr = (float*) arr_ptr;
+		const float* af32_ptr = (float*) arr_ptr;
 		msgpack_pack_array(&enc_obj->pk, arr_size);
 		for (size_t i=0; i<arr_size; i++) {
-			msgpack_pack_float(&enc_obj->pk, arr_f32_ptr[i]);
+			msgpack_pack_float(&enc_obj->pk, af32_ptr[i]);
 		}
 
 	}
