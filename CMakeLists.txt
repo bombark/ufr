@@ -60,4 +60,8 @@ if(BUILD_TESTS)
     # add_test(NAME test_gtw_zmq COMMAND ./tests/test_topic "@new zmq:topic @port 2000")
 endif(BUILD_TESTS)
 
+
+add_subdirectory(./ufr-app-filesystem)
+add_subdirectory(./ufr-app-proxy)
+
 install(FILES ./etc/init.bash DESTINATION .)

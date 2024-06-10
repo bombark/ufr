@@ -38,23 +38,21 @@
 
 int main() {
     // configure the output
-    // ufr_input_init("@new zmq:topic");
+    // ufr_input_init("@new zmq:topic @port 5000");
     // ufr_input_init("@new posix:file @path saida.txt");
     // ufr_output_init("@new mqtt:topic");
     // ufr_output_init("@new ros_humble:topic");
-    link_t link = ufr_subscriber("@new posix:file @path saida2.txt @coder msgpack @debug 10");
+    // link_t link = ufr_subscriber("@new posix:file @path saida2.txt @coder msgpack @debug 10");
+
+
+    link_t link = ufr_subscriber("@new zmq:topic @port 5000 @coder csv");
 
     // read 5 messages
     for (int i=0; i<5; i++) {
-        // ^: wait for the message, ii: read 2 integers
         int a,b;
-        ufr_get(&link, "^ii", &a, &b);
-
-        // ufr_enter_array(&link);
-
-
-
-        printf("%d %d\n", a, b);
+        char buffer[1024];
+        ufr_get(&link, "^s", buffer);
+        printf("%s\n", buffer);
     }
 
     // end

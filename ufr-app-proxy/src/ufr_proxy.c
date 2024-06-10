@@ -38,6 +38,8 @@
 // ============================================================================
 
 int main(int argc, char** argv) {
+    // fprintf(stderr, "versao 0.1\n");
+
     // get the arguments
     char const* msg_format = NULL;
     char const* input_args = NULL;
@@ -46,15 +48,18 @@ int main(int argc, char** argv) {
         const char* word = argv[i];
         const char c = word[0];
         if ( c == '-' ) {
-            if ( strcmp(word, "-from") == 0 ) {
+            // --from
+            if ( strcmp(word, "-f") == 0 ) {
                 if ( i+1 < argc ) {
                     input_args = argv[i+1];
                 }
-            } else if ( strcmp(word, "-to") == 0 ) {
+            // --to
+            } else if ( strcmp(word, "-t") == 0 ) {
                 if ( i+1 < argc ) {
                     output_args = argv[i+1];
                 }
-            } else if ( strcmp(word, "-msg") == 0 ) {
+            // --message
+            } else if ( strcmp(word, "-m") == 0 ) {
                 if ( i+1 < argc ) {
                     msg_format = argv[i+1];
                 }
@@ -64,13 +69,14 @@ int main(int argc, char** argv) {
 
     // check all the arguments
     if ( input_args == NULL ) {
-        input_args = "@new posix:stdin @coder std:csv";
+        input_args = "@new posix:stdin @coder csv";
     }
     if ( output_args == NULL ) {
-        output_args = "@new posix:stdout @coder std:csv";
+        output_args = "@new posix:stdout @coder csv";
     }
     if ( msg_format == NULL ) {
-        return 1;
+        msg_format = "s";
+        //return 1;
     }
 
     // show the arguments    
@@ -78,20 +84,15 @@ int main(int argc, char** argv) {
     fprintf(stderr, "# Output: %s\n", output_args);
     fprintf(stderr, "# Format: %s\n", msg_format);
 
-    // prepare the stdin link
-    ufr_input_init(input_args);
-    // todo: sair se ocorrer algum erro
-
-    // open the publisher
-    ufr_output_init(output_args);
-    // todo: sair se ocorrer algum erro
+    link_t in = ufr_subscriber(input_args);
+    link_t out = ufr_publisher(output_args);  
 
     // read the data from stdin and send it to the link
     int num;
     char buffer[512];
     while( 1 ) {
         // wait for the input message
-        if ( ufr_input_recv() == false ) {
+        if ( ufr_recv(&in) == false ) {
             break;
         }
 
@@ -102,25 +103,25 @@ int main(int argc, char** argv) {
             // pack a integer
             if ( type == 'i' ) {
                 int val;
-                ufr_input("i", &val);
-                ufr_output("i", val);
+                ufr_get(&in, "i", &val);
+                ufr_put(&out, "i", val);
 
             // pack a float
             } else if ( type == 'f' ) {
                 int val;
-                ufr_input("f", &val);
-                ufr_output("f", val);
+                ufr_get(&in, "f", &val);
+                ufr_put(&out, "f", val);
 
             // pack a string
             } else if ( type == 's' ) {
                 char val[1024];
-                ufr_input("s", val);
-                ufr_output("s", val);
+                ufr_get(&in, "s", val);
+                ufr_put(&out, "s", val);
             }
         }
 
         // send the package
-        ufr_output("\n");
+        ufr_put(&out, "\n");
     }
 
     // success
