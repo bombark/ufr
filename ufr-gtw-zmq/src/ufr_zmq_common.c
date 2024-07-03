@@ -181,14 +181,14 @@ size_t ufr_zmq_read(link_t* link, char* buffer, size_t max_size) {
 }
 
 size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size) {
-    ll_obj_t* local = link->gtw_obj;
-    if ( local == NULL ) {
+    ll_obj_t* gtw_obj = link->gtw_obj;
+    if ( gtw_obj == NULL ) {
         return 0;
     }
 
     // send the data to buffer
     // const size_t sent = zmq_send (local->socket, buffer, size, ZMQ_SNDMORE);
-    const size_t sent = zmq_send (local->socket, buffer, size, 0);
+    const size_t sent = zmq_send (gtw_obj->socket, buffer, size, 0);
     if ( sent != size ) {
         return ufr_error(link, 0, "%s", zmq_strerror(errno));
     }

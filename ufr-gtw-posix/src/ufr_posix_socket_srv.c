@@ -59,17 +59,21 @@ int ufr_posix_socket_start_server(link_t* link, int type, const ufr_args_t* args
     const uint16_t port = 2000;
 
     // get TCP protocol
+    ufr_log_ini(link, "get TCP protocol");
     struct protoent *protoent;
     protoent = getprotobyname("tcp");
     if (protoent == NULL) {
         return ufr_error(link, 1, "getprotobyname");
     }
+    ufr_log_end(link, "get TCP protocol");
 
     // start the socket
+    ufr_log_ini(link, "start the socket");
     int server_sockfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
     if (server_sockfd == -1) {
         return ufr_error(link, 1, "error to open socket");
     }
+    ufr_log_end(link, "socket started");
 
     // configure the socket
     int enable = 1;
@@ -131,6 +135,8 @@ size_t ufr_posix_socket_srv_write(link_t* link, const char* buffer, size_t lengt
 
 static
 bool ufr_posix_socket_srv_recv(link_t* link) {
+    ufr_log_ini(link, "recv");
+
     if ( link->gtw_obj == NULL ) {
         ll_srv_request_t* request = malloc(sizeof(ll_srv_request_t));
         message_init(&request->message);
@@ -142,6 +148,8 @@ bool ufr_posix_socket_srv_recv(link_t* link) {
     
     request->sockfd = accept(shr->server_sockfd, &request->address, &request->lenght);
     message_write_from_fd(&request->message, request->sockfd);
+
+    ufr_log_end(link, "recv");
     return true;
 }
 

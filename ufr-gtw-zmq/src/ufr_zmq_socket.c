@@ -51,47 +51,79 @@ int ufr_zmq_socket_type(const link_t* link) {
 static
 int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
     if ( type == UFR_START_CLIENT ) {
-        ufr_info(link, "creating a socket");
+        ufr_log_ini(link, "creating a socket");
         const ll_shr_t* shr = link->gtw_shr;
         void* socket = zmq_socket (shr->context, ZMQ_REQ);
         if ( socket == NULL ) {
-            return ufr_error(link, errno, "%s (context: %p)", zmq_strerror(errno), shr->context);
+            return ufr_log_error(link, errno, "%s (context: %p)", zmq_strerror(errno), shr->context);
         }
+        ufr_log_end(link, "socket created");
 
         // connect
+        ufr_log_ini(link, "connecting to the server");
         char url[512];
         snprintf(url, sizeof(url), "tcp://%s:%d", shr->host, shr->port);
-        ufr_info(link, "connecting to the URL %s", url);
         if ( zmq_connect (socket, url) != 0 ) {
-            return ufr_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_log_error(link, errno, "%s", zmq_strerror(errno));
         }
-
+        ufr_log_end(link, "connected to the server at URL %s", url);
+        
         // update the gtw_obj
+        ufr_log_ini(link, "updating the gateway object");
         ll_obj_t* obj = link->gtw_obj;
         obj->socket = socket;
+        ufr_log_end(link, "gateway object updated");
 
     } else if ( type == UFR_START_SERVER ) {
-        //
+        // create the socket
+        ufr_log_ini(link, "creating the socket");
         const ll_shr_t* shr_data = link->gtw_shr;
         void* socket = zmq_socket (shr_data->context, ZMQ_REP);
         if ( socket == NULL ) {
-            return ufr_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_log_error(link, errno, "%s", zmq_strerror(errno));
         }
+        ufr_log_end(link, "socket created");
 
-        //
+        // bind the port
+        ufr_log_ini(link, "binding the port");
         char url[512];
         snprintf(url, sizeof(url), "tcp://%s:%d", shr_data->host, shr_data->port);
         int error = zmq_bind (socket, url);
         if ( error != 0 ) {
-            return ufr_error(link, errno, "%s", zmq_strerror(errno));
+            return ufr_log_error(link, errno, "%s", zmq_strerror(errno));
         }
+        ufr_log_end(link, "port binded %s", url);
 
-        //
+        // update the gtw_obj
+        ufr_log_ini(link, "updating the gateway object");
         ll_obj_t* local = link->gtw_obj;
         local->socket = socket;
+        ufr_log_end(link, "gateway object updated");
     }
 
     return 0;
+}
+
+size_t ufr_zmq_socket_write(link_t* link, const char* buffer, size_t size) {
+    ll_obj_t* gtw_obj = link->gtw_obj;
+    if ( gtw_obj == NULL ) {
+        return 0;
+    }
+
+    // send the data to buffer
+    size_t sent;
+    if ( size > 0 ) {
+        sent = zmq_send (gtw_obj->socket, buffer, size, ZMQ_SNDMORE);
+    } else {
+        sent = zmq_send (gtw_obj->socket, NULL, 0, 0); 
+    }
+
+    // const size_t sent = zmq_send (gtw_obj->socket, buffer, size, 0);
+    if ( sent != size ) {
+        return ufr_error(link, 0, "%s", zmq_strerror(errno));
+    }
+    ufr_info(link, "sent %ld bytes", sent);
+    return sent;
 }
 
 int ufr_zmq_socket_accept(link_t* link, link_t* out_client) {
@@ -100,6 +132,7 @@ int ufr_zmq_socket_accept(link_t* link, link_t* out_client) {
 
 static
 ufr_gtw_api_t ufr_zmq_socket_api = {
+    .name = "zmq",
 	.type = ufr_zmq_socket_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,
@@ -110,7 +143,7 @@ ufr_gtw_api_t ufr_zmq_socket_api = {
     .recv = ufr_zmq_recv,
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
-	.write = ufr_zmq_write,
+	.write = ufr_zmq_socket_write,
     .accept = ufr_zmq_socket_accept
 };
 

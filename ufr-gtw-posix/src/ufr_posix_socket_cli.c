@@ -56,6 +56,8 @@ typedef struct {
 
 static
 int ufr_posix_socket_start_client(link_t* link, int type, const ufr_args_t* args) {
+
+    ufr_log_ini(link, "recvaa");
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
 
@@ -81,6 +83,7 @@ int ufr_posix_socket_start_client(link_t* link, int type, const ufr_args_t* args
     link->gtw_obj = conn;
 
     // change the API function to client
+    ufr_log_end(link, "created socket %s on port %d", address, port);
     return UFR_OK;
 }
 
@@ -92,12 +95,17 @@ void ufr_posix_socket_cli_stop(link_t* link, int type) {
 static
 size_t ufr_posix_socket_cli_read(link_t* link, char* buffer, size_t length) {
     ll_conn_t* conn = link->gtw_obj;
-    return read(conn->sockfd, buffer, length);
+    return 0; // read(conn->sockfd, buffer, length);
 }
 
 static
 size_t ufr_posix_socket_cli_write(link_t* link, const char* buffer, size_t length) {
-    return 0;
+    ufr_log_ini(link, "recvaa");
+    ll_conn_t* conn = link->gtw_obj;
+    size_t wrote = write(conn->sockfd, buffer, length);
+    close(conn->sockfd);
+    ufr_log_end(link, "recvaa");
+    return wrote;
 }
 
 static

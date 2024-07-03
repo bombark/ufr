@@ -65,3 +65,4 @@ add_subdirectory(./ufr-app-filesystem)
 add_subdirectory(./ufr-app-proxy)
 
 install(FILES ./etc/init.bash DESTINATION .)
+install(FILES ./etc/Makefile DESTINATION .)

@@ -38,13 +38,22 @@
 
 int main() {
     // configure the output
-    link_t link = ufr_client("@new zmq:socket @coder msgpack");
+    link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
     // send data and receive the answer
-    char buffer[512];
-    ufr_put(&link, "s\n", "AT");
-    ufr_get(&link, "^s", buffer);
-    printf("%s\n", buffer);
+    ufr_put(&link, "i\n", 10);
+    ufr_put_eof(&link);
+
+    int v1,v2,v3;
+    // ufr_get(&link, "^i", &v1,&v2,&v3);
+    // printf("%d %d %d\n", v1, v2, v3);
+
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
 
     // end
     return 0;

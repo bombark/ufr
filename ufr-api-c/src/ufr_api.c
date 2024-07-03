@@ -143,13 +143,14 @@ int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
 
     // call driver function
     const int error = link->gtw_api->start(link, type, args);
+    if ( error != UFR_OK ) {
+        return ufr_log_error(link, error, "error");
+    }
 
     // done
-    if ( error == UFR_OK ) {
-        link->type_started = type;
-        ufr_log_end(link, "link started");
-    }
-    return error;
+    link->type_started = type;
+    ufr_log_end(link, "link started");
+    return UFR_OK;
 }
 
 int ufr_start_publisher(link_t* link, const ufr_args_t* args) {
@@ -410,6 +411,10 @@ void ufr_put_af32(link_t* link, const float* array, size_t size) {
     ufr_leave_array(link);
 }
 
+int ufr_put_eof(link_t* link) {
+    return link->enc_api->put_cmd(link, EOF);
+}
+
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
     size_t arr_size = 0;
     link->dcr_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
@@ -661,6 +666,29 @@ int ufr_put_log_error(link_t* link, int error, const char* func_name, const char
         fprintf(stderr, "\x1B[31m# erro: %s%*s\033[0m: ", func_name, space, "");
         fprintf(stderr, "%s", &link->errstr[0]);
         fprintf(stderr, "\n");
+    }
+
+    // return error number
+    return error;
+}
+
+int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, const char* format, ...) {
+    // copy the error message in the link buffer
+    va_list list;
+    va_start(list, format);
+    vsnprintf(&link->errstr[0], sizeof(link->errstr), format, list);
+    va_end(list);
+
+    // show the debug
+    if ( link->log_level > 0 ) {
+        const int space = 24U - strlen(func_name);
+        fprintf(stderr, "\x1B[31m# erro: %s%*s\033[0m: ", func_name, space, "");
+        fprintf(stderr, "%s", &link->errstr[0]);
+        fprintf(stderr, "\n");
+    }
+
+    if ( link->log_ident > 0 ) {
+        link->log_ident -= 1;
     }
 
     // return error number

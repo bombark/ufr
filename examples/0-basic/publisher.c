@@ -30,36 +30,30 @@
 // ============================================================================
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <ufr.h>
-
-// ============================================================================
-//  Publishers
-// ============================================================================
-
-void example1() {
-    ufr_output_init("@new posix:file @path saida1.txt");
-    for (int i=0; i<5; i++) {
-        ufr_output("iifs\n", i, i*10, 1.2*i, "opa");
-    }
-}
-
-void example2() {
-    link_t link = ufr_publisher("@new posix:file @path saida2.txt @coder msgpack");
-    for (int i=0; i<5; i++) {
-        int sonars[8] = {1,2,3,4,5,6,7,8};
-        ufr_put(&link, "iis", i, i, "opa");
-        ufr_put_ai32(&link, sonars, 8);
-        ufr_send(&link);
-    }
-    ufr_close(&link);
-}
 
 // ============================================================================
 //  Main
 // ============================================================================
 
-int main() {
-    // example1();
-    example2();
+int main(int argc, char** argv) {
+    char* topic_params = "@new posix:stdout";
+    if ( argc > 1 ) {
+        // example: "@new zmq:topic @port 5000 @coder csv"
+        topic_params = argv[1];
+    }
+
+    // open link
+    link_t link = ufr_publisher(topic_params);
+
+    // read 5 messages
+    for (int i=0; i<5; i++) {
+        ufr_put(&link, "s\n", "mensagem");
+        sleep(1);
+    }
+
+    // end
+    ufr_close(&link);
     return 0;
 }

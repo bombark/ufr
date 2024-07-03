@@ -238,6 +238,7 @@ int sys_ufr_load (
     ufr_flex_text_div(class_path, &flex_cursor, class_name, sizeof(class_name), ':');
 
     // load the library
+    ufr_log_ini(link, "loading the library");
     uint8_t slot;
     char lib_file[512];
     char lib_fullname[256];
@@ -247,11 +248,15 @@ int sys_ufr_load (
     if ( state1 != UFR_OK ) {
         return state1;
     }
+    ufr_log_end(link, "loaded library %s", lib_fullname);
 
     // fill the link->[dcr,enc or gtw]_api
+    ufr_log_ini(link, "calling function new");
     ufr_sys_lib_call_new(link, slot, class_name, boot_type);
+    ufr_log_end(link, "called new function");
 
     // store the slot and call the boot
+    ufr_log_ini(link, "updating link");
     if ( strcmp(library_type, "dcr") == 0 ) {
         link->slot_dcr = slot;
         ufr_boot_dcr(link, args);
@@ -262,8 +267,9 @@ int sys_ufr_load (
         link->slot_gtw = slot;
         ufr_boot_gtw(link, args);
     } else {
-        return ufr_error(link, 1, "invalid boot type");
+        return ufr_log_error(link, 1, "invalid boot type");
     }
+    ufr_log_end(link, "link updated");
 
     // end
     return UFR_OK;

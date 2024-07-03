@@ -283,6 +283,9 @@ void ufr_put_ai8(link_t* link, const int8_t* array, size_t size);
 void ufr_put_au32(link_t* link, const uint32_t* array, size_t size);
 void ufr_put_ai32(link_t* link, const int32_t* array, size_t size);
 void ufr_put_af32(link_t* link, const float* array, size_t size);
+
+int ufr_put_eof(link_t* link);
+
 bool ufr_send(link_t* link);
 
 
@@ -351,6 +354,7 @@ void ufr_inoutput_init(const char* text);
 
 void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char* format, ...);
 int  ufr_put_log_error(link_t* link, int error, const char* func_name, const char* format, ...);
+int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, const char* format, ...);
 
 
 #define ufr_warn(link, ...) ufr_put_log(link, 1, __func__, __VA_ARGS__)
@@ -358,6 +362,7 @@ int  ufr_put_log_error(link_t* link, int error, const char* func_name, const cha
 #define ufr_log(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
 #define ufr_log_end(link, ...) link->log_ident-=1; ufr_put_log(link, 3, __func__, __VA_ARGS__)
 #define ufr_log_ini(link, ...) ufr_put_log(link, 4, __func__, __VA_ARGS__); link->log_ident+=1
+#define ufr_log_error(link, error, ...) ufr_put_log_error_ident(link, error, __func__, __VA_ARGS__);
 
 #define ufr_error(link, error, ...) ufr_put_log_error(link, error, __func__, __VA_ARGS__)
 

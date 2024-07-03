@@ -63,7 +63,7 @@ int get_file_free() {
 // ============================================================================
 
 int main() {
-    ufr_inoutput_init("@new zmq:socket @port 4000 @coder msgpack:obj");
+    ufr_inoutput_init("@new zmq:socket @port 4000 @coder msgpack");
 
     for (uint16_t i=0; i<FILE_TABLE_SIZE; i++) {
         g_file_tab[i] = NULL;

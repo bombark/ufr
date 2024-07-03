@@ -132,9 +132,14 @@ int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
 		const char* data = enc_obj->sbuf.data;
 		ufr_write(link, data, size);
 		msgpack_sbuffer_clear(&enc_obj->sbuf);
-	}
+    } else if ( cmd == EOF ) {
+        ufr_write(link, NULL, 0);
+        msgpack_sbuffer_clear(&enc_obj->sbuf);
+	} else {
+        return ufr_error(link, 1, "Command %d not found", cmd);
+    }
 
-	return 0;
+	return UFR_OK;
 }
 
 int ufr_enc_msgpack_enter_array(link_t* link, size_t maxsize) {

@@ -36,16 +36,15 @@
 //  Main
 // ============================================================================
 
-int main() {
-    // configure the output
-    // ufr_input_init("@new zmq:topic @port 5000");
-    // ufr_input_init("@new posix:file @path saida.txt");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
-    // link_t link = ufr_subscriber("@new posix:file @path saida2.txt @coder msgpack @debug 10");
+int main(int argc, char** argv) {
+    char* topic_params = "@new posix:stdin";
+    if ( argc > 1 ) {
+        // example: "@new zmq:topic @port 5000 @coder csv"
+        topic_params = argv[1];
+    }
 
-
-    link_t link = ufr_subscriber("@new zmq:topic @port 5000 @coder csv");
+    // open link
+    link_t link = ufr_subscriber(topic_params);
 
     // read 5 messages
     for (int i=0; i<5; i++) {
@@ -56,5 +55,6 @@ int main() {
     }
 
     // end
+    ufr_close(&link);
     return 0;
 }
