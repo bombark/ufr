@@ -114,28 +114,32 @@ void ufr_zmq_stop(link_t* link, int type) {
     }
 }
 
-bool ufr_zmq_recv(link_t* link) {
+int ufr_zmq_recv(link_t* link) {
+    // read the message
     ll_obj_t* local = link->gtw_obj;
-    const size_t msg_size = zmq_msg_recv (&local->recv_msg, local->socket, 0);
+    const int msg_size = zmq_msg_recv (&local->recv_msg, local->socket, 0);
 
+    // start the index
     local->idx = 0;
 
+    // link has decoder, call the dcr_api->recv()
     if ( link->dcr_api != NULL ) {
         uint8_t* recv_msg_data = zmq_msg_data(&local->recv_msg);
         const size_t recv_msg_size = zmq_msg_size(&local->recv_msg);
         link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
     }
 
-    return true;
+    // success
+    return msg_size;
 }
 
-bool ufr_zmq_recv_async(link_t* link) {
+int ufr_zmq_recv_async(link_t* link) {
     ll_obj_t* local = link->gtw_obj;
     local->idx = 0;
 
     const int msg_size = zmq_msg_recv (&local->recv_msg, local->socket, ZMQ_DONTWAIT);
     if ( msg_size < 0 ) {
-        return false;
+        return msg_size;
     }
 
     if ( link->dcr_api != NULL ) {
@@ -144,7 +148,7 @@ bool ufr_zmq_recv_async(link_t* link) {
         link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
     }
 
-    return true;
+    return msg_size;
 }
 
 

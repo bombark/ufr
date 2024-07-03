@@ -169,19 +169,19 @@ int ufr_start_client(link_t* link, const ufr_args_t* args) {
     return ufr_start(link, UFR_START_CLIENT, args);
 }
 
-bool ufr_recv(link_t* link) {
+int ufr_recv(link_t* link) {
     ufr_log_ini(link, "receiving data from link");
     if ( link->gtw_api == NULL ) {
-        return false;
+        return ufr_log_error(link, -1, "gateway is NULL");
     }
-    const bool retval = link->gtw_api->recv(link);
+    const int retval = link->gtw_api->recv(link);
     ufr_log_end(link, "received data from link");
     return retval;
 }
 
-bool ufr_recv_async(link_t* link) {
+int ufr_recv_async(link_t* link) {
     if ( link->gtw_api == NULL ) {
-        return false;
+        return -1;
     }
     return link->gtw_api->recv_async(link);
 }
@@ -221,12 +221,13 @@ size_t ufr_write(link_t* node, const char* buffer, size_t size) {
 //  Link - Formatted Stream
 // ============================================================================
 
-void ufr_get_va(link_t* link, const char* format, va_list list) {
+int ufr_get_va(link_t* link, const char* format, va_list list) {
     if ( link->dcr_api == NULL ) {
         ufr_error(link, 0, "Decoder is not loaded");
-        return;
+        return -1;
     }
 
+    int retval = 0;
 	while( format != NULL ) {	
 		const char type = *format;
         format += 1;
@@ -235,7 +236,11 @@ void ufr_get_va(link_t* link, const char* format, va_list list) {
 			break;
 
 		} else if ( type == '^' ) {
-			ufr_recv(link);
+			const int size = ufr_recv(link);
+            if ( size == 0 ) {
+                retval = 0;
+                break;
+            }
 
         } else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -254,16 +259,19 @@ void ufr_get_va(link_t* link, const char* format, va_list list) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
                     link->dcr_api->copy_str(link, buffer, -1);
+                    retval += 1;
                 } break;
 
                 case 'i': {
                     int32_t *val = va_arg(list, int32_t*);
                     link->dcr_api->get_i32(link, val);
+                    retval += 1;
                 } break;
 
                 case 'f': {
                     float* val = va_arg(list, float*);
                     link->dcr_api->get_f32(link, val);
+                    retval += 1;
                 } break;
 
                 case '\n': {
@@ -272,14 +280,17 @@ void ufr_get_va(link_t* link, const char* format, va_list list) {
             }
         }
 	}
-	
+    
+    // Success
+    return retval;
 }
 
-void ufr_get(link_t* link, char* format, ...) {
+int ufr_get(link_t* link, char* format, ...) {
     va_list list;
     va_start(list, format);
-    ufr_get_va(link, format, list);
+    const int retval = ufr_get_va(link, format, list);
     va_end(list);
+    return retval;
 }
 
 char ufr_get_type(link_t* link) {

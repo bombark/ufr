@@ -74,6 +74,10 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
         obj->socket = socket;
         ufr_log_end(link, "gateway object updated");
 
+        // set timeout
+        int time = 2000;
+        zmq_setsockopt(socket, ZMQ_RCVTIMEO, &time, sizeof(time));
+
     } else if ( type == UFR_START_SERVER ) {
         // create the socket
         ufr_log_ini(link, "creating the socket");

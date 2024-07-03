@@ -30,31 +30,120 @@
 // ============================================================================
 
 #include <stdio.h>
+#include <string.h>
 #include <ufr.h>
+
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
+    link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 0");
+
+    printf("root$ ");
+    while(1) {
+        char line[1024];
+        fgets(line, 1024, stdin);
+
+        const char* command = strtok(line, " \n");
+        if ( command != NULL ) {
+            if ( strcmp(command, "q") == 0 ) {
+                break;
+
+            // other commands
+            } else {
+                // parser the command and send to the server
+                ufr_put(&link, "s", command);
+                while (1) {
+                    const char* arg = strtok(NULL, " \n");
+                    if ( arg == NULL ) {
+                        break;
+                    }
+                    ufr_put(&link, "s", arg);
+                }
+                ufr_put(&link, "\n");
+                ufr_put_eof(&link);
+
+                // wait for the response
+                while ( 1 ) {
+                    char response[1024];
+                    int res = ufr_get(&link, "^s", response);
+                    if ( res <= 0 ) {
+                        break;
+                    }
+                    printf("%s\n", response);
+                }
+            }
+        }
+
+        printf("root$ ");
+    }
+
+    // end
+    ufr_close(&link);
+    return 0;
+}
+
+
+int main222() {
     // configure the output
     link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
-    // send data and receive the answer
-    ufr_put(&link, "i\n", 10);
-    ufr_put_eof(&link);
+    {
+        ufr_put(&link, "ss\n", "cd", "include");
+        ufr_put_eof(&link);
+        char response[1024];   
+        ufr_get(&link, "^s", response);
+        ufr_get(&link, "^");
+    }
+    
+    {
+        // send command
+        ufr_put(&link, "s\n", "ls");
+        ufr_put_eof(&link);
 
-    int v1,v2,v3;
-    // ufr_get(&link, "^i", &v1,&v2,&v3);
-    // printf("%d %d %d\n", v1, v2, v3);
-
-    ufr_get(&link, "^ii", &v1, &v2);
-    printf("%d %d\n", v1, v2);
-    ufr_get(&link, "^ii", &v1, &v2);
-    printf("%d %d\n", v1, v2);
-    ufr_get(&link, "^ii", &v1, &v2);
-    printf("%d %d\n", v1, v2);
+        // recv the answer
+        while ( 1 ) {
+            char response[1024];
+            int res = ufr_get(&link, "^s", response);
+            if ( res == 0 ) {
+                break;
+            }
+            printf("%s\n", response);
+        }
+    }
 
     // end
     return 0;
 }
+
+/*
+int main() {
+    // configure the output
+    link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
+
+    // send command
+    ufr_put(&link, "i\n", 10);
+    ufr_put_eof(&link);
+
+    // recv the answer
+    int v1,v2,v3;
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
+    ufr_get(&link, "^ii", &v1, &v2);
+    printf("%d %d\n", v1, v2);
+    ufr_get(&link, "^");
+
+    // end
+    return 0;
+}q
+*/
+
+// sexta, 17:00 -> 18:00 workshop pioneers
+// explicar os comandos basicos do github
+// explicar sobre cmake
+// ssh
+

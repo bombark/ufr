@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ufr.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 // ============================================================================
 //  Main
@@ -40,27 +42,73 @@
 int main() {
     // configure the output
     link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
+    char current_path[1024];
+    strcpy(current_path, "./");
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
-        int command;
-        ufr_get(&server, "^i", &command);
-        ufr_put(&server, "ii\n", 51,61);
-        ufr_put(&server, "ii\n", 52,62);
-        ufr_put(&server, "ii\n", 53,63);
-        ufr_put_eof(&server);
-
-        /*char command[512];
+        // recv
+        char command[1024];
         ufr_get(&server, "^s", command);
-        printf("[LOG]: %s\n", command);
 
-        if ( strcmp(command, "AT") == 0 ) {
-            ufr_put(&server, "s\n", "OK");
+
+        if ( strcmp(command, "cd") == 0 ) {
+            char arg1[1024];
+            int a = ufr_get(&server, "s", arg1);
+            printf("l %d\n", a);
+            strcat(current_path, arg1);
+            ufr_get(&server, "^");
+
+            ufr_put(&server, "s\n", current_path);
+            ufr_put_eof(&server);
+
+        } else if ( strcmp(command, "ls") == 0 ) {
+            ufr_get(&server, "^");
+
+            DIR *dp = opendir (current_path);
+            struct dirent *ep;     
+            if ( dp != NULL ) {
+                while ((ep = readdir (dp)) != NULL) {
+                    ufr_put(&server, "s\n", ep->d_name);
+                }
+                closedir(dp);
+            }
+            ufr_put_eof(&server);
+
         } else {
+            ufr_get(&server, "^");
+            printf("%s\n", command);
             ufr_put(&server, "s\n", "ERROR");
-        }*/
+            ufr_put_eof(&server);
+        }
+       
     }
 
     // end
     return 0;
 }
+
+
+/*
+int main() {
+    // configure the output
+    link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
+
+    // publish 5 messages
+    for (int i=0; i<5; i++) {
+        // recv
+        int command;
+        ufr_get(&server, "^i", &command);
+        ufr_get(&server, "^");
+
+        // send
+        ufr_put(&server, "ii\n", 51,61);
+        ufr_put(&server, "ii\n", 52,62);
+        ufr_put(&server, "ii\n", 53,63);
+        ufr_put_eof(&server);
+    }
+
+    // end
+    return 0;
+}
+*/

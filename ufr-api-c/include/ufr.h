@@ -112,8 +112,8 @@ typedef struct {
 	size_t (*read)(struct _link* link, char* buffer, size_t length);
 	size_t (*write)(struct _link* link, const char* buffer, size_t length);
 
-	bool (*recv)(struct _link* link);
-	bool (*recv_async)(struct _link* link);
+	int (*recv)(struct _link* link);
+	int (*recv_async)(struct _link* link);
 
     int (*accept)(struct _link* link, struct _link* out_client);
 
@@ -258,9 +258,8 @@ void ufr_stop(link_t* link);
 void ufr_close(link_t* link);
 void ufr_close(link_t* link);
 
-bool ufr_recv(link_t* link);
-bool ufr_recv(link_t* link);
-bool ufr_recv_async(link_t* link);
+int ufr_recv(link_t* link);
+int ufr_recv_async(link_t* link);
 
 size_t ufr_read(link_t* node, char* buffer, size_t size);
 size_t ufr_read(link_t* node, char* buffer, size_t size);
@@ -268,8 +267,8 @@ size_t ufr_read(link_t* node, char* buffer, size_t size);
 size_t ufr_write(link_t* node, const char* buffer, size_t size);
 size_t ufr_write(link_t* node, const char* buffer, size_t size);
 
-void ufr_get_va(link_t* link, const char* format, va_list list);
-void ufr_get(link_t* link, char* format, ...);
+int ufr_get_va(link_t* link, const char* format, va_list list);
+int ufr_get(link_t* link, char* format, ...);
 
 char ufr_get_type(link_t* link);
 
