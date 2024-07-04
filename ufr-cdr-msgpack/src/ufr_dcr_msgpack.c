@@ -113,6 +113,8 @@ char ufr_dcr_msgpack_get_type(link_t* link) {
     if ( obj.type == MSGPACK_OBJECT_STR ) {
         return 's';
     }
+
+	return 0;
 }
 
 static

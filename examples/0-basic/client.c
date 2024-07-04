@@ -41,6 +41,13 @@ char g_current_path[1024];
 //  Functions
 // ============================================================================
 
+int open_connection() {
+    // send the command
+    ufr_put(&g_link, "s\n", "open");
+    ufr_put_eof(&g_link);
+    ufr_get_eof(&g_link);
+}
+
 int builtin_cd(const char* path) {
     // Send the command to the server
     if ( path == NULL ) {
@@ -53,7 +60,7 @@ int builtin_cd(const char* path) {
     // Receive the answer
     char response[1024];
     int res = ufr_get(&g_link, "^s", response);
-    printf("%s\n", response);
+    ufr_get_eof(&g_link);
 
     // Update the global variable: current path
     strcpy(g_current_path, response);
@@ -70,6 +77,9 @@ int builtin_cd(const char* path) {
 int main() {
     strcpy(g_current_path, "./");
     g_link = ufr_client("@new zmq:socket @coder msgpack @debug 0");
+
+    open_connection();
+
 
     printf("root:%s$ ", g_current_path);
     while(1) {

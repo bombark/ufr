@@ -407,6 +407,13 @@ int ufr_get(link_t* link, char* format, ...);
  * @brief 
  * 
  * @param link 
+ */
+void ufr_get_eof(link_t* link);
+
+/**
+ * @brief 
+ * 
+ * @param link 
  * @return char 
  */
 char ufr_get_type(link_t* link);

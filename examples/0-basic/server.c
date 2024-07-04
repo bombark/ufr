@@ -78,7 +78,7 @@ int main() {
     // configure the output
     link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
     char current_path[1024];
-    strcpy(current_path, "./aaa");
+    strcpy(current_path, "./");
 
     // publish 5 messages
     for (int i=0; i<10; i++) {
@@ -89,19 +89,23 @@ int main() {
 
         if ( strcmp(command, "cd") == 0 ) {
             char arg1[1024];
-            int a = ufr_get(&server, "s", arg1);
-            printf("l %d\n", a);
-            printf("%s %s\n", current_path, arg1);
-            char buffer[1024];
-            cwk_path_join(current_path, arg1, buffer, 1024);
-            printf("aaa %s\n", buffer);
-            ufr_get(&server, "^");
+            if ( ufr_get(&server, "s", arg1) == 1 ) {
+                cwk_path_join(current_path, arg1, current_path, 1024);
+            } else {
+                strcpy(current_path, "/");
+            }
+            ufr_get_eof(&server);
 
             ufr_put(&server, "s\n", current_path);
             ufr_put_eof(&server);
 
+        } else if ( strcmp(command, "open") == 0 ) {
+            ufr_get_eof(&server);
+            ufr_put(&server, "s\n", "OK");
+            ufr_put_eof(&server);
+
         } else if ( strcmp(command, "ls") == 0 ) {
-            ufr_get(&server, "^");
+            ufr_get_eof(&server);
 
             DIR *dp = opendir (current_path);
             struct dirent *ep;     
@@ -114,8 +118,8 @@ int main() {
             ufr_put_eof(&server);
 
         } else {
-            ufr_get(&server, "^");
-            printf("%s\n", command);
+            ufr_get_eof(&server);
+            printf("ERROR %s\n", command);
             ufr_put(&server, "s\n", "ERROR");
             ufr_put_eof(&server);
         }

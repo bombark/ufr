@@ -258,20 +258,23 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
             switch (type) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
-                    link->dcr_api->copy_str(link, buffer, -1);
-                    retval += 1;
+                    if ( link->dcr_api->copy_str(link, buffer, 1024) == UFR_OK ) {
+                        retval += 1;
+                    }
                 } break;
 
                 case 'i': {
                     int32_t *val = va_arg(list, int32_t*);
-                    link->dcr_api->get_i32(link, val);
-                    retval += 1;
+                    if ( link->dcr_api->get_i32(link, val) == UFR_OK ) {
+                        retval += 1;
+                    }
                 } break;
 
                 case 'f': {
                     float* val = va_arg(list, float*);
-                    link->dcr_api->get_f32(link, val);
-                    retval += 1;
+                    if ( link->dcr_api->get_f32(link, val) == UFR_OK ) {
+                        retval += 1;
+                    }
                 } break;
 
                 case '\n': {
@@ -291,6 +294,14 @@ int ufr_get(link_t* link, char* format, ...) {
     const int retval = ufr_get_va(link, format, list);
     va_end(list);
     return retval;
+}
+
+void ufr_get_eof(link_t* link) {
+    while (1) {
+        if ( ufr_get(link, "^") <= 0 ) {
+            break;
+        }
+    }
 }
 
 char ufr_get_type(link_t* link) {
