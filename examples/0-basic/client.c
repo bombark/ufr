@@ -32,6 +32,35 @@
 #include <stdio.h>
 #include <string.h>
 #include <ufr.h>
+#include <cwalk.h>
+
+link_t g_link;
+char g_current_path[1024];
+
+// ============================================================================
+//  Functions
+// ============================================================================
+
+int builtin_cd(const char* path) {
+    // Send the command to the server
+    if ( path == NULL ) {
+        ufr_put(&g_link, "s\n", "cd");
+    } else {
+        ufr_put(&g_link, "ss\n", "cd", path);
+    }
+    ufr_put_eof(&g_link);
+
+    // Receive the answer
+    char response[1024];
+    int res = ufr_get(&g_link, "^s", response);
+    printf("%s\n", response);
+
+    // Update the global variable: current path
+    strcpy(g_current_path, response);
+
+    // Success
+    return UFR_OK;
+}
 
 
 // ============================================================================
@@ -39,36 +68,33 @@
 // ============================================================================
 
 int main() {
-    link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 0");
+    strcpy(g_current_path, "./");
+    g_link = ufr_client("@new zmq:socket @coder msgpack @debug 0");
 
-    printf("root$ ");
+    printf("root:%s$ ", g_current_path);
     while(1) {
         char line[1024];
         fgets(line, 1024, stdin);
 
         const char* command = strtok(line, " \n");
         if ( command != NULL ) {
-            if ( strcmp(command, "q") == 0 ) {
+            if ( strcmp(command, "q") == 0 || strcmp(command, "quit") == 0 ) {
                 break;
 
             // other commands
+            } else if ( strcmp(command, "cd") == 0 ) {
+                const char* path = strtok(NULL, " \n");
+                builtin_cd(path);
+
             } else {
-                // parser the command and send to the server
-                ufr_put(&link, "s", command);
-                while (1) {
-                    const char* arg = strtok(NULL, " \n");
-                    if ( arg == NULL ) {
-                        break;
-                    }
-                    ufr_put(&link, "s", arg);
-                }
-                ufr_put(&link, "\n");
-                ufr_put_eof(&link);
+                // send the command
+                ufr_put(&g_link, "s\n", command);
+                ufr_put_eof(&g_link);
 
                 // wait for the response
                 while ( 1 ) {
                     char response[1024];
-                    int res = ufr_get(&link, "^s", response);
+                    int res = ufr_get(&g_link, "^s", response);
                     if ( res <= 0 ) {
                         break;
                     }
@@ -77,11 +103,11 @@ int main() {
             }
         }
 
-        printf("root$ ");
+        printf("root:%s$ ", g_current_path);
     }
 
     // end
-    ufr_close(&link);
+    ufr_close(&g_link);
     return 0;
 }
 

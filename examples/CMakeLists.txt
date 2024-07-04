@@ -7,11 +7,11 @@ target_link_libraries(subscriber ufr)
 install(TARGETS subscriber DESTINATION examples)
 
 add_executable(server 0-basic/server.c)
-target_link_libraries(server ufr)
+target_link_libraries(server ufr cwalk)
 install(TARGETS server DESTINATION examples)
 
 add_executable(client 0-basic/client.c)
-target_link_libraries(client ufr)
+target_link_libraries(client ufr cwalk)
 install(TARGETS client DESTINATION examples)
 
 

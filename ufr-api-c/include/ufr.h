@@ -235,10 +235,50 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api);
 
 // system new
 int ufr_init(link_t* link, const char* package_name, const char* class_name);
+
+/**
+ * @brief 
+ * 
+ * @param text 
+ * @return link_t 
+ */
 link_t ufr_new(const char* text);
+
+/**
+ * @brief 
+ * 
+ * @param text 
+ * @return link_t 
+ */
 link_t ufr_publisher(const char* text);
+
+/**
+ * @brief 
+ * 
+ * @param text 
+ * @return link_t 
+ */
 link_t ufr_subscriber(const char* text);
+
+/**
+ * @brief 
+ * 
+ * @param text 
+ * @return link_t 
+ */
 link_t ufr_server(const char* text);
+
+/**
+ * @brief Create a link as client
+ *
+ * This function put formatted data to the message and it will be send
+ * to the link related. 
+ *
+ * @param text text with the arguments. Example: aaa 
+ * @return created link as client
+ * 
+ * @version 1.0
+ */
 link_t ufr_client(const char* text);
 
 // boot
@@ -246,35 +286,184 @@ int ufr_boot_dcr(link_t* link, const ufr_args_t* args);
 int ufr_boot_enc(link_t* link, const ufr_args_t* args);
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args);
 
-// start
+// ============================================================================
+//  Start
+// ============================================================================
+/**
+ * @brief 
+ * 
+ * @param link link to be started 
+ * @param type type to start (publisher, subscriber, client or server)
+ * @param param_args variable arguments for start function 
+ * @return int returns error code and 0 for success;
+ */
 int ufr_start(link_t* link, int type, const ufr_args_t* param_args);
+
+/**
+ * @brief start a link as topic publisher
+ * 
+ * @param link link to be started 
+ * @param args variable arguments for start function 
+ * @return int error code or 0 for success 
+ */
 int ufr_start_publisher(link_t* link, const ufr_args_t* args);
+
+/**
+ * @brief start a link as topic subscriber
+ * 
+ * @param link link to be started
+ * @param args variable arguments for start function
+ * @return int error code or 0 for success 
+ */
 int ufr_start_subscriber(link_t* link, const ufr_args_t* args);
+
+/**
+ * @brief start a link as socket server
+ * 
+ * @param link link to be started 
+ * @param args variable arguments for start function 
+ * @return int error code or 0 for success 
+ */
 int ufr_start_server(link_t* link, const ufr_args_t* args);
+
+/**
+ * @brief start a link as socket client
+ * 
+ * @param link link to be started
+ * @param args variable arguments for start function
+ * @return int error code or 0 for success
+ */
 int ufr_start_client(link_t* link, const ufr_args_t* args);
 
-// stop
+// ============================================================================
+//  Stop and Close
+// ============================================================================
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ */
 void ufr_stop(link_t* link);
-void ufr_close(link_t* link);
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ */
 void ufr_close(link_t* link);
 
+// ============================================================================
+//  Receive, Read and Get
+// ============================================================================
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @return int 
+ */
 int ufr_recv(link_t* link);
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @return int 
+ */
 int ufr_recv_async(link_t* link);
 
-size_t ufr_read(link_t* node, char* buffer, size_t size);
+/**
+ * @brief 
+ * 
+ * @param node 
+ * @param buffer 
+ * @param size 
+ * @return size_t 
+ */
 size_t ufr_read(link_t* node, char* buffer, size_t size);
 
-size_t ufr_write(link_t* node, const char* buffer, size_t size);
-size_t ufr_write(link_t* node, const char* buffer, size_t size);
-
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @param format 
+ * @param list 
+ * @return int 
+ */
 int ufr_get_va(link_t* link, const char* format, va_list list);
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @param format 
+ * @param ... 
+ * @return int 
+ */
 int ufr_get(link_t* link, char* format, ...);
 
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @return char 
+ */
 char ufr_get_type(link_t* link);
 
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @param buffer 
+ * @return true 
+ * @return false 
+ */
 bool ufr_get_str(link_t* link, char* buffer);
 
+// ============================================================================
+//  Send, Write and Put
+// ============================================================================
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @return true 
+ * @return false 
+ */
+bool ufr_send(link_t* link);
+
+/**
+ * @brief 
+ * 
+ * @param node 
+ * @param buffer 
+ * @param size 
+ * @return size_t 
+ */
+size_t ufr_write(link_t* node, const char* buffer, size_t size);
+
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @param format 
+ * @param list 
+ */
 void ufr_put_va(link_t* link, const char* format, va_list list);
+
+
+/**
+ * @brief Put data to the message for link
+ *
+ * This function put formatted data to the message and it will be send
+ * to the link related. 
+ *
+ * @param link pointer of the link
+ * @param format format of the message (i: integer, s:string, f: float, \\n: send package)
+ * @param ...  data for the format
+ */
 void ufr_put(link_t* link, const char* format, ...);
 
 void ufr_put_au8(link_t* link, const uint8_t* array, size_t size);
@@ -285,14 +474,15 @@ void ufr_put_af32(link_t* link, const float* array, size_t size);
 
 int ufr_put_eof(link_t* link);
 
-bool ufr_send(link_t* link);
-
 
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data);
 size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data);
 
 int ufr_enter_array(link_t* link, size_t arr_size_max);
 int ufr_leave_array(link_t* link);
+
+
+
 
 // Functions on ufr_args_t
 bool ufr_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max, const char div);
@@ -351,10 +541,13 @@ bool ufr_input_recv();
 void ufr_inoutput_init(const char* text);
 
 
+// ============================================================================
+//  Log Functions
+// ============================================================================
+
 void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char* format, ...);
 int  ufr_put_log_error(link_t* link, int error, const char* func_name, const char* format, ...);
 int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, const char* format, ...);
-
 
 #define ufr_warn(link, ...) ufr_put_log(link, 1, __func__, __VA_ARGS__)
 #define ufr_info(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
@@ -365,14 +558,14 @@ int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, con
 
 #define ufr_error(link, error, ...) ufr_put_log_error(link, error, __func__, __VA_ARGS__)
 
+
+// ============================================================================
+//  Functions with dependency of Operating System
+// ============================================================================
+
 link_t ufr_sys_open(const char* name, const char* def_args);
-
-
-// int ufr_sys_load_library(link_t* link, const char* name);
 const char* ufr_sys_lib_call_list (const uint8_t slot, const uint8_t list_idx);
-
 int ufr_sys_lib_call_new (link_t* link, const uint8_t slot, const char* name, const int type);
-
 void urf_sys_set_ld_path(char* path);
 
 // ============================================================================
@@ -399,6 +592,10 @@ void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);
 void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text);
+
+// ============================================================================
+//  Footer
+// ============================================================================
 
 #ifdef __cplusplus
 }

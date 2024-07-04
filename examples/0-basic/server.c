@@ -34,19 +34,54 @@
 #include <ufr.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <cwalk.h>
+
+typedef struct {
+    char name[64];
+} node_t;
+
+typedef struct {
+    uint8_t size;
+    node_t nodes[64];
+} directory_t;
+
+directory_t g_root;
+
+// ============================================================================
+//  Directory Class Functions
+// ============================================================================
+
+void directory_init(directory_t* dir) {
+    dir->size = 0;
+}
+
+void directory_add_node(directory_t* dir, const char* name) {
+    const uint8_t pos = dir->size;
+    dir->size += 1;
+    strcpy(&dir->nodes[pos], name);
+}
+
+// ============================================================================
+//  Functions
+// ============================================================================
+
+
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
+    directory_init(&g_root);
+
+
     // configure the output
     link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
     char current_path[1024];
-    strcpy(current_path, "./");
+    strcpy(current_path, "./aaa");
 
     // publish 5 messages
-    for (int i=0; i<5; i++) {
+    for (int i=0; i<10; i++) {
         // recv
         char command[1024];
         ufr_get(&server, "^s", command);
@@ -56,7 +91,10 @@ int main() {
             char arg1[1024];
             int a = ufr_get(&server, "s", arg1);
             printf("l %d\n", a);
-            strcat(current_path, arg1);
+            printf("%s %s\n", current_path, arg1);
+            char buffer[1024];
+            cwk_path_join(current_path, arg1, buffer, 1024);
+            printf("aaa %s\n", buffer);
             ufr_get(&server, "^");
 
             ufr_put(&server, "s\n", current_path);
@@ -85,6 +123,7 @@ int main() {
     }
 
     // end
+    ufr_close(&server);
     return 0;
 }
 
