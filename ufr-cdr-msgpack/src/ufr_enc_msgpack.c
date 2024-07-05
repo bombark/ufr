@@ -67,6 +67,18 @@ void ufr_enc_msgpack_close(link_t* link) {
 }
 
 static
+int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
+	ll_encoder_t* enc_obj = link->enc_obj;
+	if ( enc_obj == NULL ) {
+		return 1;
+	}
+	
+	msgpack_pack_raw(&enc_obj->pk, size);
+	msgpack_pack_raw_body(&enc_obj->pk, buffer, size);
+	return 0;
+}
+
+static
 int ufr_enc_msgpack_put_u32(link_t* link, uint32_t val) {
 	ll_encoder_t* enc_obj = link->enc_obj;
 	if ( enc_obj ) {

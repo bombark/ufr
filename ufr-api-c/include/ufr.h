@@ -158,6 +158,7 @@ typedef struct {
     int (*put_i8)(struct _link* link, int8_t val);
     int (*put_cmd)(struct _link* link, char cmd);
     int (*put_str)(struct _link* link, const char* val);
+    int (*put_raw)(struct _link* link, const uint8_t* val, size_t size);
 
     // 32 bits
 	int (*put_u32)(struct _link* link, uint32_t val);

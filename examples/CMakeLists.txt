@@ -15,7 +15,8 @@ target_link_libraries(client ufr cwalk)
 install(TARGETS client DESTINATION examples)
 
 
-# find_package(OpenCV REQUIRED )
-# add_executable(publisher_image 0-basic/publisher_image.cpp)
-# target_link_libraries(publisher_image ufr ${OpenCV_LIBS})
-# target_include_directories(publisher_image PUBLIC "${OPENCV_INCLUDE_DIR}")
+find_package(OpenCV REQUIRED )
+add_executable(publisher_image 0-basic/publisher_image.cpp)
+target_link_libraries(publisher_image ufr ${OpenCV_LIBS})
+target_include_directories(publisher_image PUBLIC "${OPENCV_INCLUDE_DIR}")
+install(TARGETS publisher_image DESTINATION examples)
