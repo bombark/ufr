@@ -43,7 +43,7 @@ using namespace cv;
 
 int main() {
     // Begin
-    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @debug 4");
+    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @debug 4 @port 3000");
     VideoCapture cap(0); 
     
     // Check if camera opened successfully
@@ -52,8 +52,9 @@ int main() {
         return -1;
     }
     
+    long int sum = 0;
     vector<uchar> buf;
-    while(1) {
+    for(int i=0; i<100; i++) {
         Mat frame;
         cap >> frame;
   
@@ -63,13 +64,20 @@ int main() {
         }
  
         imencode(".jpg", frame, buf);
-        cout << buf.size() << endl;
+
+        sum = 0;
+        for (int i=0; i<buf.size(); i++) {
+            sum += buf[i];
+        }
+
+        ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
+        ufr_put(&topic, "\n");
 
         // Display the resulting frame
         // imshow( "Frame", frame );
  
         // Press  ESC on keyboard to exit
-        char c = (char) waitKey(25);
+        char c = (char) waitKey(50);
         if( c == 27 ) {
             break;
         }

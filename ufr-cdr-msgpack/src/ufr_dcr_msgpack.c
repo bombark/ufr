@@ -39,7 +39,7 @@
 
 typedef struct {
 	msgpack_unpacked result;
-	char* msg_data;
+	uint8_t* msg_data;
     uint8_t stack;
 	uint32_t msg_size;
     size_t cursor;
@@ -239,27 +239,37 @@ int ufr_dcr_msgpack_copy_arr(link_t* link, char arr_type, size_t arr_size_max, s
 	}
 
 	const msgpack_object obj = unpack_next_obj(link); 
-	if ( obj.type != MSGPACK_OBJECT_ARRAY ) {
-		return ufr_error(link, 1, "item is not a array");
-	}
 
-	const size_t l_arr_size = 
-		(obj.via.array.size > arr_size_max) ? arr_size_max : obj.via.array.size;
+    if ( arr_type == 'b' && obj.type == MSGPACK_OBJECT_BIN ) {
+        const size_t l_arr_size = (obj.via.bin.size > arr_size_max) ? arr_size_max : obj.via.bin.size;
+        memcpy(arr_ptr, obj.via.bin.ptr, l_arr_size);
+        *arr_size = l_arr_size;
 
-	if ( arr_type == 'i' ) {
-		int32_t* out = (int32_t*) arr_ptr;
-		for (size_t i=0; i<l_arr_size; i++) {
-			out[i] = obj.via.array.ptr[i].via.i64;
-		}
+    } else {
+        if ( obj.type != MSGPACK_OBJECT_ARRAY ) {
+            return ufr_error(link, 1, "item is not a array");
+        }
 
-	} else if ( arr_type == 'f' ) {
-		float* out = (float*) arr_ptr;
-		for (size_t i=0; i<l_arr_size; i++) {
-			out[i] = obj.via.array.ptr[i].via.f64;
-		}
-	}
+        const size_t l_arr_size = 
+            (obj.via.array.size > arr_size_max) ? arr_size_max : obj.via.array.size;
 
-	*arr_size = l_arr_size;
+        if ( arr_type == 'i' ) {
+            int32_t* out = (int32_t*) arr_ptr;
+            for (size_t i=0; i<l_arr_size; i++) {
+                out[i] = obj.via.array.ptr[i].via.i64;
+            }
+
+        } else if ( arr_type == 'f' ) {
+            float* out = (float*) arr_ptr;
+            for (size_t i=0; i<l_arr_size; i++) {
+                out[i] = obj.via.array.ptr[i].via.f64;
+            }
+
+        }
+
+        *arr_size = l_arr_size;
+    }
+
 	return UFR_OK;
 }
 

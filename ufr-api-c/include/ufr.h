@@ -429,6 +429,16 @@ char ufr_get_type(link_t* link);
  */
 bool ufr_get_str(link_t* link, char* buffer);
 
+/**
+ * @brief 
+ * 
+ * @param link 
+ * @param buffer 
+ * @param maxsize 
+ * @return size_t 
+ */
+size_t ufr_get_raw(link_t* link, uint8_t* buffer, size_t maxsize);
+
 // ============================================================================
 //  Send, Write and Put
 // ============================================================================
@@ -482,6 +492,7 @@ void ufr_put_af32(link_t* link, const float* array, size_t size);
 
 int ufr_put_eof(link_t* link);
 
+void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size);
 
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data);
 size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data);

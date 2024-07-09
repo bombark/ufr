@@ -67,18 +67,6 @@ void ufr_enc_msgpack_close(link_t* link) {
 }
 
 static
-int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
-	ll_encoder_t* enc_obj = link->enc_obj;
-	if ( enc_obj == NULL ) {
-		return 1;
-	}
-	
-	msgpack_pack_raw(&enc_obj->pk, size);
-	msgpack_pack_raw_body(&enc_obj->pk, buffer, size);
-	return 0;
-}
-
-static
 int ufr_enc_msgpack_put_u32(link_t* link, uint32_t val) {
 	ll_encoder_t* enc_obj = link->enc_obj;
 	if ( enc_obj ) {
@@ -154,6 +142,18 @@ int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
 	return UFR_OK;
 }
 
+static
+int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
+	ll_encoder_t* enc_obj = link->enc_obj;
+	if ( enc_obj == NULL ) {
+		return 1;
+	}
+
+	msgpack_pack_bin(&enc_obj->pk, size);
+	msgpack_pack_bin_body(&enc_obj->pk, buffer, size);
+	return 0;
+}
+
 int ufr_enc_msgpack_enter_array(link_t* link, size_t maxsize) {
     ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
 	msgpack_pack_array(&enc_obj->pk, maxsize);
@@ -177,6 +177,7 @@ ufr_enc_api_t ufr_enc_msgpack_api = {
 	.put_str = ufr_enc_msgpack_put_str,
 	.put_arr = ufr_enc_msgpack_put_arr,
 	.put_cmd = ufr_enc_msgpack_put_cmd,
+    .put_raw = ufr_enc_msgpack_put_raw,
 	
 	.enter_array = ufr_enc_msgpack_enter_array,
 	.leave_array = ufr_enc_msgpack_leave_array

@@ -34,6 +34,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <ufr.h>
+#include <cwalk.h>
 
 #include <sys/stat.h>
 
@@ -43,6 +44,8 @@
 #define OCCUPIED  1
 
 FILE* g_file_tab[FILE_TABLE_SIZE];
+
+char current_path[4096];
 
 // ============================================================================
 //  Functions
@@ -58,117 +61,101 @@ int get_file_free() {
     return -1;
 }
 
+int builtin_mkdir(link_t* server) {
+    int retcode = -1;
+    char* retmesg = "";
+
+    char arg1[1024];
+    if ( ufr_get(server, "s", arg1) == 1 ) {
+        char dir_path[1024];
+        cwk_path_join(current_path, arg1, dir_path, 1024);
+        mkdir(dir_path, 0755);
+        retcode = UFR_OK;
+        retmesg = "OK";
+    } else {
+        retcode = -1;
+        retmesg = "ERROR";
+    }
+
+    ufr_get_eof(server);
+    ufr_put(server, "is\n", retcode, retmesg);
+    ufr_put_eof(server);
+
+    return retcode;
+}
+
+int builtin_ls(link_t* server) {
+    int retcode;
+    ufr_get_eof(server);
+    DIR *dp = opendir (current_path);
+    struct dirent *ep;
+    if ( dp != NULL ) {
+        retcode = UFR_OK;
+        ufr_put(server, "is\n", retcode, "OK");
+        while ((ep = readdir (dp)) != NULL) {
+            ufr_put(server, "s\n", ep->d_name);
+        }
+        closedir(dp);
+    } else {
+        ufr_put(server, "is\n", -1, "ERROR");
+    }
+    ufr_put_eof(server);
+    return retcode;
+}
+
+
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    ufr_inoutput_init("@new zmq:socket @port 4000 @coder msgpack");
+    // configure the output
+    link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
+    strcpy(current_path, "./data");
 
-    for (uint16_t i=0; i<FILE_TABLE_SIZE; i++) {
-        g_file_tab[i] = NULL;
-    }
+    // publish 5 messages
+    for (int i=0; i<10; i++) {
+        // recv
+        char command[1024];
+        ufr_get(&server, "^s", command);
 
-    char command[512];
-    while(1) {
-        ufr_input("^s", command);
 
-        // ping service
-        if ( strcmp(command, "ping") == 0 ) {
-            ufr_output("s\n", "OK");
-
-        // read whole file
-        } else if ( strcmp(command, "open") == 0 ) {
-            char name[512];
-            char mode[512];
-            ufr_input("ss", name, mode);
-            int pos = get_file_free();
-            if ( pos < 0 ) {
-                ufr_output("s\n", "ERROR");
-            }
-            FILE* fd = fopen(name, mode);
-            if ( fd == NULL ) {
-                ufr_output("s\n", "ERROR");
+        if ( strcmp(command, "cd") == 0 ) {
+            char arg1[1024];
+            if ( ufr_get(&server, "s", arg1) == 1 ) {
+                cwk_path_join(current_path, arg1, current_path, 1024);
             } else {
-                g_file_tab[pos] = fd;
-                ufr_output("is\n", pos, "OK");
+                strcpy(current_path, "/");
             }
+            ufr_get_eof(&server);
 
-        // close file description
-        } else if ( strcmp(command, "close") == 0 ) {
-            uint16_t fd_pos;
-            ufr_input("i", &fd_pos);
-            if ( fd_pos >= FILE_TABLE_SIZE ) {
-                ufr_output("s\n", "ERROR");
-                continue;
-            }
+            ufr_put(&server, "s\n", current_path);
+            ufr_put_eof(&server);
 
-            FILE* fd = g_file_tab[fd_pos];
-            if ( fd ) {
-                fclose(fd);
-            }
-            g_file_tab[fd_pos] = NULL;
-            ufr_output("s\n", "OK");
+        // start
+        } else if ( strcmp(command, "start") == 0 ) {
+            ufr_get_eof(&server);
+            ufr_put(&server, "i\n", UFR_OK);
+            ufr_put_eof(&server);
 
-        // write whole file
-        } else if ( strcmp(command, "write") == 0 ) {
-            uint16_t fd_pos;
-            ufr_input("i", &fd_pos);
-            if ( fd_pos >= FILE_TABLE_SIZE ) {
-                ufr_output("s\n", "ERROR");
-                continue;
-            }
-            FILE* fd = g_file_tab[fd_pos];
-            if ( fd == NULL ) {
-                ufr_output("s\n", "ERROR");
-                continue;
-            }
-            char buffer[512];
-            ufr_input("s", buffer);
-            fwrite(buffer, strlen(buffer), 1, fd);
+        // ls
+        } else if ( strcmp(command, "ls") == 0 ) {
+            builtin_ls(&server);
 
-        // list directory
-        } else if ( strcmp(command, "ls") == 0 || strcmp(command, "list") == 0 ) {
-            DIR *dp = opendir ("./");
-            if (dp != NULL) {
-                struct dirent *ep;
-                while ((ep = readdir(dp)) != NULL) {
-                    ufr_output("s", ep->d_name);
-                }
-                ufr_output("\n");
-                closedir(dp);
-            } else {
-                ufr_output("s\n", "ERROR");
-            }
-
-        // mkdir directory
+        // mkdir
         } else if ( strcmp(command, "mkdir") == 0 ) {
-            char name[512];
-            ufr_input("s", name);
-            int rt = mkdir(name, 0755);
-            if ( rt == 0 ){
-                ufr_output("s\n", "OK");
-            } else {
-                ufr_output("s\n", "ERROR");
-            }
-        
-        // create file
-        } else if ( strcmp(command, "touch") == 0 ) {
-            char name[512];
-            ufr_input("s", name);
-            FILE* fd = fopen(name, "w");
-            fclose(fd);
-        
-        // exit
-        } else if ( strcmp(command, "exit") == 0 ) {
-            break;
+            builtin_mkdir(&server);
 
-        // invalid command 
         } else {
-            ufr_output("s\n", "ERROR");
+            ufr_get_eof(&server);
+            printf("ERROR %s\n", command);
+            ufr_put(&server, "s\n", "ERROR");
+            ufr_put_eof(&server);
         }
+       
     }
 
-
+    // end
+    ufr_close(&server);
     return 0;
 }

@@ -437,6 +437,16 @@ int ufr_put_eof(link_t* link) {
     return link->enc_api->put_cmd(link, EOF);
 }
 
+void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
+    link->enc_api->put_raw(link, buffer, size);
+}
+
+size_t ufr_get_raw(link_t* link, uint8_t* buffer, size_t maxsize) {
+    size_t arr_size = 0;
+    link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
+    return arr_size;
+}
+
 size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
     size_t arr_size = 0;
     link->dcr_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
