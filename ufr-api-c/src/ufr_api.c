@@ -308,6 +308,14 @@ char ufr_get_type(link_t* link) {
     return link->dcr_api->get_type(link);
 }
 
+size_t ufr_get_size(link_t* link) {
+    return link->dcr_api->get_size(link);
+}
+
+const uint8_t* ufr_get_raw_ptr(link_t* link) {
+    return link->dcr_api->get_raw_ptr(link);
+}
+
 bool ufr_get_str(link_t* link, char* buffer) {
     const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
     return is_ok == UFR_OK;

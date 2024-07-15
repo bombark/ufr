@@ -43,22 +43,26 @@ using namespace cv;
 
 int main(int argc, char** argv) {
     // open link
-    link_t link = ufr_subscriber("@new zmq:topic @coder msgpack @debug 4 @port 3000");
+    link_t link = ufr_subscriber("@new zmq:topic @coder msgpack @port 3000 @debug 0");
 
-    // read 5 messages
+    // alloc space for the jpeg image
     std::vector<uint8_t> buffer;
     buffer.reserve(1024*1024);
-    buffer.resize(1024*1024);
 
-    buffer[0] = buffer[1] = buffer[2] = 0;
+    // main loop
     for (int i=0; i<100; i++) {
-        ufr_recv(&link);
+        // wait for the message
+        if ( ufr_recv(&link) == false ) {
+            break;
+        }
         
-        buffer.resize(1024*1024);
-        const size_t size = ufr_get_raw(&link, buffer.data(), 1024*1024);
+        // copia a imagem
+        const size_t size = ufr_get_size(&link);
         buffer.resize(size);
-        
+        ufr_get_raw(&link, buffer.data(), size);
         Mat image = imdecode(buffer, cv::IMREAD_COLOR);
+
+        // mostra a imagem
         cout << image.cols << " " << image.rows << endl;
         if ( image.cols > 0 ) {
             imshow("teste", image);

@@ -126,7 +126,11 @@ typedef struct {
     void (*close)(struct _link* link);
 
 	void (*recv)(struct _link* link, char* msg_data, size_t msg_size);
+    int (*next)(struct _link* link);
+
     char (*get_type)(struct _link* link);
+    size_t (*get_size)(struct _link* link);
+    uint8_t* (*get_raw_ptr)(struct _link* link);
 
 	int (*get_u32)(struct _link* link, uint32_t* val);
 	int (*get_i32)(struct _link* link, int32_t* val);
@@ -373,6 +377,10 @@ int ufr_recv(link_t* link);
  * @return int 
  */
 int ufr_recv_async(link_t* link);
+
+size_t ufr_get_size(link_t* link);
+
+const uint8_t* ufr_get_raw_ptr(link_t* link);
 
 /**
  * @brief 
