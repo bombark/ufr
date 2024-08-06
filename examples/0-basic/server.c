@@ -32,126 +32,54 @@
 #include <stdio.h>
 #include <string.h>
 #include <ufr.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <cwalk.h>
-
-typedef struct {
-    char name[64];
-} node_t;
-
-typedef struct {
-    uint8_t size;
-    node_t nodes[64];
-} directory_t;
-
-directory_t g_root;
-
-// ============================================================================
-//  Directory Class Functions
-// ============================================================================
-
-void directory_init(directory_t* dir) {
-    dir->size = 0;
-}
-
-void directory_add_node(directory_t* dir, const char* name) {
-    const uint8_t pos = dir->size;
-    dir->size += 1;
-    strcpy(&dir->nodes[pos], name);
-}
-
-// ============================================================================
-//  Functions
-// ============================================================================
-
-
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    directory_init(&g_root);
-
-
     // configure the output
-    link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
-    char current_path[1024];
-    strcpy(current_path, "./");
-
-    // publish 5 messages
-    for (int i=0; i<10; i++) {
-        // recv
-        char command[1024];
-        ufr_get(&server, "^s", command);
-
-
-        if ( strcmp(command, "cd") == 0 ) {
-            char arg1[1024];
-            if ( ufr_get(&server, "s", arg1) == 1 ) {
-                cwk_path_join(current_path, arg1, current_path, 1024);
-            } else {
-                strcpy(current_path, "/");
-            }
-            ufr_get_eof(&server);
-
-            ufr_put(&server, "s\n", current_path);
-            ufr_put_eof(&server);
-
-        } else if ( strcmp(command, "open") == 0 ) {
-            ufr_get_eof(&server);
-            ufr_put(&server, "s\n", "OK");
-            ufr_put_eof(&server);
-
-        } else if ( strcmp(command, "ls") == 0 ) {
-            ufr_get_eof(&server);
-
-            DIR *dp = opendir (current_path);
-            struct dirent *ep;     
-            if ( dp != NULL ) {
-                while ((ep = readdir (dp)) != NULL) {
-                    ufr_put(&server, "s\n", ep->d_name);
-                }
-                closedir(dp);
-            }
-            ufr_put_eof(&server);
-
-        } else {
-            ufr_get_eof(&server);
-            printf("ERROR %s\n", command);
-            ufr_put(&server, "s\n", "ERROR");
-            ufr_put_eof(&server);
-        }
-       
-    }
-
-    // end
-    ufr_close(&server);
-    return 0;
-}
-
-
-/*
-int main() {
-    // configure the output
-    link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
+    link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
-        // recv
-        int command;
-        ufr_get(&server, "^i", &command);
-        ufr_get(&server, "^");
-
-        // send
-        ufr_put(&server, "ii\n", 51,61);
-        ufr_put(&server, "ii\n", 52,62);
-        ufr_put(&server, "ii\n", 53,63);
-        ufr_put_eof(&server);
+        char command[1024];
+        ufr_get(&server, "^s", command);
+        if ( strcmp(command, "open") == 0 ) {
+            char path[1024];
+            ufr_get(&server, "ss", command, path);
+            printf("a %s\n", path);
+            FILE* fd = fopen(path,"r");
+            if ( fd ) {
+                char buffer[1024];
+                fread(buffer, 1, 1024, fd);
+                fclose(fd);
+                ufr_put(&server, "is\n", 0, buffer);
+            } else {
+                ufr_put(&server, "is\n", 1, "ERROR");
+            }
+        } else {
+            printf("error\n");
+        }
     }
 
     // end
     return 0;
 }
-*/
+
+
+int main_simples() {
+    // configure the output
+    link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
+
+    // publish 5 messages
+    for (int i=0; i<5; i++) {
+        int command;
+        ufr_get(&server, "^s", &command);
+        ufr_put(&server, "is\n", 51, "OPA");
+        printf("OK\n");
+    }
+
+    // end
+    return 0;
+}

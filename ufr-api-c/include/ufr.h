@@ -46,9 +46,11 @@
 
 #define UFR_START_BLANK      0
 #define UFR_START_SERVER     1
-#define UFR_START_CLIENT     2
-#define UFR_START_PUBLISHER  3
-#define UFR_START_SUBSCRIBER 4
+#define UFR_START_SERVER_ST  1
+#define UFR_START_SERVER_MT  2
+#define UFR_START_CLIENT     3
+#define UFR_START_PUBLISHER  4
+#define UFR_START_SUBSCRIBER 5
 
 #define UFR_STOP_CLOSE       1
 
@@ -272,6 +274,14 @@ link_t ufr_subscriber(const char* text);
  * @return link_t 
  */
 link_t ufr_server(const char* text);
+
+/**
+ * @brief 
+ * 
+ * @param text 
+ * @return link_t 
+ */
+link_t ufr_server_st(const char* text);
 
 /**
  * @brief Create a link as client

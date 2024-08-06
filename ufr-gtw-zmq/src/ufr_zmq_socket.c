@@ -40,7 +40,7 @@
 #include "ufr_zmq_common.h"
 
 // ============================================================================
-//  Socket
+//  Socket Commom Functions
 // ============================================================================
 
 static
@@ -78,7 +78,7 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
         int time = 2000;
         zmq_setsockopt(socket, ZMQ_RCVTIMEO, &time, sizeof(time));
 
-    } else if ( type == UFR_START_SERVER ) {
+    } else if ( type == UFR_START_SERVER_ST || type == UFR_START_SERVER_MT ) {
         // create the socket
         ufr_log_ini(link, "creating the socket");
         const ll_shr_t* shr_data = link->gtw_shr;
@@ -108,6 +108,31 @@ int ufr_zmq_socket_start(link_t* link, int type, const ufr_args_t* args) {
     return 0;
 }
 
+// ============================================================================
+//  Socket Single Thread
+// ============================================================================
+
+static
+ufr_gtw_api_t ufr_zmq_socket_st_api = {
+    .name = "zmq",
+	.type = ufr_zmq_socket_type,
+	.state = ufr_zmq_state,
+	.size = ufr_zmq_size,
+	.boot = ufr_zmq_boot,
+	.start = ufr_zmq_socket_start,
+	.stop = ufr_zmq_stop,
+	.copy = NULL,
+    .recv = ufr_zmq_recv,
+    .recv_async = ufr_zmq_recv_async,
+	.read = ufr_zmq_read,
+	.write = ufr_zmq_write,
+    .accept = NULL
+};
+
+// ============================================================================
+//  Socket Multi Thread
+// ============================================================================
+
 size_t ufr_zmq_socket_write(link_t* link, const char* buffer, size_t size) {
     ll_obj_t* gtw_obj = link->gtw_obj;
     if ( gtw_obj == NULL ) {
@@ -135,7 +160,7 @@ int ufr_zmq_socket_accept(link_t* link, link_t* out_client) {
 }
 
 static
-ufr_gtw_api_t ufr_zmq_socket_api = {
+ufr_gtw_api_t ufr_zmq_socket_mt_api = {
     .name = "zmq",
 	.type = ufr_zmq_socket_type,
 	.state = ufr_zmq_state,
@@ -151,7 +176,17 @@ ufr_gtw_api_t ufr_zmq_socket_api = {
     .accept = ufr_zmq_socket_accept
 };
 
+// ============================================================================
+//  Public
+// ============================================================================
+
 int ufr_gtw_zmq_new_socket(link_t* link, int type) {
-	ufr_init_link(link, &ufr_zmq_socket_api);
+    if ( type == UFR_START_SERVER_ST || type == UFR_START_CLIENT ) {
+	    ufr_init_link(link, &ufr_zmq_socket_st_api);
+    } else if ( type == UFR_START_SERVER_MT ) {
+        ufr_init_link(link, &ufr_zmq_socket_mt_api);
+    } else {
+        return ufr_error(link, 1, "invalid type");
+    }
 	return UFR_OK;
 }

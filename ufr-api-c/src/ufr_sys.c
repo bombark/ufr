@@ -383,6 +383,12 @@ link_t ufr_server(const char* text) {
     return link;
 }
 
+link_t ufr_server_st(const char* text) {
+    link_t link;
+    ufr_link_with_type(&link, text, UFR_START_SERVER_ST);
+    return link;
+}
+
 link_t ufr_client(const char* text) {
     link_t link;
     ufr_link_with_type(&link, text, UFR_START_CLIENT);
