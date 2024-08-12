@@ -43,7 +43,8 @@ using namespace cv;
 
 int main(int argc, char** argv) {
     // open link
-    link_t link = ufr_subscriber("@new zmq:topic @coder msgpack @port 3000 @debug 0");
+    // link_t link = ufr_subscriber("@new zmq:topic @coder msgpack @port 3000 @debug 0");
+    link_t link = ufr_sys_subscriber22("video");
 
     // alloc space for the jpeg image
     std::vector<uint8_t> buffer;
@@ -52,7 +53,7 @@ int main(int argc, char** argv) {
     // main loop
     for (int i=0; i<100; i++) {
         // wait for the message
-        if ( ufr_recv(&link) == false ) {
+        if ( ufr_recv(&link) != UFR_OK ) {
             break;
         }
         

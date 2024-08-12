@@ -78,11 +78,11 @@ size_t ufr_gtw_fake_write(link_t* link, const char* buffer, size_t length) {
 
 }
 
-bool ufr_gtw_fake_recv(link_t* link) {
+int ufr_gtw_fake_recv(link_t* link) {
 
 }
 
-bool ufr_gtw_fake_recv_async(link_t* link) {
+int ufr_gtw_fake_recv_async(link_t* link) {
 
 }
 

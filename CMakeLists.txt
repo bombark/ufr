@@ -12,6 +12,11 @@ option(BUILD_TESTS           "build the tests"              ON )
 option(COVERAGE_TEST         "coverage test"                OFF)
 # option(BUILD_APPLICATION        "build the applications"       ON )
 
+find_package(msgpack)
+if (msgpack)
+    set(BUILD_UFR_CDR_MSGPACK ON)
+endif()
+
 
 if(COVERAGE_TEST)
     SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage --coverage -g -O0")
@@ -66,3 +71,4 @@ add_subdirectory(./ufr-app-proxy)
 
 install(FILES ./etc/init.bash DESTINATION .)
 install(FILES ./etc/Makefile DESTINATION .)
+

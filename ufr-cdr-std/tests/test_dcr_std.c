@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_dcr_std_new(link_t* link, const ufr_args_t* args);
+int ufr_dcr_csv_new(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests

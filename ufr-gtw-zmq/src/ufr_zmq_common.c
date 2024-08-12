@@ -114,10 +114,19 @@ void ufr_zmq_stop(link_t* link, int type) {
     }
 }
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h> 
+#include <arpa/inet.h>
+
+
 int ufr_zmq_recv(link_t* link) {
     // read the message
     ll_obj_t* local = link->gtw_obj;
     const int msg_size = zmq_msg_recv (&local->recv_msg, local->socket, 0);
+    if ( msg_size < 0 ) {
+        return -1;
+    }
 
     // start the index
     local->idx = 0;
@@ -130,25 +139,25 @@ int ufr_zmq_recv(link_t* link) {
     }
 
     // success
-    return msg_size;
+    return UFR_OK;
 }
 
 int ufr_zmq_recv_async(link_t* link) {
-    ll_obj_t* local = link->gtw_obj;
-    local->idx = 0;
+    ll_obj_t* gtw_obj = link->gtw_obj;
+    gtw_obj->idx = 0;
 
-    const int msg_size = zmq_msg_recv (&local->recv_msg, local->socket, ZMQ_DONTWAIT);
+    const int msg_size = zmq_msg_recv (&gtw_obj->recv_msg, gtw_obj->socket, ZMQ_DONTWAIT);
     if ( msg_size < 0 ) {
-        return msg_size;
+        return -1;
     }
 
     if ( link->dcr_api != NULL ) {
-        uint8_t* recv_msg_data = zmq_msg_data(&local->recv_msg);
-        const size_t recv_msg_size = zmq_msg_size(&local->recv_msg);
+        uint8_t* recv_msg_data = zmq_msg_data(&gtw_obj->recv_msg);
+        const size_t recv_msg_size = zmq_msg_size(&gtw_obj->recv_msg);
         link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
     }
 
-    return msg_size;
+    return UFR_OK;
 }
 
 
@@ -198,6 +207,17 @@ size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size) {
     }
     ufr_info(link, "sent %ld bytes", sent);
     return sent;
+}
+
+int ufr_zmq_recv_peer_name(link_t* link, char* buffer, size_t maxbuffer) {
+    ll_obj_t* gtw_obj = (ll_obj_t*) link->gtw_obj;
+    const int sockfd = zmq_msg_get (&gtw_obj->recv_msg, ZMQ_SRCFD);
+    struct sockaddr_in addr;
+    socklen_t asize = sizeof(addr);
+    getpeername(sockfd, (struct sockaddr*)&addr, &asize);
+    char* ip = inet_ntoa(addr.sin_addr);
+    strcpy(buffer, ip);
+    return UFR_OK;
 }
 
 // ============================================================================

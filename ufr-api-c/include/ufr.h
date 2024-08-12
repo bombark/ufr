@@ -119,6 +119,8 @@ typedef struct {
 
     int (*accept)(struct _link* link, struct _link* out_client);
 
+    int (*recv_peer_name)(struct _link* link, char* buffer, size_t maxbuffer);
+
     // tests
     const char* (*test_args)(const struct _link* link);
 } ufr_gtw_api_t;
@@ -537,6 +539,17 @@ bool ufr_link_is_error(const link_t* link);
 const char* ufr_test_args(const link_t* link);
 
 link_t ufr_accept(link_t* link);
+
+int ufr_recv_peer_name(link_t* link, char* buffer, size_t maxbuffer);
+
+
+
+link_t ufr_sys_subscriber22(const char* name);
+link_t ufr_sys_publisher22(const char* name, const char* params);
+
+int ufr_recv_2s(link_t* link0, link_t* link1, int time_ms);
+int ufr_recv_2a(link_t* link0, link_t* link1, int time_ms);
+
 
 // ============================================================================
 //  Dummy functions

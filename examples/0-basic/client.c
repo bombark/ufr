@@ -39,16 +39,13 @@
 
 int main() {
     // configure the output
-    link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
+    link_t link = ufr_sys_subscriber22("video1");
 
-    // send command
-    ufr_put(&link, "ss\n", "open", "video");
-
-    // recv the answer
-    int code;
-    char buffer[1024];
-    ufr_get(&link, "^is", &code, buffer);
-    printf("%d %s\n", code, buffer);
+    while (1) {
+        int num;
+        ufr_get(&link, "^i", &num);
+        printf("%d\n", num);
+    }
 
     // end
     return 0;

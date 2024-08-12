@@ -109,7 +109,7 @@ size_t ufr_posix_pipe_write(link_t* link, const char* buffer, size_t length) {
 }
 
 static
-bool ufr_posix_pipe_recv(link_t* link) {
+int ufr_posix_pipe_recv(link_t* link) {
     char* msg_data = (char*) link->gtw_obj;
     ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
     
@@ -133,7 +133,7 @@ bool ufr_posix_pipe_recv(link_t* link) {
         link->dcr_api->recv(link, msg_data, msg_size);
     }
 
-    return true;
+    return UFR_OK;
 }
 
 static

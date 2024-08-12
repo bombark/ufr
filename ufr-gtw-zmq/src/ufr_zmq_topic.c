@@ -132,7 +132,8 @@ ufr_gtw_api_t ufr_zmq_topic_api = {
 	.recv = ufr_zmq_recv,
 	.recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
-	.write = ufr_zmq_write
+	.write = ufr_zmq_write,
+    .recv_peer_name = ufr_zmq_recv_peer_name
 };
 
 // ============================================================================

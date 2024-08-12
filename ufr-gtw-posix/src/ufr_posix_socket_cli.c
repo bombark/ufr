@@ -109,8 +109,8 @@ size_t ufr_posix_socket_cli_write(link_t* link, const char* buffer, size_t lengt
 }
 
 static
-bool ufr_posix_socket_cli_recv(link_t* link) {
-    return false;
+int ufr_posix_socket_cli_recv(link_t* link) {
+    return -1;
 }
 
 ufr_gtw_api_t ufr_posix_socket_cli = {

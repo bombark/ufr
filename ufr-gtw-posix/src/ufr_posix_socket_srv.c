@@ -134,7 +134,7 @@ size_t ufr_posix_socket_srv_write(link_t* link, const char* buffer, size_t lengt
 }
 
 static
-bool ufr_posix_socket_srv_recv(link_t* link) {
+int ufr_posix_socket_srv_recv(link_t* link) {
     ufr_log_ini(link, "recv");
 
     if ( link->gtw_obj == NULL ) {
@@ -150,7 +150,7 @@ bool ufr_posix_socket_srv_recv(link_t* link) {
     message_write_from_fd(&request->message, request->sockfd);
 
     ufr_log_end(link, "recv");
-    return true;
+    return UFR_OK;
 }
 
 ufr_gtw_api_t ufr_posix_socket_srv = {

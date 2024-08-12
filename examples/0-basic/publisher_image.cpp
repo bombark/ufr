@@ -43,7 +43,7 @@ using namespace cv;
 
 int main() {
     // Begin
-    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @debug 4 @port 3000");
+    link_t topic = ufr_sys_publisher22("video", "@new zmq:topic @coder msgpack @port 4000");
     VideoCapture cap(0); 
     
     // Check if camera opened successfully
@@ -52,7 +52,49 @@ int main() {
         return -1;
     }
     
-    long int sum = 0;
+    vector<uchar> buf;
+    for(int i=0; i<100; i++) {
+        Mat frame;
+        cap >> frame;
+  
+        // If the frame is empty, break immediately
+        if (frame.empty()) {
+            break;
+        }
+ 
+        imencode(".jpg", frame, buf);
+        ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
+        ufr_put(&topic, "\n");
+        
+        // Display the resulting frame
+        // imshow( "Frame", frame );
+ 
+        // Press  ESC on keyboard to exit
+        char c = (char) waitKey(1000);
+        if( c == 27 ) {
+            break;
+        }
+    }
+  
+    // When everything done, release the video capture object
+    cap.release();
+    destroyAllWindows();
+   
+    // fim
+    return 0;
+}
+
+int main_origin() {
+    // Begin
+    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @debug 4 @port 4000");
+    VideoCapture cap(0); 
+    
+    // Check if camera opened successfully
+    if (!cap.isOpened()) {
+        cout << "Error opening video stream or file" << endl;
+        return -1;
+    }
+    
     vector<uchar> buf;
     for(int i=0; i<100; i++) {
         Mat frame;
@@ -65,19 +107,15 @@ int main() {
  
         imencode(".jpg", frame, buf);
 
-        sum = 0;
-        for (int i=0; i<buf.size(); i++) {
-            sum += buf[i];
-        }
-
-        ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
-        ufr_put(&topic, "\n");
+        // ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
+        
+        ufr_put(&topic, "i\n", 10+i);
 
         // Display the resulting frame
         // imshow( "Frame", frame );
  
         // Press  ESC on keyboard to exit
-        char c = (char) waitKey(50);
+        char c = (char) waitKey(1000);
         if( c == 27 ) {
             break;
         }

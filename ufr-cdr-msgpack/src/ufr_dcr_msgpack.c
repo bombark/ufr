@@ -247,26 +247,25 @@ int ufr_dcr_msgpack_copy_str(link_t* link, char* buffer, size_t size_max) {
         const size_t size = decoder->object.via.str.size;
 		strncpy(buffer, ptr, size);
         buffer[size] = '\0';
-		return UFR_OK;
 	} else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
 		const size_t copied = snprintf(buffer, size_max, "%lu", decoder->object.via.u64);
         buffer[copied] = '\0';
-        return UFR_OK;
     } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
         const size_t copied = snprintf(buffer, size_max, "%ld", decoder->object.via.i64);
         buffer[copied] = '\0';
-        return UFR_OK;
     } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
         const size_t copied = snprintf(buffer, size_max, "%g", decoder->object.via.f64);
         buffer[copied] = '\0';
-        return UFR_OK;
     } else if ( type == MSGPACK_OBJECT_FLOAT64 ) {
         const size_t copied = snprintf(buffer, size_max, "%g", decoder->object.via.f64);
         buffer[copied] = '\0';
-        return UFR_OK;
+    } else {
+        return 1;
     }
 
-	return 1;
+    // Success
+    ufr_dcr_msgpack_next(link);
+	return UFR_OK;
 }
 
 static

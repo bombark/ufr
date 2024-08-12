@@ -165,11 +165,11 @@ void ufr_gtw_posix_file_stop(link_t* link, int type) {
 }
 
 static 
-bool ufr_gtw_posix_file_recv(link_t* link) {
+int ufr_gtw_posix_file_recv(link_t* link) {
     ll_gtw_obj_t* gtw_obj = link->gtw_obj;
     const char* buf = fgets(gtw_obj->recv_buffer, gtw_obj->recv_buffer_size, gtw_obj->fd);
     if ( buf == NULL ) {
-        return false;
+        return -1;
     }
 
     if ( link->dcr_api != NULL ) {
@@ -177,7 +177,7 @@ bool ufr_gtw_posix_file_recv(link_t* link) {
         link->dcr_api->recv(link, gtw_obj->recv_buffer, size_recv);
     }
 
-    return true;
+    return UFR_OK;
 }
 
 static

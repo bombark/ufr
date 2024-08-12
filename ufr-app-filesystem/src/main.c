@@ -1,6 +1,6 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2023, Visao Robotica e Imagem (VRI)
+ * Copyright (c) 2024, Visao Robotica e Imagem (VRI)
  *  - Felipe Bombardelli <felipebombardelli@gmail.com>
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -32,77 +32,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
 #include <ufr.h>
-#include <cwalk.h>
-
-#include <sys/stat.h>
-
-#define FILE_TABLE_SIZE 32
-
-#define FREE      0
-#define OCCUPIED  1
-
-FILE* g_file_tab[FILE_TABLE_SIZE];
-
-char current_path[4096];
-
-// ============================================================================
-//  Functions
-// ============================================================================
-
-int get_file_free() {
-    for (uint16_t i=0; i<FILE_TABLE_SIZE; i++) {
-        if ( g_file_tab[i] == NULL ) {
-            g_file_tab[i] = (void*) OCCUPIED;
-            return i;
-        }
-    }
-    return -1;
-}
-
-int builtin_mkdir(link_t* server) {
-    int retcode = -1;
-    char* retmesg = "";
-
-    char arg1[1024];
-    if ( ufr_get(server, "s", arg1) == 1 ) {
-        char dir_path[1024];
-        cwk_path_join(current_path, arg1, dir_path, 1024);
-        mkdir(dir_path, 0755);
-        retcode = UFR_OK;
-        retmesg = "OK";
-    } else {
-        retcode = -1;
-        retmesg = "ERROR";
-    }
-
-    ufr_get_eof(server);
-    ufr_put(server, "is\n", retcode, retmesg);
-    ufr_put_eof(server);
-
-    return retcode;
-}
-
-int builtin_ls(link_t* server) {
-    int retcode;
-    ufr_get_eof(server);
-    DIR *dp = opendir (current_path);
-    struct dirent *ep;
-    if ( dp != NULL ) {
-        retcode = UFR_OK;
-        ufr_put(server, "is\n", retcode, "OK");
-        while ((ep = readdir (dp)) != NULL) {
-            ufr_put(server, "s\n", ep->d_name);
-        }
-        closedir(dp);
-    } else {
-        ufr_put(server, "is\n", -1, "ERROR");
-    }
-    ufr_put_eof(server);
-    return retcode;
-}
-
+#include <errno.h>
 
 // ============================================================================
 //  Main
@@ -110,52 +41,57 @@ int builtin_ls(link_t* server) {
 
 int main() {
     // configure the output
-    link_t server = ufr_server("@new zmq:socket @coder msgpack @debug 4");
-    strcpy(current_path, "./data");
+    link_t server = ufr_server_st("@new zmq:socket @host 127.0.0.1 @port 3000 @coder msgpack @debug 4");
 
     // publish 5 messages
-    for (int i=0; i<10; i++) {
-        // recv
+    while(1) {
         char command[1024];
         ufr_get(&server, "^s", command);
-
-
-        if ( strcmp(command, "cd") == 0 ) {
-            char arg1[1024];
-            if ( ufr_get(&server, "s", arg1) == 1 ) {
-                cwk_path_join(current_path, arg1, current_path, 1024);
+        printf("LOG: %s\n", command);
+        if ( strcmp(command, "open") == 0 ) {
+            char path[1024];
+            ufr_get(&server, "s", path);
+            FILE* fd = fopen(path,"r");
+            if ( fd ) {
+                char buffer[1024];
+                if ( fgets(buffer, 1024, fd) != NULL ) {
+                    ufr_put(&server, "is\n", 0, buffer);
+                } else {
+                    ufr_put(&server, "is\n", 1, "");
+                }
+                fclose(fd);
             } else {
-                strcpy(current_path, "/");
+                ufr_put(&server, "is\n", 1, strerror(errno));
             }
-            ufr_get_eof(&server);
 
-            ufr_put(&server, "s\n", current_path);
-            ufr_put_eof(&server);
+        } else if ( strcmp(command, "make") == 0 ) {
+            char name[1024];
+            char link_params[4096];
+            ufr_get(&server, "ss", name, link_params);
 
-        // start
-        } else if ( strcmp(command, "start") == 0 ) {
-            ufr_get_eof(&server);
-            ufr_put(&server, "i\n", UFR_OK);
-            ufr_put_eof(&server);
+            char ip[1024];
+            ufr_recv_peer_name(&server, ip, 1024);
+            strcat(link_params, " @host ");
+            strcat(link_params, ip);
 
-        // ls
-        } else if ( strcmp(command, "ls") == 0 ) {
-            builtin_ls(&server);
+            FILE* fd = fopen(name, "w");
+            if ( fd ) {
+                fprintf(fd, "%s\n", link_params);
+                fclose(fd);
+                ufr_put(&server, "is\n", 0, link_params);
+            } else {
+                ufr_put(&server, "is\n", 1, "ERROR");
+            }
 
-        // mkdir
-        } else if ( strcmp(command, "mkdir") == 0 ) {
-            builtin_mkdir(&server);
+        } else if ( strcmp(command, "quit") == 0 ) {
+            break;
 
         } else {
-            ufr_get_eof(&server);
-            printf("ERROR %s\n", command);
-            ufr_put(&server, "s\n", "ERROR");
-            ufr_put_eof(&server);
+            printf("error\n");
         }
-       
     }
 
     // end
-    ufr_close(&server);
     return 0;
 }
+

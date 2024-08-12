@@ -499,6 +499,12 @@ bool ufr_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, cons
             break;
         }
         
+        // ignore caracter
+        if ( c == '\n' ) {
+            i_text += 1;
+            continue;
+        }
+
         // standard state
         if ( state == 0 ) {
         
@@ -776,6 +782,10 @@ link_t ufr_accept(link_t* link) {
     link_t client;
     link->gtw_api->accept(link, &client);
     return client;
+}
+
+int ufr_recv_peer_name(link_t* link, char* buffer, size_t maxbuffer) {
+    return link->gtw_api->recv_peer_name(link, buffer, maxbuffer);
 }
 
 // ============================================================================

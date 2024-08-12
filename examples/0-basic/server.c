@@ -30,45 +30,16 @@
 // ============================================================================
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ufr.h>
+#include <errno.h>
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    // configure the output
-    link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
-
-    // publish 5 messages
-    for (int i=0; i<5; i++) {
-        char command[1024];
-        ufr_get(&server, "^s", command);
-        if ( strcmp(command, "open") == 0 ) {
-            char path[1024];
-            ufr_get(&server, "ss", command, path);
-            printf("a %s\n", path);
-            FILE* fd = fopen(path,"r");
-            if ( fd ) {
-                char buffer[1024];
-                fread(buffer, 1, 1024, fd);
-                fclose(fd);
-                ufr_put(&server, "is\n", 0, buffer);
-            } else {
-                ufr_put(&server, "is\n", 1, "ERROR");
-            }
-        } else {
-            printf("error\n");
-        }
-    }
-
-    // end
-    return 0;
-}
-
-
-int main_simples() {
     // configure the output
     link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
 

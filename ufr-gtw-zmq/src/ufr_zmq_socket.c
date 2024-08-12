@@ -126,7 +126,8 @@ ufr_gtw_api_t ufr_zmq_socket_st_api = {
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
 	.write = ufr_zmq_write,
-    .accept = NULL
+    .accept = NULL,
+    .recv_peer_name = ufr_zmq_recv_peer_name
 };
 
 // ============================================================================
@@ -173,7 +174,8 @@ ufr_gtw_api_t ufr_zmq_socket_mt_api = {
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
 	.write = ufr_zmq_socket_write,
-    .accept = ufr_zmq_socket_accept
+    .accept = ufr_zmq_socket_accept,
+    .recv_peer_name = ufr_zmq_recv_peer_name
 };
 
 // ============================================================================

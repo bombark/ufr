@@ -59,6 +59,7 @@ int ufr_zmq_recv_async(link_t* link);
 size_t ufr_zmq_read(link_t* link, char* buffer, size_t max_size);
 size_t ufr_zmq_write(link_t* link, const char* buffer, size_t size);
 int ufr_zmq_send(link_t* link);
+int ufr_zmq_recv_peer_name(link_t* link, char* buffer, size_t maxbuffer);
 
 // ============================================================================
 //  Public Functions
