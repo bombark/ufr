@@ -105,7 +105,7 @@ void ufr_dcr_csv_close(link_t* link) {
 }
 
 static
-void ufr_dcr_csv_recv(link_t* link, char* msg_data, size_t msg_size) {
+void ufr_dcr_csv_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
 	ll_decoder_t* decoder = link->dcr_obj;
 
     // initialize the decoder object with the new line
@@ -165,7 +165,7 @@ ufr_dcr_api_t ufr_dcr_std_csv_api = {
     .boot = ufr_dcr_csv_boot,
     .close = ufr_dcr_csv_close,
 
-	.recv = ufr_dcr_csv_recv,
+	.recv_cb = ufr_dcr_csv_recv_cb,
 
 	.get_u32 = NULL,
 	.get_i32 = ufr_dcr_csv_get_i32,

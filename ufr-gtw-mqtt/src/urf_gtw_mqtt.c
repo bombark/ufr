@@ -249,7 +249,7 @@ int urf_gtw_mqtt_recv(link_t* link) {
 
     // decoder the message
     if ( link->dcr_api != NULL ) {
-        link->dcr_api->recv(link, obj->msg_data, obj->msg_size);
+        link->dcr_api->recv_cb(link, obj->msg_data, obj->msg_size);
     }
 
     return UFR_OK;
@@ -272,7 +272,7 @@ int urf_gtw_mqtt_recv_async(link_t* link) {
 
         // decoder the message
         if ( link->dcr_api != NULL ) {
-            link->dcr_api->recv(link, obj->msg_data, obj->msg_size);
+            link->dcr_api->recv_cb(link, obj->msg_data, obj->msg_size);
         }
 
         // there is a message

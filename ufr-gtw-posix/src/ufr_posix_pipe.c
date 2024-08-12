@@ -130,7 +130,7 @@ int ufr_posix_pipe_recv(link_t* link) {
     msg_data[msg_size] = '\0';
 
     if ( link->dcr_api != NULL ){
-        link->dcr_api->recv(link, msg_data, msg_size);
+        link->dcr_api->recv_cb(link, msg_data, msg_size);
     }
 
     return UFR_OK;

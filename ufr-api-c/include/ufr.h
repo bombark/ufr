@@ -126,12 +126,17 @@ typedef struct {
 } ufr_gtw_api_t;
 
 typedef struct {
+    // Open and close
     int (*boot)(struct _link* link, const ufr_args_t* args);
     void (*close)(struct _link* link);
 
-	void (*recv)(struct _link* link, char* msg_data, size_t msg_size);
+    // callback recv
+	void (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
+
+    // Next item
     int (*next)(struct _link* link);
 
+    // Function on current Item
     char (*get_type)(struct _link* link);
     size_t (*get_size)(struct _link* link);
     uint8_t* (*get_raw_ptr)(struct _link* link);

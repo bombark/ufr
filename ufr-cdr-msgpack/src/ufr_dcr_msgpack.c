@@ -90,7 +90,7 @@ int ufr_dcr_msgpack_next(link_t* link) {
 }
 
 static
-void ufr_dcr_msgpack_recv(link_t* link, char* msg_data, size_t msg_size) {
+void ufr_dcr_msgpack_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
 	ll_decoder_t* decoder = link->dcr_obj;
 	decoder->msg_data = msg_data;
 	decoder->msg_size = msg_size;
@@ -362,7 +362,7 @@ ufr_dcr_api_t ufr_dcr_msgpack_api = {
 	.boot = ufr_dcr_msgpack_boot,
 	.close = ufr_dcr_msgpack_close,
 
-	.recv = ufr_dcr_msgpack_recv,
+	.recv_cb = ufr_dcr_msgpack_recv_cb,
     .next = ufr_dcr_msgpack_next,
 
     .get_type = ufr_dcr_msgpack_get_type,

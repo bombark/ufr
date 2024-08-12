@@ -150,7 +150,7 @@ static
 ufr_dcr_api_t dcr_sys_api = {
     .boot = ufr_dcr_sys_boot,
     .close = ufr_dcr_sys_close,
-	.recv = ufr_dcr_sys_recv,
+	.recv_cb = ufr_dcr_sys_recv,
 
 	.get_u32 = ufr_dcr_sys_get_u32,
 	.get_i32 = ufr_dcr_sys_get_i32,

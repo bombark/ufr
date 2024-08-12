@@ -174,7 +174,7 @@ int ufr_gtw_posix_file_recv(link_t* link) {
 
     if ( link->dcr_api != NULL ) {
         const size_t size_recv = strlen(gtw_obj->recv_buffer);
-        link->dcr_api->recv(link, gtw_obj->recv_buffer, size_recv);
+        link->dcr_api->recv_cb(link, gtw_obj->recv_buffer, size_recv);
     }
 
     return UFR_OK;

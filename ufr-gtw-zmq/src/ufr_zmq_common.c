@@ -135,7 +135,7 @@ int ufr_zmq_recv(link_t* link) {
     if ( link->dcr_api != NULL ) {
         uint8_t* recv_msg_data = zmq_msg_data(&local->recv_msg);
         const size_t recv_msg_size = zmq_msg_size(&local->recv_msg);
-        link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
+        link->dcr_api->recv_cb(link, (char*) recv_msg_data, recv_msg_size);
     }
 
     // success
@@ -154,7 +154,7 @@ int ufr_zmq_recv_async(link_t* link) {
     if ( link->dcr_api != NULL ) {
         uint8_t* recv_msg_data = zmq_msg_data(&gtw_obj->recv_msg);
         const size_t recv_msg_size = zmq_msg_size(&gtw_obj->recv_msg);
-        link->dcr_api->recv(link, (char*) recv_msg_data, recv_msg_size);
+        link->dcr_api->recv_cb(link, (char*) recv_msg_data, recv_msg_size);
     }
 
     return UFR_OK;
