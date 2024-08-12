@@ -234,11 +234,11 @@ void urf_gtw_mqtt_stop(link_t* link, int type) {
 }
 
 static
-bool urf_gtw_mqtt_recv(link_t* link) {
+int urf_gtw_mqtt_recv(link_t* link) {
     ll_obj_t* obj = link->gtw_obj;
     if (obj->start_type != UFR_START_SUBSCRIBER) {
         ufr_error(link, 1, "link is not subscriber");
-        return false;
+        return -1;
     }
 
     // wait for the message
@@ -252,15 +252,15 @@ bool urf_gtw_mqtt_recv(link_t* link) {
         link->dcr_api->recv(link, obj->msg_data, obj->msg_size);
     }
 
-    return true;
+    return UFR_OK;
 }
 
 static
-bool urf_gtw_mqtt_recv_async(link_t* link) {
+int urf_gtw_mqtt_recv_async(link_t* link) {
     ll_obj_t* obj = link->gtw_obj;
     if (obj->start_type != UFR_START_SUBSCRIBER) {
         ufr_error(link, 1, "link is not subscriber");
-        return false;
+        return -1;
     }
 
     // wait for the message
@@ -276,11 +276,11 @@ bool urf_gtw_mqtt_recv_async(link_t* link) {
         }
 
         // there is a message
-        return true;
+        return UFR_OK;
     }
 
     // No message
-    return false;
+    return -1;
 }
 
 static

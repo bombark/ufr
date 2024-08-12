@@ -1,22 +1,38 @@
 cmake_minimum_required(VERSION 3.5)
 project(ufr)
 
+# Check msgpack library
+set(HAVE_MSGPACK OFF)
+find_package(msgpack)
+if (msgpack_DIR)
+    set(HAVE_MSGPACK ON)
+endif()
+
+# Check mosquitto library
+find_package(PkgConfig)
+set(HAVE_MOSQUITTO OFF)
+pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto)
+if (Mosquitto_FOUND)
+    set(HAVE_MOSQUITTO ON)
+endif()
+
+# Check zmq library
+set(HAVE_ZMQ OFF)
+pkg_check_modules(ZMQ IMPORTED_TARGET libzmq)
+if (ZMQ_FOUND)
+    set(HAVE_ZMQ ON)
+endif()
+
 
 # Configure compilation
-option(BUILD_UFR_GTW_ZMQ     "build the gateway for ZMQ"    OFF)
-option(BUILD_UFR_GTW_MQTT    "build the gateway for MQTT"   OFF)
-option(BUILD_UFR_CDR_MSGPACK "build the coder for MsgPack"  OFF)
+option(BUILD_UFR_GTW_ZMQ     "build the gateway for ZMQ"    ${HAVE_ZMQ})
+option(BUILD_UFR_GTW_MQTT    "build the gateway for MQTT"   ${HAVE_MOSQUITTO})
+option(BUILD_UFR_CDR_MSGPACK "build the coder for MsgPack"  ${HAVE_MSGPACK})
 option(BUILD_UFR_STK_SQLITE  "build the stack for Sqlite3"  OFF)
 option(BUILD_EXAMPLES        "build the examples"           ON )
 option(BUILD_TESTS           "build the tests"              ON )
 option(COVERAGE_TEST         "coverage test"                OFF)
 # option(BUILD_APPLICATION        "build the applications"       ON )
-
-find_package(msgpack)
-if (msgpack)
-    set(BUILD_UFR_CDR_MSGPACK ON)
-endif()
-
 
 if(COVERAGE_TEST)
     SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage --coverage -g -O0")

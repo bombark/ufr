@@ -24,7 +24,7 @@ install(TARGETS subscriber_2topic DESTINATION examples)
 
 
 find_package(OpenCV)
-if(OPENCV)
+if(OpenCV_DIR)
     add_executable(publisher_image 0-basic/publisher_image.cpp)
     target_link_libraries(publisher_image ufr ${OpenCV_LIBS})
     target_include_directories(publisher_image PUBLIC "${OPENCV_INCLUDE_DIR}")

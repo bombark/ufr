@@ -36,25 +36,19 @@
 //  Main
 // ============================================================================
 
-int main(int argc, char** argv) {
-    char* topic_params = "@new posix:stdin";
-    if ( argc > 1 ) {
-        // example: "@new zmq:topic @port 5000 @coder csv"
-        topic_params = argv[1];
-    }
-
+int main() {
     // open link
-    link_t link = ufr_subscriber(topic_params);
+    link_t sub = ufr_subscriber("@new zmq:topic @coder msgpack");
 
     // read 5 messages
     for (int i=0; i<5; i++) {
-        int a,b;
+        int a,b,c;
         char buffer[1024];
-        ufr_get(&link, "^s", buffer);
-        printf("%s\n", buffer);
+        ufr_get(&sub, "^iiis", &a, &b, &c, buffer);
+        printf("%d %d %d %s\n", a, b, c, buffer);
     }
 
     // end
-    ufr_close(&link);
+    ufr_close(&sub);
     return 0;
 }

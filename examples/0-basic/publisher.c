@@ -38,23 +38,17 @@
 //  Main
 // ============================================================================
 
-int main(int argc, char** argv) {
-    char* topic_params = "@new posix:stdout";
-    if ( argc > 1 ) {
-        // example: "@new zmq:topic @port 5000 @coder csv"
-        topic_params = argv[1];
-    }
+int main() {
+    // abre um publicador
+    link_t pub = ufr_publisher("@new zmq:topic @coder msgpack");
 
-    // open link
-    link_t link = ufr_publisher(topic_params);
-
-    // read 5 messages
+    // escreve 5 mensagens
     for (int i=0; i<5; i++) {
-        ufr_put(&link, "s\n", "mensagem");
+        ufr_put(&pub, "iiis\n", 100, 2434, 123344, "mensagem");
         sleep(1);
     }
 
-    // end
-    ufr_close(&link);
+    // fim
+    ufr_close(&pub);
     return 0;
 }

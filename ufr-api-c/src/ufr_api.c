@@ -236,8 +236,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
 			break;
 
 		} else if ( type == '^' ) {
-			const int size = ufr_recv(link);
-            if ( size == 0 ) {
+			if ( ufr_recv(link) != UFR_OK ) {
                 retval = 0;
                 break;
             }

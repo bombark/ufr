@@ -45,14 +45,17 @@ publisher.c file
 #include <ufr.h>
 
 int main() {
-    ufr_output_init("@new zmq:topic");
-    // ufr_output_init("@new mqtt:topic");
-    // ufr_output_init("@new ros_humble:topic");
-    while (1) {
-        int vel, rotvel;
-        scanf("%d %d", &vel, &rotvel);
-        ufr_output("ii\n", vel, rotvel);
+    // open publisher
+    link_t pub = ufr_publisher("@new zmq:topic");
+
+    // write 5 messages
+    for (int i=0; i<5; i++) {
+        ufr_put(&pub, "iiis\n", 100, 2434, 123344, "mensagem");
+        sleep(1);
     }
+
+    // end
+    ufr_close(&pub);
     return 0;
 }
 ```
@@ -67,14 +70,19 @@ subscriber.c file
 #include <ufr.h>
 
 int main() {
-    ufr_input_init("@new zmq:topic");
-    // ufr_input_init("@new mqtt:topic");
-    // ufr_input_init("@new ros_humble:topic");
-    while (1) {
-        int vel, rotvel;
-        ufr_input("^ii", &vel, &rotvel);
-        printf("%d %d\n", vel, rotvel);
+    // open link
+    link_t link = ufr_subscriber("@new zmq:topic");
+
+    // read 5 messages
+    for (int i=0; i<5; i++) {
+        int a,b,c;
+        char buffer[1024];
+        ufr_get(&link, "^iiis", &a, &b, &c, buffer);
+        printf("%d %d %d %s\n", a, b, c, buffer);
     }
+
+    // end
+    ufr_close(&link);
     return 0;
 }
 ```

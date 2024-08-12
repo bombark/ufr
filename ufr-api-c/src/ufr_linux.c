@@ -437,7 +437,7 @@ void ufr_inoutput_init(const char* text) {
 }
 
 bool ufr_input_recv() {
-    return ufr_recv(g_file_in_ptr);
+    return ufr_recv(g_file_in_ptr) == UFR_OK;
 }
 
 link_t ufr_sys_open(const char* name, const char* def_args) {
