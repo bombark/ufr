@@ -50,19 +50,22 @@ const char* ufr_api_name(const link_t* link) {
 	return link->gtw_api->name;
 }
 
+/* apagar
 int ufr_gtw_type(const link_t* unit) {
 	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->type == NULL) {
 		return LINK_TO_ERROR;
 	}
 	return unit->gtw_api->type(unit);
 }
+*/
 
+/* apagar
 int ufr_gtw_state(const link_t* unit) {
 	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->state == NULL) {
 		return 0;
 	}
 	return unit->gtw_api->state(unit);
-}
+}*/
 
 int ufr_link_state(const link_t* link) {
     return link->type_started;
@@ -84,6 +87,7 @@ bool ufr_link_is_client(const link_t* link) {
     return link->type_started == UFR_START_CLIENT;
 }
 
+/* apagar
 size_t ufr_size(const link_t* link) {
 	if ( link == NULL || link->gtw_api == NULL || link->gtw_api->size == NULL) {
 		return 0;
@@ -98,6 +102,7 @@ size_t ufr_size_max(const link_t* link) {
 
 	return link->gtw_api->size(link, UFR_SIZE_MAX);
 }
+*/
 
 void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->gtw_api = gtw_api;
@@ -282,7 +287,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
             }
         }
 	}
-    
+
     // Success
     return retval;
 }
@@ -297,7 +302,7 @@ int ufr_get(link_t* link, char* format, ...) {
 
 void ufr_get_eof(link_t* link) {
     while (1) {
-        if ( ufr_get(link, "^") <= 0 ) {
+        if ( ufr_get(link, "^") != UFR_OK ) {
             break;
         }
     }

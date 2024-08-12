@@ -99,10 +99,10 @@ typedef struct {
 typedef struct {
 	const char* name;
 
-	// certo
-	int    (*type)(const struct _link* link);
-	int    (*state)(const struct _link* link);
-	size_t (*size)(const struct _link* link, int type);
+	// incerto
+	int    (*type)(const struct _link* link);  // remover
+	int    (*state)(const struct _link* link); // remover
+	size_t (*size)(const struct _link* link, int type); // remover
 
 	// certo
 	int  (*boot)(struct _link* link, const ufr_args_t* args);
@@ -114,12 +114,13 @@ typedef struct {
 	size_t (*read)(struct _link* link, char* buffer, size_t length);
 	size_t (*write)(struct _link* link, const char* buffer, size_t length);
 
+    // receive functions
 	int (*recv)(struct _link* link);
 	int (*recv_async)(struct _link* link);
-
-    int (*accept)(struct _link* link, struct _link* out_client);
-
     int (*recv_peer_name)(struct _link* link, char* buffer, size_t maxbuffer);
+
+    // server multi-thread
+    int (*accept)(struct _link* link, struct _link* out_client);
 
     // tests
     const char* (*test_args)(const struct _link* link);
@@ -130,7 +131,7 @@ typedef struct {
     int (*boot)(struct _link* link, const ufr_args_t* args);
     void (*close)(struct _link* link);
 
-    // callback recv
+    // receive callback
 	void (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
 
     // Next item
