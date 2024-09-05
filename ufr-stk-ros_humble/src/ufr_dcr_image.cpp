@@ -29,106 +29,95 @@
 //  Header
 // ============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include <ufr.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
+#include "sensor_msgs/msg/image.hpp"
 #include "ufr_gtw_ros_humble.hpp"
 
-struct ll_encoder_t {
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher;
-    std_msgs::msg::String message;
-};
+typedef ufr_ros_decoder_t<sensor_msgs::msg::Image> ll_decoder_t;
+
+/*const size_t g_translation[6] = {
+    offsetof(sensor_msgs::msg::Image, linear.x),
+    offsetof(sensor_msgs::msg::Image, linear.y),
+    offsetof(sensor_msgs::msg::Image, linear.z),
+    offsetof(sensor_msgs::msg::Image, angular.x),
+    offsetof(sensor_msgs::msg::Image, angular.y),
+    offsetof(sensor_msgs::msg::Image, angular.z)
+};*/
 
 // ============================================================================
-//  String Message Driver
+//  Image - Private
 // ============================================================================
 
 static
-int lt_enc_ros_string_put_u32(link_t* link, uint32_t val) {
-	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	if ( enc_obj ) {
-		
+int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+	if ( dcr ) {
+
+        // update the index
+        dcr->index += 1;
 	}
 	return 0;
 }
 
 static
-int lt_enc_ros_string_put_i32(link_t* link, int32_t val) {
-    ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-    if ( enc_obj ) {
+int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+	if ( dcr ) {
+        // update the index
+        dcr->index += 1;
+	}
+	return 0;
+}
 
+static
+int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+	if ( dcr ) {
+
+        // update the index
+        dcr->index += 1;
+	}
+	return 0;
+}
+
+static
+int ufr_dcr_ros_humble_get_str(link_t* link, std::string& val) {
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+	if ( dcr ) {
+
+	}
+	return 0;
+}
+
+static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+    ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+    dcr->index = 0;
+
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+    while ( dcr->m_is_received == false ) {
+        rclcpp::spin_some(gtw_obj->m_node);
     }
-    return 0;
+    dcr->m_is_received = false;
 }
 
 static
-int lt_enc_ros_string_put_f32(link_t* link, float val) {
-	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	if ( enc_obj ) {
-		
-	}
-	return 0;
-}
-
-static
-int lt_enc_ros_string_put_str(link_t* link, const char* val) {
-	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	if ( enc_obj ) {
-		enc_obj->message.data += val;
-	}
-	return 0;
-}
-
-static
-int lt_enc_ros_string_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
-	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	if ( type == 'i' ) {
-		
-	} else if ( type == 'f' ) {
-		
-	}
-    return 0;
-}
-
-static
-int lt_enc_ros_string_put_cmd(link_t* link, char cmd) {
-	ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	if ( cmd == '\n' ) {
-		enc_obj->publisher->publish(enc_obj->message);
-        enc_obj->message.data = "";
-	}
-	return 0;
-}
-
-static
-lt_encoder_api_t lt_enc_ros_string = {
-	.put_u32 = lt_enc_ros_string_put_u32,
-	.put_i32 = lt_enc_ros_string_put_i32,
-	.put_f32 = lt_enc_ros_string_put_f32,
-	.put_str = lt_enc_ros_string_put_str,
-    .put_cmd = lt_enc_ros_string_put_cmd,
-	.put_arr = lt_enc_ros_string_put_arr
+ufr_dcr_api_t ufr_dcr_ros_driver = {
+    .recv_cb = ufr_dcr_ros_humble_recv_cb,
+	.get_u32 = ufr_dcr_ros_humble_get_u32,
+	.get_i32 = ufr_dcr_ros_humble_get_i32,
+	.get_f32 = ufr_dcr_ros_humble_get_f32,
+	// .get_str = ufr_dcr_ros_humble_get_str
 };
 
 // ============================================================================
-//  Public
+//  Image - Public
 // ============================================================================
 
-extern "C" 
-int ufr_new_ecr_ros_humble_string(link_t* link, const lt_args_t* args) {
-	link->enc_api = &lt_enc_ros_string;
-
-    ll_gateway_t* gw_obj = (ll_gateway_t*) link->gw_obj;
-	ll_encoder_t* enc_obj = new ll_encoder_t();
-    enc_obj->publisher = gw_obj->m_node->create_publisher<std_msgs::msg::String>("topic", 10);
-
-	link->enc_obj = enc_obj;
-
-	return 0;
+extern "C"
+int ufr_dcr_ros_humble_new_image(link_t* link, int type) {
+	link->dcr_api = &ufr_dcr_ros_driver;
+    return UFR_OK;
 }
+

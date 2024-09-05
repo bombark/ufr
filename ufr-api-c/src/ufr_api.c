@@ -547,7 +547,7 @@ bool ufr_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, cons
     return (i_token > 0);
 }
 
-static
+// static
 bool ufr_flex_text(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max) {
     return ufr_flex_text_div(text, cursor_ini, token, token_max, ' ');
 }

@@ -160,3 +160,29 @@ compilação: gcc client.c -o client -lufr
 
 Gateway:
  - Envia mensagem e deve-se evitar um buffer no gateway assim diminuir a realização de uma cópia dos dados. O encoder é encarregado de armazenar a mensagem e realizar o envio apenas quando a mensagem estiver completa.
+
+
+
+Dispositivo Lidar
+  - publica vetor com as distancias
+
+ufr-dev-lidar-rplidar
+  jah vem com decoder pronto
+  nao existe encoder
+
+  .boot
+  .start
+  .stop
+  .close
+
+  .recv() // subscriber(rplidar)
+
+
+
+
+Dispositivo Stereo
+  - lee duas cameras
+  - faz o matching
+  - junta as imagens e faz o mapa de profundidade
+
+

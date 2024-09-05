@@ -85,6 +85,11 @@ endif(BUILD_TESTS)
 add_subdirectory(./ufr-app-filesystem)
 add_subdirectory(./ufr-app-proxy)
 
+add_subdirectory(./ufr-stk-ros_humble)
+
+add_subdirectory(./ufr-dev-camera)
+
+
 install(FILES ./etc/init.bash DESTINATION .)
 install(FILES ./etc/Makefile DESTINATION .)
 

@@ -53,7 +53,20 @@ struct ll_encoder_twist {
 // ============================================================================
 
 static
-int lt_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_ros_humble_boot(link_t* link, const ufr_args_t* args) {
+    std::string topic_name = ufr_args_gets(args, "@topic", "topico");
+    ll_encoder_twist* enc_obj = new ll_encoder_twist();
+
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+    enc_obj->publisher = gtw_obj->m_node->create_publisher<geometry_msgs::msg::Twist>(topic_name, 10);
+    link->enc_obj = enc_obj;
+    ufr_info(link, "loaded encoder for geometry/twist");
+
+    return UFR_OK;
+}
+
+static
+int ufr_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -71,7 +84,7 @@ int lt_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
 }
 
 static
-int lt_enc_ros_twist_put_i32(link_t* link, int32_t val) {
+int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -89,7 +102,7 @@ int lt_enc_ros_twist_put_i32(link_t* link, int32_t val) {
 }
 
 static
-int lt_enc_ros_twist_put_f32(link_t* link, float val) {
+int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -107,7 +120,7 @@ int lt_enc_ros_twist_put_f32(link_t* link, float val) {
 }
 
 static
-int lt_enc_ros_twist_put_str(link_t* link, const char* val) {
+int ufr_enc_ros_twist_put_str(link_t* link, const char* val) {
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( enc_obj ) {
 
@@ -116,7 +129,7 @@ int lt_enc_ros_twist_put_str(link_t* link, const char* val) {
 }
 
 static
-int lt_enc_ros_twist_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
+int ufr_enc_ros_twist_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( type == 'i' ) {
 		
@@ -132,19 +145,37 @@ int ufr_ecr_ros_humble_put_cmd(link_t* link, char cmd) {
 	if ( cmd == '\n' ) {
 		enc_obj->publisher->publish(enc_obj->message);
         enc_obj->index = 0;
-        lt_info(link, "sent message geometry/twist");
+        ufr_info(link, "sent message geometry/twist");
 	}
 	return 0;
 }
 
 static
-lt_encoder_api_t lt_enc_ros_twist = {
-	.put_u32 = lt_enc_ros_twist_put_u32,
-	.put_i32 = lt_enc_ros_twist_put_i32,
-	.put_f32 = lt_enc_ros_twist_put_f32,
-	.put_str = lt_enc_ros_twist_put_str,
+ufr_enc_api_t ufr_enc_ros_api = {
+    .boot = ufr_enc_ros_humble_boot,
+    .close = NULL,
+    .clear = NULL,
+    .set_header = NULL,
+
+    .put_u8 = NULL,
+    .put_i8 = NULL,
     .put_cmd = ufr_ecr_ros_humble_put_cmd,
-	.put_arr = lt_enc_ros_twist_put_arr
+    .put_str = ufr_enc_ros_twist_put_str,
+    .put_raw = NULL,
+
+    .put_u32 = ufr_enc_ros_twist_put_u32,
+    .put_i32 = ufr_enc_ros_twist_put_i32,
+    .put_f32 = ufr_enc_ros_twist_put_f32,
+
+    .put_u64 = NULL,
+    .put_i64 = NULL,
+    .put_f64 = NULL,
+
+    .put_arr = ufr_enc_ros_twist_put_arr,
+    .put_mat = NULL,
+
+    .enter_array = NULL,
+    .leave_array = NULL,
 };
 
 // ============================================================================
@@ -152,25 +183,8 @@ lt_encoder_api_t lt_enc_ros_twist = {
 // ============================================================================
 
 extern "C"
-int ufr_new_ecr_ros_humble_twist(link_t* link, const lt_args_t* args) {
-    std::string gw_api_name = lt_api_name(link);
-
-    if ( gw_api_name == "ROS:Topic" ) {
-        link->enc_api = &lt_enc_ros_twist;
-        std::string topic_name = lt_args_gets(args, "@topic", "topico");
-        ll_encoder_twist* enc_obj = new ll_encoder_twist();
-
-        ll_gateway_t* gw_obj = (ll_gateway_t*) link->gw_obj;
-        enc_obj->publisher = gw_obj->m_node->create_publisher<geometry_msgs::msg::Twist>(topic_name, 10);
-        link->enc_obj = enc_obj;
-        lt_info(link, "loaded encoder for geometry/twist");
-    } else {
-printf("op\n");
-        lt_args_t args;
-        args.text = "@sep ;";
-        lt_load_encoder(link, "std:csv", &args);
-    }
-
-	return LT_OK;
+int ufr_enc_ros_humble_new_twist(link_t* link, int type) {
+    link->enc_api = &ufr_enc_ros_api;
+	return UFR_OK;
 }
 

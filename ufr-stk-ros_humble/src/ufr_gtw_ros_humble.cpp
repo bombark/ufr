@@ -40,45 +40,62 @@ size_t g_ros_count = 0;
 //  Subscribe
 // ======================================================================================
 
-int lt_ros_topic_type(const link_t* link) {
+int ufr_ros_topic_type(const link_t* link) {
     return 0;
 }
 
-int lt_ros_topic_state(const link_t* link) {
+int ufr_ros_topic_state(const link_t* link) {
     return 0;
 }
 
-size_t lt_ros_topic_size(const link_t* link, int type) {
+size_t ufr_ros_topic_size(const link_t* link, int type) {
     return 0;
 }
 
-int lt_ros_topic_boot(link_t* link, const lt_args_t* args) {
-    ll_gateway_t* gw_obj = new ll_gateway_t();
-    link->gw_obj = (void*) gw_obj;
-    return LT_OK;
+int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
+    if ( g_ros_count == 0 ) {
+        ufr_info(link, "ROS2 start");
+        const char *argv[] = {"./teste1", NULL};
+        rclcpp::init(1, argv);
+    }
+    g_ros_count += 1;
+
+    ll_gateway_t* gtw_obj = new ll_gateway_t();
+    link->gtw_obj = (void*) gtw_obj;
+    return UFR_OK;
 }
 
-int lt_ros_topic_start(link_t* link, int type, const lt_args_t* args) {
-    std::string msg = lt_args_gets(args, "@msg", "");
+int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
+    std::string msg = ufr_args_gets(args, "@msg", "");
 
-    if ( type == LT_START_SUBSCRIBER ) {
-        
-
-        lt_args_t args;
+    if ( type == UFR_START_SUBSCRIBER ) {
+        ufr_args_t args;
         args.text = "";
-        // lt_load_decoder(link, "ros2:twist", &args);
+        // ufr_load_decoder(link, "ros2:twist", &args);
 
-    } else if ( type == LT_START_PUBLISHER ) {
+    } else if ( type == UFR_START_PUBLISHER ) {
 
         if ( msg == "twist" ) {
-            lt_load_encoder(link, "ros_humble:twist", args);
+            sys_ufr_load(link, "enc", "ros_humble:twist", UFR_START_PUBLISHER, args);
+            ufr_log(link, "loaded ros_humble:twist");
+        } else if ( msg == "pose" ) {
+            sys_ufr_load(link, "enc", "ros_humble:pose", UFR_START_PUBLISHER, args);
+            ufr_log(link, "loaded ros_humble:pode");
+        } else if ( msg == "string" ) {
+            sys_ufr_load(link, "enc", "ros_humble:string", UFR_START_PUBLISHER, args);
+            ufr_log(link, "loaded ros_humble:string");
+        } else if ( msg == "image" ) {
+            sys_ufr_load(link, "enc", "ros_humble:image", UFR_START_PUBLISHER, args);
+            ufr_log(link, "loaded ros_humble:image");
+        } else {
+            ufr_log(link, "error");
         }
         
     } 
-    return LT_OK;
+    return UFR_OK;
 }
 
-void lt_ros_topic_stop(link_t* link, int type) {
+void ufr_ros_topic_stop(link_t* link, int type) {
     if ( g_ros_count <= 1 ) {
         rclcpp::shutdown();
         g_ros_count = 0;
@@ -88,31 +105,32 @@ void lt_ros_topic_stop(link_t* link, int type) {
 }
 
 static
-size_t lt_ros_topic_read(link_t* link, char* buffer, size_t length) {
+size_t ufr_ros_topic_read(link_t* link, char* buffer, size_t length) {
 	return 0;
 }
 
 static
-size_t lt_ros_topic_write(link_t* link, const char* buffer, size_t length) {
+size_t ufr_ros_topic_write(link_t* link, const char* buffer, size_t length) {
     return 0;
 }
 
 static
-bool lt_ros_topic_recv(link_t* link) {
-    link->dec_api->recv(link, NULL, 0U);
+int ufr_ros_topic_recv(link_t* link) {
+    link->dcr_api->recv_cb(link, NULL, 0U);
     return true;
 }
 
-lt_api_t ufr_ros_humble_topic_drv = {
+ufr_gtw_api_t ufr_ros_humble_topic_drv = {
     .name = "ROS:Topic",
-    .type = lt_ros_topic_type,
-    .state = lt_ros_topic_state,
-    .size = lt_ros_topic_size,
-    .start = lt_ros_topic_start,
-    .stop = lt_ros_topic_stop,
-    .read = lt_ros_topic_read,
-    .write = lt_ros_topic_write,
-    .recv = lt_ros_topic_recv
+    .type = ufr_ros_topic_type,
+    .state = ufr_ros_topic_state,
+    .size = ufr_ros_topic_size,
+    .boot = ufr_ros_topic_boot,
+    .start = ufr_ros_topic_start,
+    .stop = ufr_ros_topic_stop,
+    .read = ufr_ros_topic_read,
+    .write = ufr_ros_topic_write,
+    .recv = ufr_ros_topic_recv
 };
 
 // ======================================================================================
@@ -120,13 +138,7 @@ lt_api_t ufr_ros_humble_topic_drv = {
 // ======================================================================================
 
 extern "C"
-int ufr_new_gtw_ros_humble_topic(link_t* out, const lt_args_t* args) {
-    if ( g_ros_count == 0 ) {
-        lt_info(out, "ROS2 start");
-        const char *argv[] = {"./teste1", NULL};
-        rclcpp::init(1, argv);
-    }
-    g_ros_count += 1;
-    out->gw_api = &ufr_ros_humble_topic_drv;
-    return lt_ros_topic_boot(out, args);
+int ufr_gtw_ros_humble_new_topic(link_t* out, int type) {
+    out->gtw_api = &ufr_ros_humble_topic_drv;
+    return UFR_OK;
 }

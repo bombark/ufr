@@ -225,7 +225,7 @@ typedef struct _link {
     uint8_t slot_gtw;
     uint8_t slot_enc;
     uint8_t slot_dcr;
-    char errstr[66];
+    char errstr[180];
 } link_t;
 
 
@@ -531,6 +531,7 @@ int ufr_leave_array(link_t* link);
 
 // Functions on ufr_args_t
 bool ufr_flex_text_div(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max, const char div);
+bool ufr_flex_text(const char* text, uint16_t* cursor_ini, char* token, const uint16_t token_max);
 
 size_t ufr_args_getu(const ufr_args_t* args, const char* noun, const size_t default_value);
 int    ufr_args_geti(const ufr_args_t* args, const char* noun, const int default_value);
@@ -648,6 +649,14 @@ void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);
 void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text);
+
+
+
+
+
+int sys_ufr_load (link_t* link, const char* library_type, 
+    const char* class_path, int boot_type, const ufr_args_t* args);
+
 
 // ============================================================================
 //  Footer

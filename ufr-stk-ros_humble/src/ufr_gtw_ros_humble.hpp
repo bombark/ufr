@@ -56,7 +56,7 @@ public:
 
 public:
     ufr_ros_encoder_t(link_t* link, std::string topic_name) {
-        ll_gateway_t* gtw = (ll_gateway_t*) link->gw_obj;
+        ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
         m_publisher = gtw->m_node->create_publisher<T>(topic_name, 10);
     }
 };
@@ -93,15 +93,15 @@ public:
 
 extern "C" {
     // gateway
-    int ufr_new_gtw_ros_humble_topic(link_t* out, const lt_args_t* args);
+    int ufr_gtw_ros_humble_new_topic(link_t* out, int type);
 
     // encoders
-    int ufr_new_ecr_ros_humble_pose(link_t* link, const lt_args_t* args);
-    int ufr_new_ecr_ros_humble_twist(link_t* link, const lt_args_t* args);
-    int ufr_new_ecr_ros_humble_string(link_t* link, const lt_args_t* args);
+    int ufr_enc_ros_humble_new_twist(link_t* link, int type);
+    int ufr_enc_ros_humble_new_twist(link_t* link, int type);
+    int ufr_enc_ros_humble_new_string(link_t* link, int type);
 
     // decoders
-    int ufr_new_dcr_ros_humble_pose(link_t* link, const lt_args_t* args);
-    int ufr_new_dcr_ros_humble_twist(link_t* link, const lt_args_t* args);
-    int ufr_new_dcr_ros_humble_string(link_t* link, const lt_args_t* args);
+    int ufr_dcr_ros_humble_new_pose(link_t* link, int type);
+    int ufr_dcr_ros_humble_new_twist(link_t* link, int type);
+    int ufr_dcr_ros_humble_new_string(link_t* link, int type);
 }

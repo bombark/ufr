@@ -226,7 +226,6 @@ int ufr_load_gtw_from_lib(link_t* link, const char* lib_file, const char* lib_na
  * @param[in] library_type Type of the library (ex: gtw,enc,dcr)
  * @param[in] library_name nam of library (ex: posix, msgpack, std)
  */
-static
 int sys_ufr_load (
     link_t* link, const char* library_type, 
     const char* class_path, int boot_type, const ufr_args_t* args
@@ -303,7 +302,7 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
         const char* encoder_name = ufr_args_gets(args, "@encoder", coder_name);
         if ( encoder_name != NULL ) {
             sys_ufr_load(link, "enc", encoder_name, boot_type, args);
-        } else {
+        } else if ( link->enc_api == NULL ) {
             ufr_enc_sys_new_std(link, boot_type);
             ufr_boot_enc(link, args);
         }
@@ -314,7 +313,7 @@ int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args) {
         const char* decoder_name = ufr_args_gets(args, "@decoder", coder_name);
         if ( decoder_name != NULL ) {
             sys_ufr_load(link, "dcr", decoder_name, boot_type, args);
-        } else {
+        } else if ( link->dcr_api == NULL ) {
             ufr_dcr_sys_new_std(link, boot_type);
             ufr_boot_dcr(link, args);
         }

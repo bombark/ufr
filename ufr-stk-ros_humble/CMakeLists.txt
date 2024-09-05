@@ -28,27 +28,33 @@ ament_package()
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Gateway
 add_library(ufr_gtw_ros_humble SHARED src/ufr_gtw_ros_humble.cpp)
-ament_target_dependencies(ufr_gtw_ros_humble rclcpp std_msgs)
+ament_target_dependencies(ufr_gtw_ros_humble rclcpp std_msgs sensor_msgs)
 target_link_libraries(ufr_gtw_ros_humble ufr)
+install(TARGETS ufr_gtw_ros_humble DESTINATION lib)
 
 # Encoder
-add_library(ufr_ecr_ros_humble SHARED 
-    src/ufr_ecr_string.cpp
-    src/ufr_ecr_pose.cpp 
-    src/ufr_ecr_twist.cpp)
-ament_target_dependencies(ufr_ecr_ros_humble rclcpp std_msgs geometry_msgs)
-target_link_libraries(ufr_ecr_ros_humble ufr)
+add_library(ufr_enc_ros_humble SHARED 
+    src/ufr_enc_string.cpp
+    src/ufr_enc_pose.cpp
+    src/ufr_enc_image.cpp
+    src/ufr_enc_twist.cpp)
+ament_target_dependencies(ufr_enc_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs)
+target_link_libraries(ufr_enc_ros_humble ufr)
+install(TARGETS ufr_enc_ros_humble DESTINATION lib)
 
 # Decoder
 add_library(ufr_dcr_ros_humble SHARED
     src/ufr_dcr_string.cpp
     src/ufr_dcr_pose.cpp
+    src/ufr_dcr_image.cpp
     src/ufr_dcr_twist.cpp)
-ament_target_dependencies(ufr_dcr_ros_humble rclcpp std_msgs geometry_msgs)
+ament_target_dependencies(ufr_dcr_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs)
 target_link_libraries(ufr_dcr_ros_humble ufr)
+install(TARGETS ufr_dcr_ros_humble DESTINATION lib)
 
 # Tests
 enable_testing()

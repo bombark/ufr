@@ -52,7 +52,7 @@ const size_t g_translation[6] = {
 
 static
 int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
-	ll_decoder_t* dcr = (ll_decoder_t*) link->dec_obj;
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
 
         // update the index
@@ -63,7 +63,7 @@ int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 
 static
 int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
-	ll_decoder_t* dcr = (ll_decoder_t*) link->dec_obj;
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
         // update the index
         dcr->index += 1;
@@ -73,7 +73,7 @@ int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 
 static
 int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
-	ll_decoder_t* dcr = (ll_decoder_t*) link->dec_obj;
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
 
         // update the index
@@ -84,18 +84,18 @@ int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
 
 static
 int ufr_dcr_ros_humble_get_str(link_t* link, std::string& val) {
-	ll_decoder_t* dcr = (ll_decoder_t*) link->dec_obj;
+	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
 
 	}
 	return 0;
 }
 
-static void ufr_dcr_ros_humble_recv(link_t* link, char* msg_data, size_t msg_size) {
-    ll_decoder_t* dcr = (ll_decoder_t*) link->dec_obj;
+static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+    ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     dcr->index = 0;
 
-    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gw_obj;
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
     while ( dcr->m_is_received == false ) {
         rclcpp::spin_some(gtw_obj->m_node);
     }
@@ -103,8 +103,8 @@ static void ufr_dcr_ros_humble_recv(link_t* link, char* msg_data, size_t msg_siz
 }
 
 static
-lt_decoder_api_t ufr_dcr_ros_driver = {
-    .recv = ufr_dcr_ros_humble_recv,
+ufr_dcr_api_t ufr_dcr_ros_driver = {
+    .recv_cb = ufr_dcr_ros_humble_recv_cb,
 	.get_u32 = ufr_dcr_ros_humble_get_u32,
 	.get_i32 = ufr_dcr_ros_humble_get_i32,
 	.get_f32 = ufr_dcr_ros_humble_get_f32,
@@ -116,13 +116,8 @@ lt_decoder_api_t ufr_dcr_ros_driver = {
 // ============================================================================
 
 extern "C"
-int ufr_new_dcr_ros_humble_twist(link_t* link, const lt_args_t* args) {
-	std::string topic_name = lt_args_gets(args, "@topic", "topico");
-
-    ll_gateway_t* gtw = (ll_gateway_t*) link->gw_obj;
-	ll_decoder_t* dcr = new ll_decoder_t(gtw, topic_name);
-    link->dec_obj = (void*) dcr;
-
-    return LT_OK;
+int ufr_dcr_ros_humble_new_twist(link_t* link, int type) {
+    link->dcr_api = &ufr_dcr_ros_driver;
+    return UFR_OK;
 }
 

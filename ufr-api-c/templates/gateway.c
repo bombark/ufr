@@ -82,7 +82,6 @@ ufr_gtw_api_t ufr_gtw_pack_api = {
 	.recv = ufr_gtw_pack_recv,
 	.recv_async = ufr_gtw_pack_recv_async,
 
-    .send = ufr_gtw_pack_send,
     .accept = ufr_gtw_pack_accept,
 
     .test_args = ufr_gtw_pack_test_args,

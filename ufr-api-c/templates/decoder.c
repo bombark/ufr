@@ -20,7 +20,7 @@ void ufr_dcr_pack_close(link_t* link) {
 }
 
 static
-void ufr_dcr_pack_recv(link_t* link, char* msg_data, size_t msg_size) {
+void ufr_dcr_pack_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
 
 }
 
@@ -73,7 +73,7 @@ static
 ufr_dcr_api_t dcr_pack_api = {
     .boot = ufr_dcr_pack_boot,
     .close = ufr_dcr_pack_close,
-	.recv = ufr_dcr_pack_recv,
+	.recv_cb = ufr_dcr_pack_recv_cb,
 
 	.get_u32 = ufr_dcr_pack_get_u32,
 	.get_i32 = ufr_dcr_pack_get_i32,

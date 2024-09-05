@@ -43,7 +43,8 @@ using namespace cv;
 
 int main() {
     // Begin
-    link_t topic = ufr_sys_publisher22("video", "@new zmq:topic @coder msgpack @port 4000");
+    // link_t topic = ufr_sys_publisher22("video", "@new zmq:topic @coder msgpack @port 4000");
+    link_t topic = ufr_publisher("@new video:topic @@new zmq:topic @@coder msgpack @@port 3000");
     VideoCapture cap(0); 
     
     // Check if camera opened successfully
@@ -62,8 +63,9 @@ int main() {
             break;
         }
  
-        imencode(".jpg", frame, buf);
-        ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
+        // imencode(".jpg", frame, buf);
+        ufr_put(&topic, "ii", frame.rows, frame.cols);
+        ufr_put_raw(&topic, (uint8_t*) frame.data, frame.total() );
         ufr_put(&topic, "\n");
         
         // Display the resulting frame
