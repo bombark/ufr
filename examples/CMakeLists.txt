@@ -14,13 +14,13 @@ add_executable(client 0-basic/client.c)
 target_link_libraries(client ufr cwalk)
 install(TARGETS client DESTINATION examples)
 
-add_executable(publisher_2topic 0-basic/publisher_2topic.c)
-target_link_libraries(publisher_2topic ufr)
-install(TARGETS publisher_2topic DESTINATION examples)
+# add_executable(publisher_2topic 0-basic/publisher_2topic.c)
+# target_link_libraries(publisher_2topic ufr)
+# install(TARGETS publisher_2topic DESTINATION examples)
 
-add_executable(subscriber_2topic 0-basic/subscriber_2topic.c)
-target_link_libraries(subscriber_2topic ufr)
-install(TARGETS subscriber_2topic DESTINATION examples)
+# add_executable(subscriber_2topic 0-basic/subscriber_2topic.c)
+# target_link_libraries(subscriber_2topic ufr)
+# install(TARGETS subscriber_2topic DESTINATION examples)
 
 
 find_package(OpenCV)

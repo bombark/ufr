@@ -87,6 +87,9 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
         } else if ( msg == "image" ) {
             sys_ufr_load(link, "enc", "ros_humble:image", UFR_START_PUBLISHER, args);
             ufr_log(link, "loaded ros_humble:image");
+        } else if ( msg == "laser_scan" ) {
+            sys_ufr_load(link, "enc", "ros_humble:laser_scan", UFR_START_PUBLISHER, args);
+            ufr_log(link, "loaded ros_humble:laser_scan");
         } else {
             ufr_log(link, "error");
         }

@@ -41,7 +41,9 @@ add_library(ufr_enc_ros_humble SHARED
     src/ufr_enc_string.cpp
     src/ufr_enc_pose.cpp
     src/ufr_enc_image.cpp
-    src/ufr_enc_twist.cpp)
+    src/ufr_enc_twist.cpp
+    src/ufr_enc_laserscan.cpp
+    )
 ament_target_dependencies(ufr_enc_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs)
 target_link_libraries(ufr_enc_ros_humble ufr)
 install(TARGETS ufr_enc_ros_humble DESTINATION lib)

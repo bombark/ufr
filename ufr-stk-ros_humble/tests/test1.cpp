@@ -3,7 +3,7 @@
 
 void test_twist() {
     link_t topic;
-    ufr_args_t args = {.text="@topic teste @msg twist @debug 4"};
+    ufr_args_t args = {.text="@topic scan @msg laser_scan @debug 4"};
     ufr_gtw_ros_humble_new_topic(&topic, UFR_START_PUBLISHER);
     topic.log_level = 4;
     ufr_boot_gtw(&topic, &args);
@@ -50,6 +50,6 @@ void test2() {
 */
 
 int main() {
-    test_pose();
+    test_twist();
     return 0;
 }
