@@ -4,4 +4,5 @@
 
 // then we declare the function to be exported
 PHP_FUNCTION(ufr_publisher);
+PHP_FUNCTION(ufr_put);
 
