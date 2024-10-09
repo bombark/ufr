@@ -75,21 +75,44 @@ PHP_FUNCTION(ufr_publisher) {
 
 PHP_FUNCTION(ufr_put) {
     // prepare the variable for PHP parameters
-    size_t num_args = ZEND_NUM_ARGS();
+    const size_t num_args = ZEND_NUM_ARGS();
     long int link_id = 0;
-    char* link_put_format = NULL;
+    char* link_put_format = "";
     size_t link_put_format_len = 0;
+    int varargs_len;
+    zval *varargs = NULL;
 
-    // get the PHP parameters
-    ZEND_PARSE_PARAMETERS_START(2, num_args)
-    Z_PARAM_LONG(link_id)
-    Z_PARAM_STRING(link_put_format, link_put_format_len)
-    ZEND_PARSE_PARAMETERS_END();
+    // get the parameters
+    if (num_args > 0) {
+        if ( 
+            zend_parse_parameters (
+                num_args, "ls*", 
+                &link_id, 
+                &link_put_format, &link_put_format_len,
+                &varargs, &varargs_len
+            ) == FAILURE
+        ) {
+            RETURN_NULL();
+        }
+    }
 
     // Execute the function
     link_t* link = &g_links[link_id];
-    ufr_put(link, link_put_format, "aaa", "dddd");
-    // php_printf("Hello World! (from our extension) %s a\n", var);
+    for (int i=0; i<varargs_len; i++) {
+        if ( Z_TYPE(varargs[i]) == IS_LONG ) {
+            ufr_put(link, "i", Z_LVAL(varargs[i]));
+        } else if ( Z_TYPE(varargs[i]) == IS_STRING ) {
+            ufr_put(link, "s", Z_STRVAL(varargs[i]));
+        } 
+    }
+
+    ufr_put(link, "\n");
+
+    /*zend_long valor;
+    zend_parse_parameters(3, "l", &valor);
+    zend_parse_parameters(4, "l", &valor);*/
+    // php_printf("%s\n", Z_STRVAL(varargs[1]) );
+    // php_printf("Hello World! (from our extension) %d %s a\n", link_id, link_put_format);
 
     // Return the result
     RETURN_LONG(0);
