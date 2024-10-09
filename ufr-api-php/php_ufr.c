@@ -31,9 +31,17 @@ zend_module_entry ufr_php_module_entry = {
     STANDARD_MODULE_PROPERTIES
 };
 
+link_t g_links[10];
+
+int alloc_link_id() {
+    static int i = 0;
+    i = i+1;
+    return i;
+}
+
+
 // use a macro to output additional C code, to make ext dynamically loadable
 ZEND_GET_MODULE(ufr_php)
-
 
 // Finally, we implement our "Hello World" function
 // this function will be made available to PHP
@@ -46,7 +54,27 @@ PHP_FUNCTION(ufr_publisher) {
     Z_PARAM_STRING(ufr_params, ufr_params_len)
     ZEND_PARSE_PARAMETERS_END();
 
-    link_t link = ufr_publisher(ufr_params);
+    int link_id = alloc_link_id();
+    link_t* link = &g_links[link_id];
+    *link = ufr_publisher(ufr_params);
     // php_printf("Hello World! (from our extension) %s a\n", var);
+
+    RETURN_LONG(link_id);
+}
+
+PHP_FUNCTION(ufr_put) {
+    char *ufr_params = "";
+    size_t ufr_params_len = 0;
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(ufr_params, ufr_params_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    int link_id = alloc_link_id();
+    link_t* link = &g_links[link_id];
+    *link = ufr_publisher(ufr_params);
+    // php_printf("Hello World! (from our extension) %s a\n", var);
+
+    RETURN_LONG(link_id);
 }
 
