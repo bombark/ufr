@@ -7,6 +7,6 @@ target_link_libraries(ufr_data ufr)
 install(TARGETS ufr_data DESTINATION bin)
 
 # Shell Client
-add_executable(ufr_shell ./src/shell.c)
-target_link_libraries(ufr_shell ufr cwalk)
-install(TARGETS ufr_shell DESTINATION bin)
+# add_executable(ufr_shell ./src/shell.c)
+# target_link_libraries(ufr_shell ufr cwalk)
+# install(TARGETS ufr_shell DESTINATION bin)

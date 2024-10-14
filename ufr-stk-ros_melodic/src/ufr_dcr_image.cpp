@@ -32,24 +32,22 @@
 #include <ufr.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose.hpp"
+#include "sensor_msgs/msg/image.hpp"
 #include "ufr_gtw_ros_humble.hpp"
 
-typedef ufr_ros_decoder_t<geometry_msgs::msg::Pose> ll_decoder_t;
+typedef ufr_ros_decoder_t<sensor_msgs::msg::Image> ll_decoder_t;
 
-/*
-const size_t g_translation[6] = {
-    offsetof(geometry_msgs::msg::Twist, linear.x),
-    offsetof(geometry_msgs::msg::Twist, linear.y),
-    offsetof(geometry_msgs::msg::Twist, linear.z),
-    offsetof(geometry_msgs::msg::Twist, angular.x),
-    offsetof(geometry_msgs::msg::Twist, angular.y),
-    offsetof(geometry_msgs::msg::Twist, angular.z)
-};
-*/
+/*const size_t g_translation[6] = {
+    offsetof(sensor_msgs::msg::Image, linear.x),
+    offsetof(sensor_msgs::msg::Image, linear.y),
+    offsetof(sensor_msgs::msg::Image, linear.z),
+    offsetof(sensor_msgs::msg::Image, angular.x),
+    offsetof(sensor_msgs::msg::Image, angular.y),
+    offsetof(sensor_msgs::msg::Image, angular.z)
+};*/
 
 // ============================================================================
-//  Twist - Private
+//  Image - Private
 // ============================================================================
 
 static
@@ -107,18 +105,18 @@ static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_
 static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
-    .get_u32 = ufr_dcr_ros_humble_get_u32,
-    .get_i32 = ufr_dcr_ros_humble_get_i32,
-    .get_f32 = ufr_dcr_ros_humble_get_f32,
-    // .get_str = ufr_dcr_ros_humble_get_str
+	.get_u32 = ufr_dcr_ros_humble_get_u32,
+	.get_i32 = ufr_dcr_ros_humble_get_i32,
+	.get_f32 = ufr_dcr_ros_humble_get_f32,
+	// .get_str = ufr_dcr_ros_humble_get_str
 };
 
 // ============================================================================
-//  Twist - Public
+//  Image - Public
 // ============================================================================
 
 extern "C"
-int ufr_dcr_ros_humble_new_pose(link_t* link, int type) {
+int ufr_dcr_ros_humble_new_image(link_t* link, int type) {
 	link->dcr_api = &ufr_dcr_ros_driver;
     return UFR_OK;
 }

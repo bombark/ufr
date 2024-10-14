@@ -23,7 +23,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
 //  Header
 // ============================================================================
@@ -72,36 +72,36 @@ void ufr_enc_csv_close(link_t* link) {
 
 static
 int ufr_enc_csv_put_u8(link_t* link, uint8_t val) {
-	char buffer[32];
+    char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-	const char* sep = enc_obj->sep;
+    const char* sep = enc_obj->sep;
 
-	if ( enc_obj->line.size() == 0 ) {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%u", val);
-		enc_obj->line += buffer;
-	} else {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val);
-		enc_obj->line += buffer;
-	}
-	
-	return 0;
+    if ( enc_obj->line.size() == 0 ) {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%u", val);
+        enc_obj->line += buffer;
+    } else {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val);
+        enc_obj->line += buffer;
+    }
+
+    return 0;
 }
 
 static
 int ufr_enc_csv_put_i8(link_t* link, int8_t val) {
-	char buffer[32];
+    char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-	const char* sep = enc_obj->sep;
+    const char* sep = enc_obj->sep;
 
-	if ( enc_obj->line.size() == 0 ) {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%d", val);
-		enc_obj->line += buffer;
-	} else {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val);
-		enc_obj->line += buffer;
-	}
-	
-	return 0;
+    if ( enc_obj->line.size() == 0 ) {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%d", val);
+        enc_obj->line += buffer;
+    } else {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val);
+        enc_obj->line += buffer;
+    }
+
+    return 0;
 }
 
 static
@@ -117,53 +117,53 @@ int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
 
 static
 int ufr_enc_csv_put_u32(link_t* link, uint32_t val) {
-	char buffer[32];
+    char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-	const char* sep = enc_obj->sep;
+    const char* sep = enc_obj->sep;
 
-	if ( enc_obj->line.size() == 0 ) {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%u", val);
-		enc_obj->line += buffer;
-	} else {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val);
-		enc_obj->line += buffer;
-	}
-	
-	return 0;
+    if ( enc_obj->line.size() == 0 ) {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%u", val);
+        enc_obj->line += buffer;
+    } else {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val);
+        enc_obj->line += buffer;
+    }
+
+    return 0;
 }
 
 static
 int ufr_enc_csv_put_i32(link_t* link, int32_t val) {
-	char buffer[32];
-	encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-	const char* sep = enc_obj->sep;
+    char buffer[32];
+    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
+    const char* sep = enc_obj->sep;
 
-	if ( enc_obj->line.size() == 0 ) {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%d", val);
-		enc_obj->line += buffer;
-	} else {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val);
-		enc_obj->line += buffer;
-	}
+    if ( enc_obj->line.size() == 0 ) {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%d", val);
+        enc_obj->line += buffer;
+    } else {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val);
+        enc_obj->line += buffer;
+    }
 
-	return 0;
+    return 0;
 }
 
 static
 int ufr_enc_csv_put_f32(link_t* link, float val) {
-	char buffer[32];
-	encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-	const char* sep = enc_obj->sep;
+    char buffer[32];
+    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
+    const char* sep = enc_obj->sep;
 
-	if ( enc_obj->line.size() == 0 ) {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%f", val);
-		enc_obj->line += buffer;
-	} else {
-		const size_t size = snprintf(buffer, sizeof(buffer), "%s%f", sep, val);
-		enc_obj->line += buffer;
-	}
-	
-	return 0;
+    if ( enc_obj->line.size() == 0 ) {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%f", val);
+        enc_obj->line += buffer;
+    } else {
+        const size_t size = snprintf(buffer, sizeof(buffer), "%s%f", sep, val);
+        enc_obj->line += buffer;
+    }
+
+    return 0;
 }
 
 static
@@ -199,19 +199,28 @@ int ufr_enc_leave_array(link_t* link) {
     return UFR_OK;
 }
 
-static
 ufr_enc_api_t ufr_enc_std_csv_api = {
     .boot = ufr_enc_csv_boot,
     .close = ufr_enc_csv_close,
+    .clear = NULL,
+    .set_header = NULL,
 
     .put_u8 = ufr_enc_csv_put_u8,
     .put_i8 = ufr_enc_csv_put_i8,
     .put_cmd = ufr_enc_csv_put_cmd,
     .put_str = ufr_enc_csv_put_str,
+    .put_raw = NULL,
 
-	.put_u32 = ufr_enc_csv_put_u32,
-	.put_i32 = ufr_enc_csv_put_i32,
-	.put_f32 = ufr_enc_csv_put_f32,
+    .put_u32 = ufr_enc_csv_put_u32,
+    .put_i32 = ufr_enc_csv_put_i32,
+    .put_f32 = ufr_enc_csv_put_f32,
+
+    .put_u64 = NULL,
+    .put_i64 = NULL,
+    .put_f64 = NULL,
+
+    .put_arr = NULL,
+    .put_mat = NULL,
 
     .enter_array = ufr_enc_enter_array,
     .leave_array = ufr_enc_leave_array
@@ -223,7 +232,7 @@ ufr_enc_api_t ufr_enc_std_csv_api = {
 
 extern "C"
 int ufr_enc_csv_new(link_t* link, int type) {
-	link->enc_api = &ufr_enc_std_csv_api;
-	return UFR_OK;
+    link->enc_api = &ufr_enc_std_csv_api;
+    return UFR_OK;
 }
 

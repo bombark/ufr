@@ -93,24 +93,27 @@ static
 ufr_dcr_api_t ufr_dcr_opencv_api = {
     .boot = ufr_dcr_opencv_boot,
     .close = ufr_dcr_opencv_close,
-	.recv_cb = ufr_dcr_opencv_recv_cb,
+    .recv_cb = ufr_dcr_opencv_recv_cb,
+    .recv_async_cb = NULL,
+    .next = NULL,
 
+    .get_type = NULL,
     .get_size = ufr_dcr_opencv_get_size,
     .get_raw_ptr = ufr_dcr_opencv_get_raw_ptr,
 
-	.get_u32 = ufr_dcr_opencv_get_u32,
-	.get_i32 = ufr_dcr_opencv_get_i32,
-	.get_f32 = ufr_dcr_opencv_get_f32,
-	.get_str = ufr_dcr_opencv_get_str,
-	.get_arr = ufr_dcr_opencv_get_arr,
+    .get_u32 = ufr_dcr_opencv_get_u32,
+    .get_i32 = ufr_dcr_opencv_get_i32,
+    .get_f32 = ufr_dcr_opencv_get_f32,
+    .get_str = ufr_dcr_opencv_get_str,
+    .get_arr = ufr_dcr_opencv_get_arr,
+    .get_ai32 = NULL,
 
     .copy_str = ufr_dcr_opencv_copy_str,
-	.copy_arr = ufr_dcr_opencv_copy_arr,
+    .copy_arr = ufr_dcr_opencv_copy_arr,
 
     .enter_array = ufr_dcr_opencv_enter_array,
     .leave_array = ufr_dcr_opencv_leave_array
 };
-
 
 // ============================================================================
 //  Gateway OpenCV
@@ -199,25 +202,35 @@ const char* ufr_gtw_opencv_test_args(const link_t* link) {
     return "";
 }
 
-extern "C"
+// ============================================================================
+//  Public
+// ============================================================================
+
+extern "C" {
+
 ufr_gtw_api_t ufr_gtw_opencv_api = {
-	.type = ufr_gtw_opencv_type,
-	.state = ufr_gtw_opencv_state,
-	.size = ufr_gtw_opencv_size,
+    .name = "Camera:OpenCV",
 
-	.boot = ufr_gtw_opencv_boot,
-	.start = ufr_gtw_opencv_start,
-	.stop = ufr_gtw_opencv_stop,
-	.copy = ufr_gtw_opencv_copy,
+    .type = ufr_gtw_opencv_type,
+    .state = ufr_gtw_opencv_state,
+    .size = ufr_gtw_opencv_size,
 
-	.read = ufr_gtw_opencv_read,
-	.write = ufr_gtw_opencv_write,
+    .boot = ufr_gtw_opencv_boot,
+    .start = ufr_gtw_opencv_start,
+    .stop = ufr_gtw_opencv_stop,
+    .copy = ufr_gtw_opencv_copy,
 
-	.recv = ufr_gtw_opencv_recv,
-	.recv_async = ufr_gtw_opencv_recv_async,
+    .read = ufr_gtw_opencv_read,
+    .write = ufr_gtw_opencv_write,
+
+    .recv = ufr_gtw_opencv_recv,
+    .recv_async = ufr_gtw_opencv_recv_async,
+    .recv_peer_name = NULL,
 
     .accept = ufr_gtw_opencv_accept,
 
     .test_args = ufr_gtw_opencv_test_args,
 };
+
+}
 

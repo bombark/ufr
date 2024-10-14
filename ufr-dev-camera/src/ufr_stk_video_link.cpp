@@ -112,8 +112,11 @@ int ufr_enc_link_leave_array(link_t* link) {
 }
 
 ufr_enc_api_t ufr_enc_link_api = {
-	.boot = ufr_enc_link_boot,
-	.close = ufr_enc_link_close,
+    .boot = ufr_enc_link_boot,
+    .close = ufr_enc_link_close,
+    .clear = NULL,
+
+    .set_header = NULL,
 
     .put_u8 = NULL,
     .put_i8 = NULL,
@@ -121,18 +124,19 @@ ufr_enc_api_t ufr_enc_link_api = {
     .put_str = NULL,
     .put_raw = ufr_enc_link_put_raw,
 
-	.put_u32 = ufr_enc_link_put_u32,
-	.put_i32 = ufr_enc_link_put_i32,
-	.put_f32 = ufr_enc_link_put_f32,
-	
+    .put_u32 = ufr_enc_link_put_u32,
+    .put_i32 = ufr_enc_link_put_i32,
+    .put_f32 = ufr_enc_link_put_f32,
+
     .put_u64 = NULL,
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-	.put_arr = ufr_enc_link_put_arr,   
-	
-	.enter_array = ufr_enc_link_enter_array,
-	.leave_array = ufr_enc_link_leave_array
+    .put_arr = ufr_enc_link_put_arr,
+    .put_mat = NULL,
+
+    .enter_array = ufr_enc_link_enter_array,
+    .leave_array = ufr_enc_link_leave_array
 };
 
 
@@ -214,19 +218,23 @@ int ufr_dcr_link_leave_array(link_t* link) {
 ufr_dcr_api_t ufr_dcr_link_api = {
     .boot = ufr_dcr_link_boot,
     .close = ufr_dcr_link_close,
-	.recv_cb = ufr_dcr_link_recv_cb,
+    .recv_cb = ufr_dcr_link_recv_cb,
+    .recv_async_cb = NULL,
+    .next = NULL,
 
+    .get_type = NULL,
     .get_size = ufr_dcr_link_get_size,
     .get_raw_ptr = ufr_dcr_link_get_raw_ptr,
 
-	.get_u32 = ufr_dcr_link_get_u32,
-	.get_i32 = ufr_dcr_link_get_i32,
-	.get_f32 = ufr_dcr_link_get_f32,
-	.get_str = ufr_dcr_link_get_str,
-	.get_arr = ufr_dcr_link_get_arr,
+    .get_u32 = ufr_dcr_link_get_u32,
+    .get_i32 = ufr_dcr_link_get_i32,
+    .get_f32 = ufr_dcr_link_get_f32,
+    .get_str = ufr_dcr_link_get_str,
+    .get_arr = ufr_dcr_link_get_arr,
+    .get_ai32 = NULL,
 
     .copy_str = ufr_dcr_link_copy_str,
-	.copy_arr = ufr_dcr_link_copy_arr,
+    .copy_arr = ufr_dcr_link_copy_arr,
 
     .enter_array = ufr_dcr_link_enter_array,
     .leave_array = ufr_dcr_link_leave_array
@@ -324,28 +332,36 @@ const char* ufr_gtw_link_test_args(const link_t* link) {
     return "";
 }
 
-extern "C"
+// ============================================================================
+//  Public
+// ============================================================================
+
+extern "C" {
+
 ufr_gtw_api_t ufr_gtw_link_api = {
-	.type = ufr_gtw_link_type,
-	.state = ufr_gtw_link_state,
-	.size = ufr_gtw_link_size,
+    .name = "Camera:Link",
 
-	.boot = ufr_gtw_link_boot,
-	.start = ufr_gtw_link_start,
-	.stop = ufr_gtw_link_stop,
-	.copy = ufr_gtw_link_copy,
+    .type = ufr_gtw_link_type,
+    .state = ufr_gtw_link_state,
+    .size = ufr_gtw_link_size,
 
-	.read = ufr_gtw_link_read,
-	.write = ufr_gtw_link_write,
+    .boot = ufr_gtw_link_boot,
+    .start = ufr_gtw_link_start,
+    .stop = ufr_gtw_link_stop,
+    .copy = ufr_gtw_link_copy,
 
-	.recv = ufr_gtw_link_recv,
-	.recv_async = ufr_gtw_link_recv_async,
+    .read = ufr_gtw_link_read,
+    .write = ufr_gtw_link_write,
+
+    .recv = ufr_gtw_link_recv,
+    .recv_async = ufr_gtw_link_recv_async,
+    .recv_peer_name = NULL,
 
     .accept = ufr_gtw_link_accept,
 
     .test_args = ufr_gtw_link_test_args,
 };
 
-
+}
 
 
