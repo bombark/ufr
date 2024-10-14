@@ -51,6 +51,17 @@ const size_t g_translation[6] = {
 // ============================================================================
 
 static
+int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+
+    std::string topic_name = ufr_args_gets(args, "@topic", "topico");
+    ll_decoder_t* enc_obj = new ll_decoder_t(gtw_obj, topic_name);
+    link->enc_obj = enc_obj;
+    ufr_info(link, "loaded encoder for geometry/twist");
+    return UFR_OK;
+}
+
+static
 int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
@@ -102,9 +113,19 @@ static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_
     dcr->m_is_received = false;
 }
 
+static void ufr_dcr_ros_humble_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
+    ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+    dcr->m_is_received = false;
+    rclcpp::spin_some(gtw_obj->m_node);
+    dcr->index = 0;
+}
+
 static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
+    .boot = ufr_dcr_ros_humble_boot,
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
+    .recv_async_cb = ufr_dcr_ros_humble_recv_async_cb,
 	.get_u32 = ufr_dcr_ros_humble_get_u32,
 	.get_i32 = ufr_dcr_ros_humble_get_i32,
 	.get_f32 = ufr_dcr_ros_humble_get_f32,

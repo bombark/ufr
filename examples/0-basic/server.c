@@ -45,12 +45,17 @@ int main() {
 
     // publish 5 messages
     for (int i=0; i<5; i++) {
-        int command;
-        ufr_get(&server, "^s", &command);
-        ufr_put(&server, "is\n", 51, "OPA");
+        char command[128];
+        ufr_get(&server, "^s\n", &command);
+        printf("%s\n", command);
+        ufr_put(&server, "is\n", 0, "OK");
+        ufr_put(&server, "is\n", 51, "OPA1");
+        ufr_put(&server, "is\n", 52, "OPA2");
+        ufr_put(&server, "is\n\n", 53, "OPA3");
         printf("OK\n");
     }
 
     // end
+    ufr_close(&server);
     return 0;
 }

@@ -36,6 +36,10 @@
 #include <string.h>
 #include <zmq.h>
 #include <ufr.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h> 
+#include <arpa/inet.h>
 
 #include "ufr_zmq_common.h"
 
@@ -113,12 +117,6 @@ void ufr_zmq_stop(link_t* link, int type) {
         link->gtw_obj = NULL;
     }
 }
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h> 
-#include <arpa/inet.h>
-
 
 int ufr_zmq_recv(link_t* link) {
     // read the message

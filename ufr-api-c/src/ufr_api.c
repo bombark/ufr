@@ -50,23 +50,6 @@ const char* ufr_api_name(const link_t* link) {
 	return link->gtw_api->name;
 }
 
-/* apagar
-int ufr_gtw_type(const link_t* unit) {
-	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->type == NULL) {
-		return LINK_TO_ERROR;
-	}
-	return unit->gtw_api->type(unit);
-}
-*/
-
-/* apagar
-int ufr_gtw_state(const link_t* unit) {
-	if ( unit == NULL || unit->gtw_api == NULL || unit->gtw_api->state == NULL) {
-		return 0;
-	}
-	return unit->gtw_api->state(unit);
-}*/
-
 int ufr_link_state(const link_t* link) {
     return link->type_started;
 }
@@ -87,23 +70,6 @@ bool ufr_link_is_client(const link_t* link) {
     return link->type_started == UFR_START_CLIENT;
 }
 
-/* apagar
-size_t ufr_size(const link_t* link) {
-	if ( link == NULL || link->gtw_api == NULL || link->gtw_api->size == NULL) {
-		return 0;
-	}
-	return link->gtw_api->size(link, UFR_SIZE_STD);
-}
-
-size_t ufr_size_max(const link_t* link) {
-	if ( link == NULL || link->gtw_api == NULL || link->gtw_api->size == NULL) {
-		return 0;
-	}
-
-	return link->gtw_api->size(link, UFR_SIZE_MAX);
-}
-*/
-
 void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->gtw_api = gtw_api;
     link->gtw_obj = NULL;
@@ -113,6 +79,8 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->enc_api = NULL;
     link->enc_obj = NULL;
     link->type_started = UFR_START_BLANK;
+    link->status = UFR_STATUS_RESET;
+    link->put_count = 0;
     // pensar sobre isso
     // - link->log_level = g_default_log_level;
     // - link->log_ident = 0;
@@ -135,12 +103,33 @@ int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
     ufr_log_ini(link, "booting gateway");
     const int state = link->gtw_api->boot(link, args);
+    if ( state == UFR_OK ) {
+        link->status = UFR_STATUS_BOOTED;
+        link->is_booted = 1;
+    }
     ufr_log_end(link, "gateway booted");
     return state;
 }
 
 int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
+    }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->start == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->start is null");
+        }
+    }
+
     ufr_log_ini(link, "starting link");
+
+    if ( link->status == UFR_STATUS_RESET ) {
+        if ( ufr_boot_gtw(link, param_args) != UFR_OK ) {
+            return 1;
+        }
+    }
 
     // select the arguments avoiding NULL pointer
     const ufr_args_t empty_args = {.text=""};
@@ -154,6 +143,8 @@ int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
 
     // done
     link->type_started = type;
+    link->status = UFR_STATUS_STARTED;
+    link->is_started = 1;
     ufr_log_end(link, "link started");
     return UFR_OK;
 }
@@ -176,50 +167,104 @@ int ufr_start_client(link_t* link, const ufr_args_t* args) {
 
 int ufr_recv(link_t* link) {
     ufr_log_ini(link, "receiving data from link");
-    if ( link->gtw_api == NULL ) {
-        return ufr_log_error(link, -1, "gateway is NULL");
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
     }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->recv == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->recv is null");
+        }
+    }
+    
+    link->state = 1;
     const int retval = link->gtw_api->recv(link);
     ufr_log_end(link, "received data from link");
     return retval;
 }
 
 int ufr_recv_async(link_t* link) {
-    if ( link->gtw_api == NULL ) {
-        return -1;
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
     }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->recv_async == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->recv_async is null");
+        }
+    }
+
     return link->gtw_api->recv_async(link);
 }
 
 bool ufr_send(link_t* link) {
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
+    }
+    if ( link->log_level > 0 ) {
+        if ( link->enc_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->enc_api->put_cmd == NULL ) {
+            ufr_fatal(link, 1, "enc_api->put_cmd is null");
+        }
+    }
+
     int error = link->enc_api->put_cmd(link, '\n');
+    link->put_count = 0;
     return error == UFR_OK;
 }
 
 void ufr_close(link_t* link) {
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
+    }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->stop == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->stop is null");
+        }
+    }
+
     link->gtw_api->stop(link, UFR_STOP_CLOSE);
+    link->is_started = 0;
+    link->is_booted = 0;
 }
 
 // ============================================================================
 //  Link - Character Stream
 // ============================================================================
 
-size_t ufr_read(link_t* node, char* buffer, size_t maxsize) {
-	if ( node == NULL || node->gtw_api == NULL || node->gtw_api->read == NULL){
-		return 0;
-	}
+size_t ufr_read(link_t* link, char* buffer, size_t maxsize) {
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
+    }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->read == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->read is null");
+        }
+    }
 
-	// fprintf(stderr, "%s::%s %p\n", node->gtw_api->name, __func__, node);
-	return node->gtw_api->read(node, buffer, maxsize);
+	return link->gtw_api->read(link, buffer, maxsize);
 }
 
-size_t ufr_write(link_t* node, const char* buffer, size_t size) {
-	if ( node == NULL || node->gtw_api == NULL || node->gtw_api->write == NULL) {
-		return 0;
-	}
+size_t ufr_write(link_t* link, const char* buffer, size_t size) {
+    if ( link == NULL ) {
+        ufr_fatal(link, 1, "link is null");
+    }
+    if ( link->log_level > 0 ) {
+        if ( link->gtw_api == NULL ) {
+            ufr_fatal(link, 1, "gtw_api is null");
+        } else if ( link->gtw_api->read == NULL ) {
+            ufr_fatal(link, 1, "gtw_api->write is null");
+        }
+    }
 
-	// fprintf(stderr, "%s::%s %p\n", node->gtw_api->name, __func__, node);
-	return node->gtw_api->write(node, buffer, size);
+	return link->gtw_api->write(link, buffer, size);
 }
 
 // ============================================================================
@@ -245,6 +290,9 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
                 retval = 0;
                 break;
             }
+
+        } else if ( type == '\n' ) {
+            ufr_get_eof(link);
 
         } else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -302,7 +350,7 @@ int ufr_get(link_t* link, char* format, ...) {
 
 void ufr_get_eof(link_t* link) {
     while (1) {
-        if ( ufr_get(link, "^") != UFR_OK ) {
+        if ( ufr_recv(link) != UFR_OK ) {
             break;
         }
     }
@@ -342,7 +390,12 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 
 		// new line
 		} else if ( type == '\n' ) {
-			link->enc_api->put_cmd(link, '\n');
+            if ( link->put_count == 0 ) {
+                ufr_put_eof(link);
+            } else {
+			    link->enc_api->put_cmd(link, '\n');
+                link->put_count = 0;
+            }
 
 		} else if ( type == 'a' ) {
             const char arr_type = *format;
@@ -393,7 +446,9 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
                     ufr_warn(link, "Operador '%c' nao definido", type);
 					break;
 			}
+            link->put_count += 1;
 		}
+
 	}
 	
 }
@@ -446,7 +501,14 @@ void ufr_put_af32(link_t* link, const float* array, size_t size) {
 }
 
 int ufr_put_eof(link_t* link) {
-    return link->enc_api->put_cmd(link, EOF);
+    const int retval = link->enc_api->put_cmd(link, EOF);
+    link->put_count = 0;
+    if ( link->type_started == UFR_START_CLIENT ) {
+        link->state = UFR_STATE_RECV;
+    } else if ( link->type_started == UFR_START_SERVER ) { 
+        link->state = UFR_STATE_READY;
+    }
+    return retval;
 }
 
 void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
@@ -612,6 +674,40 @@ int ufr_args_geti(const ufr_args_t* args, const char* noun, const int default_va
                 }
             } else {
                 return atoi(token);
+            }
+        }
+    }
+
+    // not found, return default value
+    return default_value;
+}
+
+float ufr_args_getf(const ufr_args_t* args, const char* noun, const float default_value) {
+    char token[512];
+    uint8_t  count_arg = 0;
+    uint16_t cursor = 0;
+    while( ufr_flex_text(args->text, &cursor, token, sizeof(token)) ) {
+        // jump case word is not noun
+        if ( token[0] != '@' ) {
+            if ( token[0] == '%' ) {
+                count_arg += 1;
+            }
+            continue;
+        }
+
+        // check if the noun is correct
+        if ( strcmp(noun, token) == 0 ) {
+            ufr_flex_text(args->text, &cursor, token, sizeof(token));
+            if ( token[0] == '%' ) {
+                if ( token[1] == 'd' ) {
+                    return args->arg[count_arg].i32;
+                } else if ( token[1] == 's' ) {
+                    return atof(args->arg[count_arg].str);
+                } else if ( token[1] == 'f' ) {
+                    return args->arg[count_arg].f32;
+                }
+            } else {
+                return atof(token);
             }
         }
     }

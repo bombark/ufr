@@ -48,7 +48,11 @@ int main() {
         char command[1024];
         ufr_get(&server, "^s", command);
         printf("LOG: %s\n", command);
-        if ( strcmp(command, "open") == 0 ) {
+
+        if ( strcmp(command, "start") == 0 ) {
+            ufr_put(&server, "is\n", 0, "OK");
+
+        } else if ( strcmp(command, "open") == 0 ) {
             char path[1024];
             ufr_get(&server, "s", path);
             FILE* fd = fopen(path,"r");
@@ -83,6 +87,14 @@ int main() {
                 ufr_put(&server, "is\n", 1, "ERROR");
             }
 
+        } else if ( strcmp(command, "ls") == 0 ) {
+
+            for(int i=0; i<5; i++) {
+                ufr_put(&server, "s\n", "teste");
+            }
+
+
+
         } else if ( strcmp(command, "quit") == 0 ) {
             break;
 
@@ -92,6 +104,7 @@ int main() {
     }
 
     // end
+    ufr_close(&server);
     return 0;
 }
 

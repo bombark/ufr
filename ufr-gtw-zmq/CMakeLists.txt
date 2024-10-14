@@ -14,5 +14,5 @@ target_link_libraries(ufr_gtw_zmq zmq ufr)
 install(TARGETS ufr_gtw_zmq DESTINATION lib)
 
 # test
-# enable_testing()
-# add_subdirectory(./tests)
+enable_testing()
+add_subdirectory(./tests)

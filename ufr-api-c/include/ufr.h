@@ -54,9 +54,18 @@
 
 #define UFR_STOP_CLOSE       1
 
-
 #define UFR_TYPE_SOCKET 1
 #define UFR_TYPE_TOPIC  2
+
+
+#define UFR_STATUS_RESET    0
+#define UFR_STATUS_BOOTED   1
+#define UFR_STATUS_STARTED  2
+
+
+#define UFR_STATE_READY     0
+#define UFR_STATE_RECV      1
+#define UFR_STATE_SEND      2
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +142,7 @@ typedef struct {
 
     // receive callback
 	void (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
+    void (*recv_async_cb)(struct _link* link, char* msg_data, size_t msg_size);
 
     // Next item
     int (*next)(struct _link* link);
@@ -218,9 +228,20 @@ typedef struct _link {
     const ufr_dcr_api_t* dcr_api;
     void* dcr_obj;
 
-    uint8_t type_started;   
+    uint8_t type_started;
     uint8_t log_level;
     uint8_t log_ident;
+    uint8_t status;
+
+    union {
+        struct{
+            uint8_t is_booted  :1;
+            uint8_t is_started :1;
+            uint8_t state      :2;
+        };
+    };
+
+    uint16_t put_count;
 
     uint8_t slot_gtw;
     uint8_t slot_enc;
@@ -240,7 +261,7 @@ int ufr_gtw_state(const link_t* link);
 size_t ufr_size(const link_t* link);
 size_t ufr_size_max(const link_t* link);
 
-bool ufr_link_is_pusblisher(const link_t* link);
+bool ufr_link_is_publisher(const link_t* link);
 bool ufr_link_is_subscriber(const link_t* link);
 bool ufr_link_is_server(const link_t* link);
 bool ufr_link_is_client(const link_t* link);
@@ -535,6 +556,7 @@ bool ufr_flex_text(const char* text, uint16_t* cursor_ini, char* token, const ui
 
 size_t ufr_args_getu(const ufr_args_t* args, const char* noun, const size_t default_value);
 int    ufr_args_geti(const ufr_args_t* args, const char* noun, const int default_value);
+float  ufr_args_getf(const ufr_args_t* args, const char* noun, const float default_value);
 const void* ufr_args_getp(const ufr_args_t* args, const char* noun, const void* default_value);
 const char* ufr_args_gets(const ufr_args_t* args, const char* noun, const char* default_value);
 
@@ -614,6 +636,7 @@ int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, con
 #define ufr_log_error(link, error, ...) ufr_put_log_error_ident(link, error, __func__, __VA_ARGS__);
 
 #define ufr_error(link, error, ...) ufr_put_log_error(link, error, __func__, __VA_ARGS__)
+#define ufr_fatal(link, error, ...) ufr_put_log_error(link, error, __func__, __VA_ARGS__); exit(1)
 
 
 // ============================================================================

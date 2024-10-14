@@ -91,7 +91,8 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
             sys_ufr_load(link, "enc", "ros_humble:laser_scan", UFR_START_PUBLISHER, args);
             ufr_log(link, "loaded ros_humble:laser_scan");
         } else {
-            ufr_log(link, "error");
+            ufr_log(link, "error, message is not registered");
+            return 1;
         }
         
     } 
@@ -123,6 +124,12 @@ int ufr_ros_topic_recv(link_t* link) {
     return true;
 }
 
+static
+int ufr_ros_topic_recv_async(link_t* link) {
+    link->dcr_api->recv_async_cb(link, NULL, 0U);
+    return true;
+}
+
 ufr_gtw_api_t ufr_ros_humble_topic_drv = {
     .name = "ROS:Topic",
     .type = ufr_ros_topic_type,
@@ -133,7 +140,8 @@ ufr_gtw_api_t ufr_ros_humble_topic_drv = {
     .stop = ufr_ros_topic_stop,
     .read = ufr_ros_topic_read,
     .write = ufr_ros_topic_write,
-    .recv = ufr_ros_topic_recv
+    .recv = ufr_ros_topic_recv,
+    .recv_async = ufr_ros_topic_recv_async,
 };
 
 // ======================================================================================

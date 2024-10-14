@@ -3,7 +3,7 @@
 
 void test_twist() {
     link_t topic;
-    ufr_args_t args = {.text="@topic scan @msg laser_scan @debug 4"};
+    ufr_args_t args = {.text="@topic scan @msg twist @debug 4"};
     ufr_gtw_ros_humble_new_topic(&topic, UFR_START_PUBLISHER);
     topic.log_level = 4;
     ufr_boot_gtw(&topic, &args);
@@ -33,6 +33,26 @@ void test_pose() {
     ufr_close(&topic);
 }
 
+void test_laserscan() {
+    link_t topic;
+    ufr_args_t args = {.text="@topic teste @msg laser_scan @debug 4"};
+    ufr_gtw_ros_humble_new_topic(&topic, UFR_START_PUBLISHER);
+    topic.log_level = 4;
+    ufr_start_publisher(&topic, &args);
+
+    float laser[10] = {9.0,8.0,7.0,6.0,5.0,4.0,3.0,2.0,1.0,0.0};
+    for (int i=0; i<5; i++) {
+        ufr_put(&topic, "iiiiiii",i+1,i+2,i+3,1,1,1,1);
+        ufr_put_af32(&topic, laser, 10);
+        ufr_put_af32(&topic, laser, 10);
+        ufr_put(&topic, "\n");
+        sleep(1);
+    }
+
+    ufr_close(&topic);
+}
+
+
 
 /*
 void test2() {
@@ -50,6 +70,6 @@ void test2() {
 */
 
 int main() {
-    test_twist();
+    test_laserscan();
     return 0;
 }

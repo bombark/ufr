@@ -46,9 +46,9 @@ int open_connection() {
     int res;
     // send the command
     ufr_put(&g_link, "s\n", "start");
-    ufr_put_eof(&g_link);
+    // ufr_put_eof(&g_link);
     ufr_get(&g_link, "^i", &res);
-    ufr_get_eof(&g_link);
+    // ufr_get_eof(&g_link);
     return res;
 }
 
@@ -80,7 +80,7 @@ int builtin_cd(const char* path) {
 
 int main() {
     strcpy(g_current_path, "./");
-    g_link = ufr_client("@new zmq:socket @coder msgpack @debug 0");
+    g_link = ufr_client("@new zmq:socket @host 127.0.0.1 @port 3000 @coder msgpack @debug 4");
 
     if ( open_connection() != UFR_OK ) {
         return -1;

@@ -39,6 +39,31 @@
 
 #include "ufr_zmq_common.h"
 
+
+size_t ufr_zmq_socket_write(link_t* link, const char* buffer, size_t size) {
+    ll_obj_t* gtw_obj = link->gtw_obj;
+    if ( gtw_obj == NULL ) {
+        return 0;
+    }
+    static int count = 0;
+    count += 1;
+
+    // send the data to buffer
+    size_t sent;
+    if ( size > 0 ) {
+        sent = zmq_send (gtw_obj->socket, buffer, size, ZMQ_SNDMORE);
+    } else {
+        sent = zmq_send (gtw_obj->socket, NULL, 0, 0); 
+    }
+
+    // const size_t sent = zmq_send (gtw_obj->socket, buffer, size, 0);
+    if ( sent != size ) {
+        return ufr_error(link, 0, "%s", zmq_strerror(errno));
+    }
+    ufr_info(link, "sent %ld bytes", sent);
+    return sent;
+}
+
 // ============================================================================
 //  Socket Commom Functions
 // ============================================================================
@@ -125,7 +150,7 @@ ufr_gtw_api_t ufr_zmq_socket_st_api = {
     .recv = ufr_zmq_recv,
     .recv_async = ufr_zmq_recv_async,
 	.read = ufr_zmq_read,
-	.write = ufr_zmq_write,
+	.write = ufr_zmq_socket_write,
     .accept = NULL,
     .recv_peer_name = ufr_zmq_recv_peer_name
 };
@@ -133,28 +158,6 @@ ufr_gtw_api_t ufr_zmq_socket_st_api = {
 // ============================================================================
 //  Socket Multi Thread
 // ============================================================================
-
-size_t ufr_zmq_socket_write(link_t* link, const char* buffer, size_t size) {
-    ll_obj_t* gtw_obj = link->gtw_obj;
-    if ( gtw_obj == NULL ) {
-        return 0;
-    }
-
-    // send the data to buffer
-    size_t sent;
-    if ( size > 0 ) {
-        sent = zmq_send (gtw_obj->socket, buffer, size, ZMQ_SNDMORE);
-    } else {
-        sent = zmq_send (gtw_obj->socket, NULL, 0, 0); 
-    }
-
-    // const size_t sent = zmq_send (gtw_obj->socket, buffer, size, 0);
-    if ( sent != size ) {
-        return ufr_error(link, 0, "%s", zmq_strerror(errno));
-    }
-    ufr_info(link, "sent %ld bytes", sent);
-    return sent;
-}
 
 int ufr_zmq_socket_accept(link_t* link, link_t* out_client) {
     return UFR_OK;

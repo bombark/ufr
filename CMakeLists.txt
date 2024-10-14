@@ -82,7 +82,7 @@ if(BUILD_TESTS)
 endif(BUILD_TESTS)
 
 
-add_subdirectory(./rplidar_ros)
+# add_subdirectory(./rplidar_ros)
 
 add_subdirectory(./ufr-app-filesystem)
 add_subdirectory(./ufr-app-proxy)

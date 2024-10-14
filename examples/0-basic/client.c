@@ -37,7 +37,7 @@
 //  Main
 // ============================================================================
 
-int main() {
+int main_complex() {
     // configure the output
     link_t link = ufr_sys_subscriber22("video1");
 
@@ -51,18 +51,23 @@ int main() {
     return 0;
 }
 
-int main_simple() {
+int main() {
     // configure the output
     link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
     // send command
-    ufr_put(&link, "i\n", 10);
+    ufr_put(&link, "s\n\n", "ls");
 
     // recv the answer
-    char buffer[1024];
-    int v1,v2,v3;
-    ufr_get(&link, "^is", &v1, buffer);
-    printf("%d %s\n", v1, buffer);
+    while (1) {
+        char buffer[1024];
+        int v1,v2,v3;
+        int res = ufr_get(&link, "^s", buffer);
+        if ( res <= 0 ) {
+            break;
+        }
+        printf("%d - %d %s\n", res, v1, buffer);
+    }
 
     // end
     return 0;
