@@ -56,19 +56,49 @@ int main() {
     link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
     // send command
-    ufr_put(&link, "s\n\n", "ls");
+    for (int i=0; i<3; i++) {
+        char command[1024];
+        scanf("%s", command);
+        ufr_put(&link, "s\n\n", command);
 
-    // recv the answer
-    while (1) {
-        char buffer[1024];
-        int v1,v2,v3;
-        int res = ufr_get(&link, "^s", buffer);
-        if ( res <= 0 ) {
-            break;
+        // recv the answer
+        while (1) {
+            char buffer[1024];
+            int v1,v2,v3;
+            int res = ufr_get(&link, "^s", buffer);
+            if ( res <= 0 ) {
+                break;
+            }
+            printf("%s\n", buffer);
         }
-        printf("%d - %d %s\n", res, v1, buffer);
     }
 
     // end
     return 0;
 }
+
+
+int main_ros() {
+    // configure the output
+    link_t link = ufr_client("@new ros_melodic:socket");
+
+    char buffer[1024];
+    ufr_get(&link, "s", buffer);
+    printf("%s\n", buffer);
+
+    // end
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

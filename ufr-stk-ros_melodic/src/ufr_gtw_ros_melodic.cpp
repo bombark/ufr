@@ -32,6 +32,7 @@
 #include <memory>
 #include <ufr.h>
 #include <ros/ros.h>
+#include <ros/topic.h>
 
 #include "ufr_gtw_ros_melodic.hpp"
 
@@ -102,12 +103,12 @@ size_t ufr_ros_topic_write(link_t* link, const char* buffer, size_t length) {
 
 static
 int ufr_ros_topic_recv(link_t* link) {
-
+    return UFR_OK;
 }
 
 static
 int ufr_ros_topic_recv_async(link_t* link) {
-
+    return UFR_OK;
 }
 
 static
@@ -126,12 +127,123 @@ ufr_gtw_api_t ufr_ros_melodic_topic_drv = {
     .recv_async = ufr_ros_topic_recv_async,
 };
 
+
+
+
+
+
+
+
+
+
+struct Decoder {
+    ros::master::V_TopicInfo topics;
+    ros::master::V_TopicInfo::iterator it;
+};
+
+
+static
+int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
+    Decoder* dcr = new Decoder();
+    ros::master::getTopics(dcr->topics);
+    dcr->it = dcr->topics.begin();
+
+    link->dcr_obj = dcr;
+}
+
+static
+int ufr_dcr_ros_humble_get_str(link_t* link, char** val) {
+    return 0;
+}
+
+static 
+void ufr_dcr_ros_humble_recv_cb (link_t* link, char* msg_data, size_t msg_size) {
+    
+}
+
+static
+int ufr_dcr_ros_humble_copy_str (struct _link* link, char* ret_val, size_t size_max) {
+    Decoder* dcr = (Decoder*) link->dcr_obj;
+    strcpy(ret_val, "opa!");
+    if ( dcr ) {
+        if ( dcr->it == dcr->topics.end() ) {
+printf("fim\n");
+            return 1;
+        }
+    }
+
+
+    return UFR_OK;
+}
+
+
+static
+ufr_dcr_api_t ufr_dcr_ros_driver = {
+    .boot = NULL,
+    .close = NULL,
+    .recv_cb = ufr_dcr_ros_humble_recv_cb,
+    .recv_async_cb = NULL,
+    .next = NULL,
+    .get_type = NULL,
+    .get_size = NULL,
+    .get_raw_ptr = NULL,
+    .get_u32 = NULL,
+    .get_i32 = NULL,
+    .get_f32 = NULL,
+    .get_str = ufr_dcr_ros_humble_get_str,
+    .get_arr = NULL,
+    .get_ai32 = NULL,
+    .copy_str = ufr_dcr_ros_humble_copy_str,
+    .copy_arr = NULL,
+    .enter_array = NULL,
+    .leave_array = NULL
+};
+
+
+
+int ufr_ros_socket_start(link_t* link, int type, const ufr_args_t* args) {
+    if ( type == UFR_START_CLIENT ) {
+        link->dcr_api = &ufr_dcr_ros_driver;
+    }
+
+    return UFR_OK;
+}
+
+
+
+static
+ufr_gtw_api_t ufr_ros_melodic_socket_drv = {
+    .name = "ROS/Melodic:Topic",
+    .type = ufr_ros_topic_type,
+    .state = ufr_ros_topic_state,
+    .size = ufr_ros_topic_size,
+    .boot = ufr_ros_topic_boot,
+    .start = ufr_ros_socket_start,
+    .stop = ufr_ros_topic_stop,
+    .copy = NULL,
+    .read = ufr_ros_topic_read,
+    .write = ufr_ros_topic_write,
+    .recv = ufr_ros_topic_recv,
+    .recv_async = ufr_ros_topic_recv_async,
+};
+
+
+
+
 // ======================================================================================
 //  Constructors
 // ======================================================================================
 
-extern "C"
+extern "C" {
+
 int ufr_gtw_ros_melodic_new_topic(link_t* out, int type) {
     out->gtw_api = &ufr_ros_melodic_topic_drv;
     return UFR_OK;
+}
+
+int ufr_gtw_ros_melodic_new_socket(link_t* out, int type) {
+    out->gtw_api = &ufr_ros_melodic_socket_drv;
+    return UFR_OK;
+}
+
 }

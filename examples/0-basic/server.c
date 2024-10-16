@@ -43,16 +43,27 @@ int main() {
     // configure the output
     link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
 
-    // publish 5 messages
-    for (int i=0; i<5; i++) {
-        char command[128];
-        ufr_get(&server, "^s\n", &command);
-        printf("%s\n", command);
-        ufr_put(&server, "is\n", 0, "OK");
-        ufr_put(&server, "is\n", 51, "OPA1");
-        ufr_put(&server, "is\n", 52, "OPA2");
-        ufr_put(&server, "is\n\n", 53, "OPA3");
-        printf("OK\n");
+    for (int i=0; i<10; i++) {
+        char command[1024];
+        ufr_get(&server, "^s\n", command);
+        printf("[LOG]: %s\n", command);
+
+        if ( strcmp(command, "odom") == 0 ) {
+            ufr_put(&server, "iii\n\n", 10, 20, 30);
+
+        } else if ( strcmp(command, "image") == 0 ) {
+            ufr_put(&server, "iii\n\n", 10, 20, 30);
+
+        } else if ( strcmp(command, "scan") == 0 ) {
+            ufr_put(&server, "iii\n\n", 10, 20, 30);
+
+        } else if ( strcmp(command, "list") == 0 ) {
+            ufr_put(&server, "s\n", "odom");
+            ufr_put(&server, "s\n", "image");
+            ufr_put(&server, "s\n", "scan");
+            ufr_put_eof(&server);
+        }
+
     }
 
     // end
