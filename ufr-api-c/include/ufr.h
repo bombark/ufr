@@ -148,8 +148,8 @@ typedef struct {
     int (*next)(struct _link* link);
 
     // Function on current Item
-    char (*get_type)(struct _link* link);
-    size_t (*get_size)(struct _link* link);
+    char     (*get_type)(struct _link* link);
+    size_t   (*get_size)(struct _link* link);
     uint8_t* (*get_raw_ptr)(struct _link* link);
 
 	int (*get_u32)(struct _link* link, uint32_t* val);

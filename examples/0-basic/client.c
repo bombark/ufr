@@ -56,10 +56,10 @@ int main() {
     link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
     // send command
-    for (int i=0; i<3; i++) {
+    // for (int i=0; i<3; i++) {
         char command[1024];
-        scanf("%s", command);
-        ufr_put(&link, "s\n\n", command);
+        // scanf("%s", command);
+        ufr_put(&link, "s\n\n", "list");
 
         // recv the answer
         while (1) {
@@ -71,7 +71,7 @@ int main() {
             }
             printf("%s\n", buffer);
         }
-    }
+    // }
 
     // end
     return 0;

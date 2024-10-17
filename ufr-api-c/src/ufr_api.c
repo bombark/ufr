@@ -361,6 +361,15 @@ char ufr_get_type(link_t* link) {
 }
 
 size_t ufr_get_size(link_t* link) {
+    if ( link == NULL ) {
+        ufr_error(link, 0, "Link is null");
+    }
+    if ( link->dcr_api == NULL ) {
+        ufr_error(link, 0, "Decoder of link is null");
+    }
+    if ( link->dcr_api->get_size == NULL ) {
+        ufr_error(link, 0, "Function get_size of the decoder is null");
+    }
     return link->dcr_api->get_size(link);
 }
 
@@ -512,6 +521,7 @@ int ufr_put_eof(link_t* link) {
 }
 
 void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
+    link->put_count += 1;   
     link->enc_api->put_raw(link, buffer, size);
 }
 

@@ -286,7 +286,6 @@ PHP_FUNCTION(ufr_get) {
     long int link_id = 0;
     char* link_put_format = "";
     size_t link_put_format_len = 0;
-    array_init(return_value);
 
     // parse the PHP parameters
     ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -302,21 +301,48 @@ PHP_FUNCTION(ufr_get) {
     }
 
     // Execute the function
+    int count = 0;
+    array_init(return_value);
     for (int i=0, i_v=0; i<link_put_format_len; i++) {
         const char c = link_put_format[i];
 
         if ( c == '^' ) {
-            ufr_recv(link);
+            if ( ufr_recv(link) != UFR_OK ) {
+                RETURN_FALSE;
+            }
         } else if ( c == 'i' ) {
             int64_t val_i64 = 0;
-            ufr_get(link, "i", &val_i64);
-            add_next_index_long(return_value, val_i64);
+            if ( ufr_get(link, "i", &val_i64) > 0 ) {
+                add_next_index_long(return_value, val_i64);
+                count += 1;
+            }
         } else if ( c == 's' ) {
             char val_str[1024];
-            ufr_get(link, "s", val_str);
-            add_next_index_string(return_value, val_str);
+            if ( ufr_get(link, "s", val_str) > 0 ) {
+                add_next_index_string(return_value, val_str);
+                count += 1;
+            }
+        } else if ( c == 'b' ) {
+            const size_t val_size = ufr_get_size(link);
+            const char* val_str = ufr_get_raw_ptr(link);
+            add_next_index_stringl(return_value, val_str, val_size);
+            count += 1;
+        } else if ( c == 'a' ) {
+            zval array;
+            array_init(&array);
+            // ufr_enter_array(&link);
+            // const size_t val_size = ufr_get_size(link);
+            // const char* val_str = ufr_get_raw_ptr(link);
+            add_next_index_zval(return_value, &array);
+            // zval_ptr_dtor(&array);
+            count += 1;
         }
     }
 
-    // Return the array "return_value"
+    //
+    if ( count == 0 ) {
+        RETURN_FALSE;
+    }
+
+    // Success: return the array "return_value"
 }

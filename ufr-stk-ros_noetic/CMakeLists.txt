@@ -16,7 +16,8 @@ catkin_package()
 add_library(ufr_gtw_ros_noetic SHARED src/ufr_gtw_ros_noetic.cpp 
     src/ufr_enc_string.cpp 
     src/ufr_enc_laserscan.cpp 
-    src/ufr_enc_twist.cpp)
+    src/ufr_enc_twist.cpp
+    src/ufr_enc_image.cpp)
 target_link_libraries(ufr_gtw_ros_noetic ${catkin_LIBRARIES})
 
 # add_library(ufr_enc_ros_noetic SHARED src/ufr_enc_string.cpp)
