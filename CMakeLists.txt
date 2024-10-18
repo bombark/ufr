@@ -91,7 +91,7 @@ add_subdirectory(./ufr-app-proxy)
 # add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 
-add_subdirectory(./ufr-dev-camera)
+# add_subdirectory(./ufr-dev-camera)
 
 
 install(FILES ./etc/init.bash DESTINATION .)

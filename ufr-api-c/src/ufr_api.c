@@ -304,13 +304,13 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
             // size_t* arr_size_ptr = va_arg(list, size_t*);
             size_t arr_size;
             void* arr_ptr = va_arg(list, void*);
-            link->dcr_api->copy_arr(link, arr_type, arr_size_max, &arr_size, arr_ptr);
+            // link->dcr_api->copy_arr(link, arr_type, arr_size_max, &arr_size, arr_ptr);
 
 		} else {
             switch (type) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
-                    if ( link->dcr_api->copy_str(link, buffer, 1024) == UFR_OK ) {
+                    if ( link->dcr_api->get_str(link, buffer, 1024) != -1 ) {
                         retval += 1;
                     }
                 } break;
@@ -329,9 +329,6 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
                     }
                 } break;
 
-                case '\n': {
-                    // ufr_end(link);
-                } break;
             }
         }
 	}
@@ -378,8 +375,9 @@ const uint8_t* ufr_get_raw_ptr(link_t* link) {
 }
 
 bool ufr_get_str(link_t* link, char* buffer) {
-    const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
-    return is_ok == UFR_OK;
+    // const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
+    // return is_ok == UFR_OK;
+    return false;
 }
 
 void ufr_put_va(link_t* link, const char* format, va_list list) {
@@ -527,21 +525,10 @@ void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
 
 size_t ufr_get_raw(link_t* link, uint8_t* buffer, size_t maxsize) {
     size_t arr_size = 0;
-    link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
+    // link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
     return arr_size;
 }
 
-size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data) {
-    size_t arr_size = 0;
-    link->dcr_api->copy_arr(link, 'i', arr_size_max, &arr_size, (void*) arr_data);
-    return arr_size;
-}
-
-size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data) {
-    size_t arr_size = 0;
-    link->dcr_api->copy_arr(link, 'f', arr_size_max, &arr_size, (void*) arr_data);
-    return arr_size;
-}
 
 int ufr_enter_array(link_t* link, size_t arr_size_max) {
     if (link->enc_api->enter_array == NULL ) {
@@ -557,6 +544,20 @@ int ufr_leave_array(link_t* link) {
     }
 
     return link->enc_api->leave_array(link);
+}
+
+int ufr_dcr_enter(link_t* link) {
+    if (link->dcr_api->enter == NULL ) {
+        return ufr_error(link, 1, "Function enter in Decoder is NULL");
+    }
+    return link->dcr_api->enter(link);
+}
+
+int ufr_dcr_leave(link_t* link) {
+    if (link->dcr_api->leave == NULL ) {
+        return ufr_error(link, 1, "Function leave in Decoder is NULL");
+    }
+    return link->dcr_api->leave(link);
 }
 
 // ============================================================================

@@ -135,8 +135,13 @@ int ufr_dcr_csv_get_f32(link_t* link, float* val) {
 }
 
 static
-int ufr_dcr_csv_get_str(link_t* link, char** str) {
-	*str = NULL;
+int ufr_dcr_csv_get_raw(link_t* link, uint8_t* out_val, size_t maxlen) {
+	ll_decoder_t* decoder = link->dcr_obj;
+	return 0;
+}
+
+static
+int ufr_dcr_csv_get_str(link_t* link, char* out_val, size_t maxlen) {
 	ll_decoder_t* decoder = link->dcr_obj;
 	return 0;
 }
@@ -167,14 +172,12 @@ ufr_dcr_api_t ufr_dcr_std_csv_api = {
 
 	.recv_cb = ufr_dcr_csv_recv_cb,
 
+    .get_raw = ufr_dcr_csv_get_raw,
+    .get_str = ufr_dcr_csv_get_str,
 	.get_u32 = NULL,
 	.get_i32 = ufr_dcr_csv_get_i32,
 	.get_f32 = ufr_dcr_csv_get_f32,
-	.get_str = ufr_dcr_csv_get_str,
 
-	.get_arr = ufr_dcr_csv_get_arr,
-    .copy_str = ufr_dcr_csv_copy_str,
-	.copy_arr = ufr_dcr_csv_copy_arr
 };
 
 // ============================================================================

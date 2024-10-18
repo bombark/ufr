@@ -33,8 +33,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ufr.h>
-
-int ufr_enc_msgpack_new(link_t* link, const int type);
+#include "test.h"
 
 // ============================================================================
 //  Tests
@@ -76,19 +75,29 @@ void test1() {
 }
 
 
-void test2() {
-    link_t link = ufr_publisher("@new posix:file @path saida.txt");
+void show_encoder_bytes() {
+    link_t link = ufr_publisher("@new posix:pipe");
     assert( ufr_enc_msgpack_new(&link, 0) == UFR_OK );
     assert( ufr_boot_enc(&link, NULL) == UFR_OK );
 
-    ufr_put(&link, "iii", 10, 20, 30);
-    ufr_enter_array(&link, 3);
+    ufr_enter_array(&link, 5);
+    ufr_put(&link, "iiiii", 10, 20, 30, 40, 50);
+    ufr_leave_array(&link);
+    ufr_put(&link, "\n");
+
+    /* ufr_enter_array(&link, 3);
     for (int i=0; i<3; i++) {
         ufr_put(&link, "i", i);
     }
     ufr_leave_array(&link);
-    ufr_put(&link, "\n");
+    ufr_put(&link, "\n");*/
 
+    uint8_t buffer[1024];
+    size_t read = ufr_read(&link, buffer, 1024);
+    for (int i=0; i<read; i++ ){
+        printf("%x ", buffer[i]);
+    }
+    printf("\n");
 
     ufr_close(&link);
 }
@@ -100,7 +109,7 @@ void test2() {
 // ============================================================================
 
 int main() {
-    test1();
-    // test2();
+    // test1();
+    show_encoder_bytes();
 	return 0;
 }

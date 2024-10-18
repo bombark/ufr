@@ -137,7 +137,7 @@ typedef struct {
 
 typedef struct {
     // Open and close
-    int (*boot)(struct _link* link, const ufr_args_t* args);
+    int  (*boot)(struct _link* link, const ufr_args_t* args);
     void (*close)(struct _link* link);
 
     // receive callback
@@ -152,21 +152,15 @@ typedef struct {
     size_t   (*get_size)(struct _link* link);
     uint8_t* (*get_raw_ptr)(struct _link* link);
 
-	int (*get_u32)(struct _link* link, uint32_t* val);
-	int (*get_i32)(struct _link* link, int32_t* val);
-	int (*get_f32)(struct _link* link, float* ret_val);
-	int (*get_str)(struct _link* link, char** ret_val);
-    
-	int (*get_arr)(struct _link* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr);
+    int (*get_raw)(struct _link* link, uint8_t* out_val, size_t maxlen);
+    int (*get_str)(struct _link* link, char* out_val, size_t maxlen);
 
-    int (*get_ai32)(struct _link* link, ufr_ai32_t* array);
+	int (*get_u32)(struct _link* link, uint32_t* out_val);
+	int (*get_i32)(struct _link* link, int32_t* out_val);
+	int (*get_f32)(struct _link* link, float* out_val);
 
-    int (*copy_str)(struct _link* link, char* ret_val, size_t size_max);
-
-	int (*copy_arr)(struct _link* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr);
-
-    int (*enter_array)(struct _link* link);
-    int (*leave_array)(struct _link* link);
+    int (*enter)(struct _link* link);
+    int (*leave)(struct _link* link);
 } ufr_dcr_api_t;
 
 typedef struct {
@@ -227,6 +221,11 @@ typedef struct _link {
     // Decoder
     const ufr_dcr_api_t* dcr_api;
     void* dcr_obj;
+
+    // Decoder Stack
+    const ufr_dcr_api_t* dcr_api_s0;
+    void* dcr1_obj_s0;
+
 
     uint8_t type_started;
     uint8_t log_level;
@@ -547,6 +546,8 @@ size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data);
 int ufr_enter_array(link_t* link, size_t arr_size_max);
 int ufr_leave_array(link_t* link);
 
+int ufr_dcr_enter(link_t* link);
+int ufr_dcr_leave(link_t* link);
 
 
 

@@ -54,6 +54,34 @@ void test_simple() {
     assert( strcmp(buffer, "Opa!") == 0 );
 
     ufr_close(&link);
+    printf("OK - test_simple\n");
+}
+
+void test_message_4kb() {
+    char buffer[8];
+    link_t link;
+    ufr_args_t args = {.text=""};
+    assert( ufr_gtw_posix_new_pipe(&link, 0) == UFR_OK );
+    assert( ufr_boot_gtw(&link, &args) == UFR_OK );
+    assert( ufr_start(&link, 0, &args) == UFR_OK );    
+
+    // send a 1mb of data
+    const int max = 4096;
+    uint8_t buffer_snd[max];
+    for (int i=0;i<max; i++) {
+        buffer_snd[i] = (i%256);
+    }
+    assert( ufr_write(&link, buffer_snd, max) == max );
+
+    // read and compare this 1mb
+    uint8_t buffer_rcv[max];
+    assert( ufr_read(&link, buffer_rcv, max) == max );   
+    for (int i=0;i<max; i++) {
+        assert( buffer_rcv[i] == (i%256) );
+    }
+
+    ufr_close(&link);
+    printf("OK - test_message_1mb\n");
 }
 
 void test_new() {
@@ -64,6 +92,7 @@ void test_new() {
     buffer[4] = '\0';
     assert( strcmp(buffer, "Opa!") == 0 );
     ufr_close(&link);
+    printf("OK - test_new\n");
 }
 
 // ============================================================================
@@ -73,5 +102,6 @@ void test_new() {
 int main() {
     test_simple();
     test_new();
+    test_message_4kb();
 	return 0;
 }

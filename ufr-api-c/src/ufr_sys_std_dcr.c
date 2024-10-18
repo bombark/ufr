@@ -137,12 +137,12 @@ int ufr_dcr_sys_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_
 }
 
 static
-int ufr_dcr_sys_enter_array(link_t* link) {
+int ufr_dcr_sys_enter(link_t* link) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_sys_leave_array(link_t* link) {
+int ufr_dcr_sys_leave(link_t* link) {
     return UFR_OK;
 }
 
@@ -151,18 +151,20 @@ ufr_dcr_api_t dcr_sys_api = {
     .boot = ufr_dcr_sys_boot,
     .close = ufr_dcr_sys_close,
 	.recv_cb = ufr_dcr_sys_recv,
+    .recv_async_cb = NULL,
 
+    .next = NULL, 
+
+    .get_type = NULL,
+
+    .get_raw = NULL,
+    .get_str = NULL,
 	.get_u32 = ufr_dcr_sys_get_u32,
 	.get_i32 = ufr_dcr_sys_get_i32,
 	.get_f32 = ufr_dcr_sys_get_f32,
-	.get_str = ufr_dcr_sys_get_str,
-	.get_arr = ufr_dcr_sys_get_arr,
 
-    .copy_str = ufr_dcr_sys_copy_str,
-	.copy_arr = ufr_dcr_sys_copy_arr,
-
-    .enter_array = ufr_dcr_sys_enter_array,
-    .leave_array = ufr_dcr_sys_leave_array
+    .enter = ufr_dcr_sys_enter,
+    .leave = ufr_dcr_sys_leave
 };
 
 // ============================================================================
