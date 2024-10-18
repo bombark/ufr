@@ -33,7 +33,7 @@ void test_pose() {
     ufr_close(&topic);
 }
 
-void test_laserscan() {
+void test_laserscan_publisher() {
     link_t topic;
     ufr_args_t args = {.text="@topic teste @msg laser_scan @debug 4"};
     ufr_gtw_ros_humble_new_topic(&topic, UFR_START_PUBLISHER);
@@ -52,6 +52,29 @@ void test_laserscan() {
     ufr_close(&topic);
 }
 
+
+void test_laserscan() {
+    link_t link = ufr_subscriber("@new ros_humble:topic @msg laserscan @topic scan");
+
+    float angle_min, angle_max, angle_increment;
+    float time_increment, scan_time;
+    float range_min, range_max;
+    float ranges[1200];
+    float intensities[1200];
+    // ufr_recv(&link);
+    for (int i=0; i<5000; i++) {
+        if ( ufr_recv_async(&link) == UFR_OK ) {
+            ufr_get(&link, "fff", &angle_min, &angle_max, &angle_increment);
+            ufr_get(&link, "ff", &time_increment, &scan_time);
+            ufr_get(&link, "ff", &range_min, &range_max);
+            ufr_get(&link, "af", ranges, 1200);
+            ufr_get(&link, "af", intensities, 1200);
+            printf("%f %f %f : %f\n", angle_min, angle_max, angle_increment, ranges[100]);
+        }
+    }
+
+    ufr_close(&link);
+}
 
 
 /*

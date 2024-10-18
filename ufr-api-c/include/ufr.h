@@ -142,7 +142,7 @@ typedef struct {
 
     // receive callback
 	void (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
-    void (*recv_async_cb)(struct _link* link, char* msg_data, size_t msg_size);
+    int (*recv_async_cb)(struct _link* link, char* msg_data, size_t msg_size);
 
     // Next item
     int (*next)(struct _link* link);
@@ -540,8 +540,8 @@ int ufr_put_eof(link_t* link);
 
 void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size);
 
-size_t ufr_copy_ai32(link_t* link, size_t arr_size_max, int32_t* arr_data);
-size_t ufr_copy_af32(link_t* link, size_t arr_size_max, float* arr_data);
+size_t ufr_get_ai32(link_t* link, int32_t* arr_data, size_t arr_maxlen);
+size_t ufr_get_af32(link_t* link, float* arr_data, size_t arr_maxlen);
 
 int ufr_enter_array(link_t* link, size_t arr_size_max);
 int ufr_leave_array(link_t* link);

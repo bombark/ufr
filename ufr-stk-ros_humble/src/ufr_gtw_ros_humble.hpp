@@ -67,6 +67,7 @@ template <typename T>
 class ufr_ros_decoder_t {
 public:
     int index = 0;
+    int index2 = 0;
     volatile bool m_is_received;
     T m_message;
     typename rclcpp::Subscription<T>::SharedPtr m_subscription;
@@ -83,9 +84,10 @@ public:
     }
 
     void topic_callback(const T& msg) {
-        // printf("OPa %g\n", msg.linear.x);
+        // printf("OPa %g\n", msg.angle_max);
         m_message = msg;
         m_is_received = true;
+        index = 0;
     }
 };
 

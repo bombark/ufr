@@ -288,6 +288,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
 		} else if ( type == '^' ) {
 			if ( ufr_recv(link) != UFR_OK ) {
                 retval = 0;
+                ufr_log(link, "Error to receive data");
                 break;
             }
 
@@ -300,13 +301,14 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
             if ( arr_type == '\0' ) {
                 break;
             }
-            const int32_t arr_size_max = va_arg(list, int32_t);
-            // size_t* arr_size_ptr = va_arg(list, size_t*);
-            size_t arr_size;
+            
             void* arr_ptr = va_arg(list, void*);
-            // link->dcr_api->copy_arr(link, arr_type, arr_size_max, &arr_size, arr_ptr);
+            const size_t arr_maxlen = va_arg(list, size_t);
+            if ( arr_type == 'f' ) {
+                ufr_get_af32(link, arr_ptr, arr_maxlen);
+            }
 
-		} else {
+        } else {
             switch (type) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
@@ -468,6 +470,7 @@ void ufr_put(link_t* link, const char* format, ...) {
 }
 
 void ufr_put_au8(link_t* link, const uint8_t* array, size_t size) {
+    link->put_count += 1;
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
         link->enc_api->put_u8(link, array[i]);
@@ -476,6 +479,7 @@ void ufr_put_au8(link_t* link, const uint8_t* array, size_t size) {
 }
 
 void ufr_put_ai8(link_t* link, const int8_t* array, size_t size) {
+    link->put_count += 1;
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
         link->enc_api->put_i8(link, array[i]);
@@ -484,6 +488,7 @@ void ufr_put_ai8(link_t* link, const int8_t* array, size_t size) {
 }
 
 void ufr_put_au32(link_t* link, const uint32_t* array, size_t size) {
+    link->put_count += 1;
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
         link->enc_api->put_u32(link, array[i]);
@@ -492,6 +497,7 @@ void ufr_put_au32(link_t* link, const uint32_t* array, size_t size) {
 }
 
 void ufr_put_ai32(link_t* link, const int32_t* array, size_t size) {
+    link->put_count += 1;
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
         link->enc_api->put_i32(link, array[i]);
@@ -500,6 +506,7 @@ void ufr_put_ai32(link_t* link, const int32_t* array, size_t size) {
 }
 
 void ufr_put_af32(link_t* link, const float* array, size_t size) {
+    link->put_count += 1;
     ufr_enter_array(link, size);
     for (size_t i=0; i<size; i++) {
         link->enc_api->put_f32(link, array[i]);
@@ -528,6 +535,18 @@ size_t ufr_get_raw(link_t* link, uint8_t* buffer, size_t maxsize) {
     // link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
     return arr_size;
 }
+
+size_t ufr_get_af32(link_t* link, float buffer[], size_t maxlen) {
+    const size_t arr_size = ufr_get_size(link);
+    const size_t size = (arr_size > maxlen) ? maxlen : arr_size;
+    ufr_dcr_enter(link);
+    for (size_t i=0; i<size; i++) {
+        link->dcr_api->get_f32(link, &buffer[i]);
+    }
+    ufr_dcr_leave(link);
+    return size;
+}
+
 
 
 int ufr_enter_array(link_t* link, size_t arr_size_max) {

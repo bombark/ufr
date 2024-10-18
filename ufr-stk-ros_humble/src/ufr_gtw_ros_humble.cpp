@@ -69,9 +69,10 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
     std::string msg = ufr_args_gets(args, "@msg", "");
 
     if ( type == UFR_START_SUBSCRIBER ) {
-        ufr_args_t args;
-        args.text = "";
-        // ufr_load_decoder(link, "ros2:twist", &args);
+        if ( msg == "laserscan" ) {
+            sys_ufr_load(link, "dcr", "ros_humble:laserscan", UFR_START_SUBSCRIBER, args);
+            ufr_log(link, "loaded ros_humble:laserscan");
+        }
 
     } else if ( type == UFR_START_PUBLISHER ) {
 
@@ -95,7 +96,7 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
             return 1;
         }
         
-    } 
+    }
     return UFR_OK;
 }
 
@@ -121,13 +122,16 @@ size_t ufr_ros_topic_write(link_t* link, const char* buffer, size_t length) {
 static
 int ufr_ros_topic_recv(link_t* link) {
     link->dcr_api->recv_cb(link, NULL, 0U);
-    return true;
+    return UFR_OK;
 }
 
 static
 int ufr_ros_topic_recv_async(link_t* link) {
-    link->dcr_api->recv_async_cb(link, NULL, 0U);
-    return true;
+    if ( link->dcr_api->recv_async_cb == NULL ) {
+        ufr_log(link, "ERROR123");
+        return -1;
+    }
+    return link->dcr_api->recv_async_cb(link, NULL, 0U);
 }
 
 ufr_gtw_api_t ufr_ros_humble_topic_drv = {

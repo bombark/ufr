@@ -330,9 +330,13 @@ PHP_FUNCTION(ufr_get) {
         } else if ( c == 'a' ) {
             zval array;
             array_init(&array);
-            // ufr_enter_array(&link);
-            // const size_t val_size = ufr_get_size(link);
-            // const char* val_str = ufr_get_raw_ptr(link);
+            ufr_dcr_enter(link);
+            const size_t len = ufr_get_size(link);
+            for (int i=0; i<len; i++) {
+                float val;
+                ufr_get(link, "f", &val);
+                add_next_index_double(&array, val);
+            }
             add_next_index_zval(return_value, &array);
             // zval_ptr_dtor(&array);
             count += 1;

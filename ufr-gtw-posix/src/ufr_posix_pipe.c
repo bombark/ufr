@@ -104,8 +104,10 @@ size_t ufr_posix_pipe_read(link_t* link, char* buffer, size_t length) {
 
 static
 size_t ufr_posix_pipe_write(link_t* link, const char* buffer, size_t length) {
-	ll_shr_t* shr = link->gtw_shr;
-    return write(shr->fd_wrte, buffer, length);
+    ll_shr_t* shr = link->gtw_shr;
+    const size_t retval = write(shr->fd_wrte, buffer, length);
+    write(shr->fd_wrte, "\n", 1);
+    return retval;
 }
 
 static

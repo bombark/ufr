@@ -74,6 +74,31 @@ void test1() {
     ufr_close(&link);
 }
 
+void test_encoder_array() {
+    link_t link = ufr_new("@new posix:pipe @debug 0");
+    assert( ufr_enc_msgpack_new(&link, 0) == UFR_OK );
+    assert( ufr_boot_enc(&link, NULL) == UFR_OK );
+    
+    {
+        int vet[5] = {20,21,22,23,24};
+        // ufr_put(&link, "ai\n", 5, vet);
+        ufr_put_ai32(&link, vet, 5);
+        ufr_put(&link, "\n");
+        uint8_t buffer[8];
+        assert( ufr_read(&link, buffer, sizeof(buffer)) == 7 );
+        
+        // assert( ufr_read(&link, buffer, sizeof(buffer)) == 5 );
+        assert( buffer[0] == 0x95 );
+        assert( buffer[1] == 20 );
+        assert( buffer[2] == 21 );
+        assert( buffer[3] == 22 );
+        assert( buffer[4] == 23 );
+        assert( buffer[5] == 24 );
+    }
+
+    ufr_close(&link);
+    printf("OK - encoded 1 array\n");
+}
 
 void show_encoder_bytes() {
     link_t link = ufr_publisher("@new posix:pipe");
@@ -110,6 +135,7 @@ void show_encoder_bytes() {
 
 int main() {
     // test1();
-    show_encoder_bytes();
-	return 0;
+    test_encoder_array();
+    // show_encoder_bytes();
+    return 0;
 }

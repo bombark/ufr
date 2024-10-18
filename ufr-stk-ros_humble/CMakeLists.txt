@@ -53,7 +53,9 @@ add_library(ufr_dcr_ros_humble SHARED
     src/ufr_dcr_string.cpp
     src/ufr_dcr_pose.cpp
     src/ufr_dcr_image.cpp
-    src/ufr_dcr_twist.cpp)
+    src/ufr_dcr_twist.cpp
+    src/ufr_dcr_laserscan.cpp
+    )
 ament_target_dependencies(ufr_dcr_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs)
 target_link_libraries(ufr_dcr_ros_humble ufr)
 install(TARGETS ufr_dcr_ros_humble DESTINATION lib)

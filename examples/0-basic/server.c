@@ -38,6 +38,18 @@
 uint8_t g_image_data[1024*1024];
 size_t g_image_size = 0;
 
+typedef struct {
+    float angle_min, angle_max, angle_increment;
+    float time_increment, scan_time;
+    float range_min, range_max;
+    size_t ranges_len;
+    float ranges[1200];
+    size_t intensities_len;
+    float intensities[1200];
+} lidar_t;
+
+lidar_t g_lidar;
+
 // ============================================================================
 //  Main
 // ============================================================================
@@ -45,15 +57,17 @@ size_t g_image_size = 0;
 int main() {
     // configure the output
     link_t server = ufr_server_st("@new zmq:socket @coder msgpack @debug 4");
-    link_t image = ufr_subscriber("@new zmq:topic @coder msgpack @port 3001 @debug 4");
+    link_t scan = ufr_subscriber("@new ros_humble:topic @msg laserscan @topic scan");
 
-    for (int i=0; i<1000; i++) {
+    for (int i=0; i<5000; i++) {
         char command[1024];
-        int topic_id = ufr_recv_2a(&server, &image, 100);
+        int topic_id = ufr_recv_2a(&server, &scan, 100);
         if ( topic_id < 0 ) {
             continue;
         }
-        printf("topic %d\n", topic_id);
+        // printf("topic %d\n", topic_id);
+        // ufr_recv(&server);
+        //int topic_id = 0;
 
         if ( topic_id == 0 ) {
             ufr_get(&server, "s\n", command);
@@ -68,7 +82,10 @@ int main() {
                 ufr_put_eof(&server);
 
             } else if ( strcmp(command, "scan") == 0 ) {
-                ufr_put(&server, "iii\n\n", 10, 20, 30);
+                // ufr_put(&server, "iii\n\n", 10, 20, 30);
+                ufr_put_af32(&server, g_lidar.ranges, 200);
+                ufr_put(&server, "\n");
+                ufr_put_eof(&server);
 
             } else if ( strcmp(command, "list") == 0 ) {
                 ufr_put(&server, "ss\n", "odom", "iii");
@@ -76,20 +93,29 @@ int main() {
                 ufr_put(&server, "ss\n", "scan", "af");
                 ufr_put_eof(&server);
             }
+
         } else if ( topic_id == 1 ) {
-            int rows, cols;
+            ufr_get(&scan, "fff", &g_lidar.angle_min, &g_lidar.angle_max, &g_lidar.angle_increment);
+            ufr_get(&scan, "ff", &g_lidar.time_increment, &g_lidar.scan_time);
+            ufr_get(&scan, "ff", &g_lidar.range_min, &g_lidar.range_max);
+            ufr_get(&scan, "af", g_lidar.ranges, 1200);
+            ufr_get(&scan, "af", g_lidar.intensities, 1200);
+
+            // printf("%f %f\n", g_lidar.angle_min, g_lidar.angle_max);
+
+        } else if ( topic_id == 3 ) {
+            /* int rows, cols;
             ufr_get(&image, "ii", &rows, &cols);
             printf("%d %d\n", rows, cols);
             const size_t image_size = ufr_get_size(&image); 
             const char* image_ptr = ufr_get_raw_ptr(&image);
             memcpy(g_image_data, image_ptr, image_size);
             g_image_size = image_size;
-            printf("tamanho %d\n", g_image_size);
+            printf("tamanho %d\n", g_image_size);*/
 
         } else {
             printf("erro %d\n", topic_id);
         }
-
     }
 
     // end

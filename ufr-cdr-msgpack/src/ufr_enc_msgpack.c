@@ -77,11 +77,11 @@ int ufr_enc_msgpack_put_u32(link_t* link, uint32_t val) {
 
 static
 int ufr_enc_msgpack_put_i32(link_t* link, int32_t val) {
-	ll_encoder_t* enc_obj = link->enc_obj;
-	if ( enc_obj ) {
-		msgpack_pack_int32(&enc_obj->pk, val);
-	}
-	return 0;
+    ll_encoder_t* enc_obj = link->enc_obj;
+    if ( enc_obj ) {
+        msgpack_pack_int32(&enc_obj->pk, val);
+    }
+    return 0;
 }
 
 static
@@ -125,21 +125,20 @@ int ufr_enc_msgpack_put_arr(link_t* link, const void* arr_ptr, char type, size_t
 
 static
 int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
-	ll_encoder_t* enc_obj = link->enc_obj;
-
-	if ( cmd == '\n' ) {
-		const size_t size = enc_obj->sbuf.size;
-		const char* data = enc_obj->sbuf.data;
-		ufr_write(link, data, size);
-		msgpack_sbuffer_clear(&enc_obj->sbuf);
+    ll_encoder_t* enc_obj = link->enc_obj;
+    if ( cmd == '\n' ) {
+        const size_t size = enc_obj->sbuf.size;
+        const char* data = enc_obj->sbuf.data;
+        ufr_write(link, data, size);
+        msgpack_sbuffer_clear(&enc_obj->sbuf);
     } else if ( cmd == EOF ) {
         ufr_write(link, NULL, 0);
         msgpack_sbuffer_clear(&enc_obj->sbuf);
-	} else {
+    } else {
         return ufr_error(link, 1, "Command %d not found", cmd);
     }
 
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
@@ -156,7 +155,7 @@ int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
 
 int ufr_enc_msgpack_enter_array(link_t* link, size_t maxsize) {
     ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
-	msgpack_pack_array(&enc_obj->pk, maxsize);
+    msgpack_pack_array(&enc_obj->pk, maxsize);
     return UFR_OK;
 }
 
