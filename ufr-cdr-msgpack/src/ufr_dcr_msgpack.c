@@ -23,7 +23,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
 //  Header
 // ============================================================================
@@ -38,10 +38,10 @@
 #include <ufr.h>
 
 typedef struct {
-	msgpack_unpacked result;
-	uint8_t* msg_data;
+    msgpack_unpacked result;
+    uint8_t* msg_data;
     uint8_t stack;
-	uint32_t msg_size;
+    uint32_t msg_size;
     size_t cursor;
     msgpack_object object;
 
@@ -66,7 +66,7 @@ static
 int ufr_dcr_msgpack_array_next(link_t* link) {
     ll_decoder_t* decoder = link->dcr_obj;
     decoder->l0_idx += 1;
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
@@ -98,7 +98,7 @@ char ufr_dcr_msgpack_array_get_type(link_t* link) {
         return 'r';
     }
 
-	return 0;
+    return 0;
 }
 
 static
@@ -143,150 +143,187 @@ uint8_t* ufr_dcr_msgpack_array_get_raw_ptr(link_t* link) {
 
 static
 int ufr_dcr_msgpack_array_get_raw(link_t* link, uint8_t* out_val, size_t maxlen) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 0;
-	}
-
-    size_t size = 0;
-    const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
-    const int type = item.type;
-	if ( type == MSGPACK_OBJECT_STR ) {
-        const char* ptr = item.via.str.ptr;
-        size = item.via.str.size;
-        // BUG: verificar se size eh maior que maxlen
-		memcpy(out_val, ptr, size);
-	} else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-        size = (maxlen < sizeof(uint64_t)) ? maxlen : sizeof(uint64_t);
-        memcpy(out_val, &item.via.u64, size);
-    } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
-        size = (maxlen < sizeof(int64_t)) ? maxlen : sizeof(uint64_t);
-        memcpy(out_val, &item.via.i64, size);
-    } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
-        size = (maxlen < sizeof(float)) ? maxlen : sizeof(float);
-        memcpy(out_val, &item.via.f64, size);
-    } else if ( type == MSGPACK_OBJECT_FLOAT64 ) {
-        size = (maxlen < sizeof(double)) ? maxlen : sizeof(double);
-        memcpy(out_val, &item.via.f64, size);
-    } else {
+    // get Decoder
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
         return 0;
+    }
+
+    // get item
+    size_t size = 0;
+    if ( decoder->l0_idx < decoder->l0_array.size ) {
+        const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
+        const int type = item.type;
+        if ( type == MSGPACK_OBJECT_STR ) {
+            const char* ptr = item.via.str.ptr;
+            size = item.via.str.size;
+            // BUG: verificar se size eh maior que maxlen
+            memcpy(out_val, ptr, size);
+        } else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+            size = (maxlen < sizeof(uint64_t)) ? maxlen : sizeof(uint64_t);
+            memcpy(out_val, &item.via.u64, size);
+        } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
+            size = (maxlen < sizeof(int64_t)) ? maxlen : sizeof(uint64_t);
+            memcpy(out_val, &item.via.i64, size);
+        } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
+            size = (maxlen < sizeof(float)) ? maxlen : sizeof(float);
+            memcpy(out_val, &item.via.f64, size);
+        } else if ( type == MSGPACK_OBJECT_FLOAT64 ) {
+            size = (maxlen < sizeof(double)) ? maxlen : sizeof(double);
+            memcpy(out_val, &item.via.f64, size);
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
     }
 
     // Success
     ufr_dcr_msgpack_array_next(link);
-	return size;
+    return size;
 }
 
 static
 int ufr_dcr_msgpack_array_get_str(link_t* link, char* out_val, size_t maxlen) {
+    // set "" as return default
     out_val[0] = '\0';
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 1;
-	}
 
-    const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
-    const int type = item.type;
-	if ( type == MSGPACK_OBJECT_STR ) {
-        const char* ptr = item.via.str.ptr;
-        const size_t size = item.via.str.size;
-        // BUG: verificar se size eh maior que maxlen
-		strncpy(out_val, ptr, size);
-        out_val[size] = '\0';
-	} else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		const size_t copied = snprintf(out_val, maxlen, "%lu", item.via.u64);
-        out_val[copied] = '\0';
-    } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
-        const size_t copied = snprintf(out_val, maxlen, "%ld", item.via.i64);
-        out_val[copied] = '\0';
-    } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
-        const size_t copied = snprintf(out_val, maxlen, "%g", item.via.f64);
-        out_val[copied] = '\0';
-    } else if ( type == MSGPACK_OBJECT_FLOAT64 ) {
-        const size_t copied = snprintf(out_val, maxlen, "%g", item.via.f64);
-        out_val[copied] = '\0';
-    } else {
+    // get Decoder
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
         return 1;
+    }
+
+    if ( decoder->l0_idx < decoder->l0_array.size ) {
+        const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
+        const int type = item.type;
+        if ( type == MSGPACK_OBJECT_STR ) {
+            const char* ptr = item.via.str.ptr;
+            const size_t size = item.via.str.size;
+            // BUG: verificar se size eh maior que maxlen
+            strncpy(out_val, ptr, size);
+            out_val[size] = '\0';
+        } else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+            const size_t copied = snprintf(out_val, maxlen, "%lu", item.via.u64);
+            out_val[copied] = '\0';
+        } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
+            const size_t copied = snprintf(out_val, maxlen, "%ld", item.via.i64);
+            out_val[copied] = '\0';
+        } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
+            const size_t copied = snprintf(out_val, maxlen, "%g", item.via.f64);
+            out_val[copied] = '\0';
+        } else if ( type == MSGPACK_OBJECT_FLOAT64 ) {
+            const size_t copied = snprintf(out_val, maxlen, "%g", item.via.f64);
+            out_val[copied] = '\0';
+        } else {
+            return 1;
+        }
+    } else {
+        return -1;
     }
 
     // Success
     ufr_dcr_msgpack_array_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_array_get_u32(link_t* link, uint32_t* val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return -1;
-	}
+    // set 0 as return default
+    *val = 0;
 
-	// return the value
-    const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
-    const int type = item.type;
-	if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		*val = (uint32_t) item.via.u64;
-    } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
-        *val = (uint32_t) item.via.i64;
-    } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
-        *val = (uint32_t) item.via.f64;
-	} else {
-		return -1;
-	}
+    // get Decoder
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return -1;
+    }
 
-	// success
+    // return the value
+    if ( decoder->l0_idx < decoder->l0_array.size ) {
+        const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
+        const int type = item.type;
+        if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+            *val = (uint32_t) item.via.u64;
+        } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
+            *val = (uint32_t) item.via.i64;
+        } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
+            *val = (uint32_t) item.via.f64;
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+
+    // success
     ufr_dcr_msgpack_array_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_array_get_i32(link_t* link, int32_t* val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return -1;
-	}
+    // set 0 as return default
+    *val = 0;
 
-	// return the value
-    const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
-    const int type = item.type;
-	if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		*val = (int) item.via.u64;
-    } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
-        *val = (int) item.via.i64;
-    } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
-        *val = (int) item.via.f64;
-	} else {
-		return -1;
-	}
+    // get Decoder
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return -1;
+    }
 
-	// success
+    // return the value
+    if ( decoder->l0_idx < decoder->l0_array.size ) {
+        const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
+        const int type = item.type;
+        if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+            *val = (int) item.via.u64;
+        } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
+            *val = (int) item.via.i64;
+        } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
+            *val = (int) item.via.f64;
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+
+    // success
     ufr_dcr_msgpack_array_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_array_get_f32(link_t* link, float* out_val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 0;
-	}
-
-    // return the value
-    const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
-    const int type = item.type;
-    if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-        *out_val = (float) item.via.u64;
-    } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
-        *out_val = (float) item.via.i64;
-    } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
-        *out_val = (float) item.via.f64;
-    } else {
-        
+    // set 0 as return default
+    *out_val = 0.0;
+    
+    // get Decoder
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return 0;
     }
 
-	// success
+    // return the value
+    if ( decoder->l0_idx < decoder->l0_array.size ) {
+        const msgpack_object item = decoder->l0_array.ptr[ decoder->l0_idx ];
+        const int type = item.type;
+        if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+            *out_val = (float) item.via.u64;
+        } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
+            *out_val = (float) item.via.i64;
+        } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
+            *out_val = (float) item.via.f64;
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+
+    // success
     ufr_dcr_msgpack_array_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 int ufr_dcr_msgpack_array_enter(link_t* link) {
@@ -300,10 +337,10 @@ int ufr_dcr_msgpack_array_leave(link_t* link) {
 
 static
 ufr_dcr_api_t ufr_dcr_msgpack_array_api = {
-	.boot = ufr_dcr_msgpack_array_boot,
-	.close = ufr_dcr_msgpack_array_close,
+    .boot = ufr_dcr_msgpack_array_boot,
+    .close = ufr_dcr_msgpack_array_close,
 
-	.recv_cb = ufr_dcr_msgpack_array_recv_cb,
+    .recv_cb = ufr_dcr_msgpack_array_recv_cb,
     .next = ufr_dcr_msgpack_array_next,
 
     .get_type = ufr_dcr_msgpack_array_get_type,
@@ -313,9 +350,9 @@ ufr_dcr_api_t ufr_dcr_msgpack_array_api = {
     .get_raw = ufr_dcr_msgpack_array_get_raw,
     .get_str = ufr_dcr_msgpack_array_get_str,
 
-	.get_u32 = ufr_dcr_msgpack_array_get_u32,
-	.get_i32 = ufr_dcr_msgpack_array_get_i32,
-	.get_f32 = ufr_dcr_msgpack_array_get_f32,
+    .get_u32 = ufr_dcr_msgpack_array_get_u32,
+    .get_i32 = ufr_dcr_msgpack_array_get_i32,
+    .get_f32 = ufr_dcr_msgpack_array_get_f32,
 
     .enter = ufr_dcr_msgpack_array_enter,
     .leave = ufr_dcr_msgpack_array_leave
@@ -328,13 +365,13 @@ ufr_dcr_api_t ufr_dcr_msgpack_array_api = {
 
 static
 int ufr_dcr_msgpack_boot(link_t* link, const ufr_args_t* args) {
-	ll_decoder_t* dcr_obj = malloc( sizeof(ll_decoder_t) );
-	if ( dcr_obj == NULL ) {
-		return ufr_error(link, ENOMEM, strerror(ENOMEM));
-	}
-	msgpack_unpacked_init(&dcr_obj->result);
-	link->dcr_obj = dcr_obj;
-	return UFR_OK;
+    ll_decoder_t* dcr_obj = malloc( sizeof(ll_decoder_t) );
+    if ( dcr_obj == NULL ) {
+        return ufr_error(link, ENOMEM, strerror(ENOMEM));
+    }
+    msgpack_unpacked_init(&dcr_obj->result);
+    link->dcr_obj = dcr_obj;
+    return UFR_OK;
 }
 
 static
@@ -348,14 +385,13 @@ void ufr_dcr_msgpack_close(link_t* link) {
 static
 int ufr_dcr_msgpack_next(link_t* link) {
     // parse the next object in the message
-	ll_decoder_t* decoder = link->dcr_obj;
-	size_t current = decoder->cursor;
-	msgpack_unpack_return ret = msgpack_unpack_next(&decoder->result, decoder->msg_data, decoder->msg_size, &current);
+    ll_decoder_t* decoder = link->dcr_obj;
+    size_t current = decoder->cursor;
+    msgpack_unpack_return ret = msgpack_unpack_next(&decoder->result, decoder->msg_data, decoder->msg_size, &current);
 
     // error
-	if ( ret != MSGPACK_UNPACK_SUCCESS ) {
+    if ( ret != MSGPACK_UNPACK_SUCCESS ) {
         // ufr_info(&link, "Error in the unpacking the message %ld\n", decoder->msg_size);
-        printf("aa %ld\n", decoder->msg_size);
 		decoder->object.type = MSGPACK_OBJECT_NIL;
         decoder->object.via.u64 = 0;
 		return -1;
@@ -369,9 +405,9 @@ int ufr_dcr_msgpack_next(link_t* link) {
 
 static
 void ufr_dcr_msgpack_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	decoder->msg_data = msg_data;
-	decoder->msg_size = msg_size;
+    ll_decoder_t* decoder = link->dcr_obj;
+    decoder->msg_data = msg_data;
+    decoder->msg_size = msg_size;
     decoder->cursor = 0;
     ufr_dcr_msgpack_next(link);
 }
@@ -405,7 +441,7 @@ char ufr_dcr_msgpack_get_type(link_t* link) {
 
 static
 size_t ufr_dcr_msgpack_get_size(link_t* link) {
-	ll_decoder_t* decoder = link->dcr_obj;
+    ll_decoder_t* decoder = link->dcr_obj;
     const int type = decoder->object.type;
     switch (type) {
         case MSGPACK_OBJECT_POSITIVE_INTEGER:
@@ -445,22 +481,22 @@ uint8_t* ufr_dcr_msgpack_get_raw_ptr(link_t* link) {
 
 static
 int ufr_dcr_msgpack_get_raw(link_t* link, uint8_t* out_val, size_t maxlen) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 0;
-	}
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return 0;
+    }
 
     size_t size = 0;
-	const int type = decoder->object.type;
+    const int type = decoder->object.type;
     if ( type == MSGPACK_OBJECT_BIN ) {
         const size_t object_size = decoder->object.via.bin.size;
         size = (maxlen < object_size) ? maxlen : object_size;
         memcpy(out_val, decoder->object.via.bin.ptr, size);
-	} else if ( type == MSGPACK_OBJECT_STR ) {
+    } else if ( type == MSGPACK_OBJECT_STR ) {
         const char* ptr = decoder->object.via.str.ptr;
         size = ( maxlen < decoder->object.via.str.size ) ? maxlen : decoder->object.via.str.size;
-		memcpy(out_val, ptr, size);
-	} else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+        memcpy(out_val, ptr, size);
+    } else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
         size = (maxlen < sizeof(uint64_t)) ? maxlen : sizeof(uint64_t);
         memcpy(out_val, &decoder->object.via.u64, size);
     } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
@@ -478,26 +514,26 @@ int ufr_dcr_msgpack_get_raw(link_t* link, uint8_t* out_val, size_t maxlen) {
 
     // Success
     ufr_dcr_msgpack_next(link);
-	return size;
+    return size;
 }
 
 static
 int ufr_dcr_msgpack_get_str(link_t* link, char* out_val, size_t maxlen) {
     out_val[0] = '\0';
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 1;
-	}
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return 1;
+    }
 
-	const int type = decoder->object.type;
-	if ( type == MSGPACK_OBJECT_STR ) {
+    const int type = decoder->object.type;
+    if ( type == MSGPACK_OBJECT_STR ) {
         const char* ptr = decoder->object.via.str.ptr;
         const size_t size = decoder->object.via.str.size;
         // BUG: verificar se size eh maior que maxlen
-		strncpy(out_val, ptr, size);
+        strncpy(out_val, ptr, size);
         out_val[size] = '\0';
-	} else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		const size_t copied = snprintf(out_val, maxlen, "%lu", decoder->object.via.u64);
+    } else if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+        const size_t copied = snprintf(out_val, maxlen, "%lu", decoder->object.via.u64);
         out_val[copied] = '\0';
     } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
         const size_t copied = snprintf(out_val, maxlen, "%ld", decoder->object.via.i64);
@@ -514,63 +550,63 @@ int ufr_dcr_msgpack_get_str(link_t* link, char* out_val, size_t maxlen) {
 
     // Success
     ufr_dcr_msgpack_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_get_u32(link_t* link, uint32_t* val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return -1;
-	}
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return -1;
+    }
 
-	// return the value
-	const int type = decoder->object.type;
-	if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		*val = (int) decoder->object.via.u64;
+    // return the value
+    const int type = decoder->object.type;
+    if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+        *val = (int) decoder->object.via.u64;
     } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
         *val = (int) decoder->object.via.i64;
     } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
         *val = (int) decoder->object.via.f64;
-	} else {
-		return -1;
-	}
+    } else {
+        return -1;
+    }
 
-	// success
+    // success
     ufr_dcr_msgpack_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_get_i32(link_t* link, int32_t* val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return -1;
-	}
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return -1;
+    }
 
-	// return the value
-	const int type = decoder->object.type;
-	if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
-		*val = (int) decoder->object.via.u64;
+    // return the value
+    const int type = decoder->object.type;
+    if ( type == MSGPACK_OBJECT_POSITIVE_INTEGER ) {
+        *val = (int) decoder->object.via.u64;
     } else if ( type == MSGPACK_OBJECT_NEGATIVE_INTEGER ) {
         *val = (int) decoder->object.via.i64;
     } else if ( type == MSGPACK_OBJECT_FLOAT32 ) {
         *val = (int) decoder->object.via.f64;
-	} else {
-		return -1;
-	}
+    } else {
+        return -1;
+    }
 
-	// success
+    // success
     ufr_dcr_msgpack_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_dcr_msgpack_get_f32(link_t* link, float* out_val) {
-	ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return 0;
-	}
+    ll_decoder_t* decoder = link->dcr_obj;
+    if ( decoder == NULL ) {
+        return 0;
+    }
 
     // return the value
     const int type = decoder->object.type;
@@ -584,28 +620,28 @@ int ufr_dcr_msgpack_get_f32(link_t* link, float* out_val) {
         
     }
 
-	// success
+    // success
     ufr_dcr_msgpack_next(link);
-	return UFR_OK;
+    return UFR_OK;
 }
 
 
 
 static
 int ufr_dcr_msgpack_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-	ll_decoder_t* load = link->dcr_obj;
-	if ( load == NULL ) {
-		return 1;
-	}
-/*
-	const msgpack_object obj = unpack_next_obj(link); 
-	if ( obj.type == MSGPACK_OBJECT_ARRAY ) {
-		// *str = obj.via.str.ptr;
-		return UFR_OK;
-	}
-*/
+    ll_decoder_t* load = link->dcr_obj;
+    if ( load == NULL ) {
+        return 1;
+    }
+    /*
+    const msgpack_object obj = unpack_next_obj(link); 
+    if ( obj.type == MSGPACK_OBJECT_ARRAY ) {
+        // *str = obj.via.str.ptr;
+        return UFR_OK;
+    }
+    */
 
-	return 1;
+    return 1;
 }
 
 static
@@ -652,14 +688,14 @@ int ufr_dcr_msgpack_copy_arr(link_t* link, char arr_type, size_t arr_size_max, s
 
 int ufr_dcr_msgpack_get_ai32(link_t* link, ufr_ai32_t* out_array) {
     ll_decoder_t* decoder = link->dcr_obj;
-	if ( decoder == NULL ) {
-		return ufr_error(link, 1, "decoder object is null");
-	}
+    if ( decoder == NULL ) {
+        return ufr_error(link, 1, "decoder object is null");
+    }
 
-	const int type = decoder->object.type;
+    const int type = decoder->object.type;
     if ( type != MSGPACK_OBJECT_ARRAY ) {
-		return ufr_error(link, 1, "item is not a array");
-	}
+        return ufr_error(link, 1, "item is not a array");
+    }
 
     // alloc memory for the copy
     const msgpack_object_array array = decoder->object.via.array;
@@ -682,10 +718,9 @@ int ufr_dcr_msgpack_get_ai32(link_t* link, ufr_ai32_t* out_array) {
 
 int ufr_dcr_msgpack_enter(link_t* link) {
     ll_decoder_t* decoder = link->dcr_obj;
-    printf("%d %d\n", decoder->object.type, MSGPACK_OBJECT_ARRAY);
-    /*if ( decoder->object.type != MSGPACK_OBJECT_ARRAY ) {
-		return -1;
-	}*/
+    if ( decoder->object.type != MSGPACK_OBJECT_ARRAY ) {
+        return -1;
+    }
 
     decoder->l0_array = decoder->object.via.array;
     decoder->l0_idx = 0;
@@ -700,10 +735,10 @@ int ufr_dcr_msgpack_leave(link_t* link) {
 
 static
 ufr_dcr_api_t ufr_dcr_msgpack_api = {
-	.boot = ufr_dcr_msgpack_boot,
-	.close = ufr_dcr_msgpack_close,
+    .boot = ufr_dcr_msgpack_boot,
+    .close = ufr_dcr_msgpack_close,
 
-	.recv_cb = ufr_dcr_msgpack_recv_cb,
+    .recv_cb = ufr_dcr_msgpack_recv_cb,
     .next = ufr_dcr_msgpack_next,
 
     // metadata
@@ -716,9 +751,9 @@ ufr_dcr_api_t ufr_dcr_msgpack_api = {
     .get_str = ufr_dcr_msgpack_get_str,
 
     // 32 bits
-	.get_u32 = ufr_dcr_msgpack_get_u32,
-	.get_i32 = ufr_dcr_msgpack_get_i32,
-	.get_f32 = ufr_dcr_msgpack_get_f32,
+    .get_u32 = ufr_dcr_msgpack_get_u32,
+    .get_i32 = ufr_dcr_msgpack_get_i32,
+    .get_f32 = ufr_dcr_msgpack_get_f32,
 
     // enter/leave
     .enter = ufr_dcr_msgpack_enter,
@@ -730,6 +765,6 @@ ufr_dcr_api_t ufr_dcr_msgpack_api = {
 // ============================================================================
 
 int ufr_dcr_msgpack_new(link_t* link, const int type) {
-	link->dcr_api = &ufr_dcr_msgpack_api;
-	return UFR_OK;
+    link->dcr_api = &ufr_dcr_msgpack_api;
+    return UFR_OK;
 }
