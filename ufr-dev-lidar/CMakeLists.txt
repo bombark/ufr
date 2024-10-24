@@ -26,4 +26,4 @@ add_library(lidar_sdk STATIC
 
 add_executable(ufr-dev-lidar ./src/main.cpp)
 
-target_link_libraries(ufr-dev-lidar ufr lidar_sdk)
+target_link_libraries(ufr-dev-lidar lidar_sdk pthread)

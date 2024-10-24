@@ -37,7 +37,7 @@
 // #include "std_srvs/Empty.h"
 #include <cstring>
 #include <math.h>
-#include <ufr.h>
+// #include <ufr.h>
 
 #include "sl_lidar.h"
 
@@ -57,7 +57,7 @@ using namespace sl;
 
 ILidarDriver * drv = NULL;
 
-link_t g_pub;
+// link_t g_pub;
 
 void publish_scan(
     // ros::Publisher *pub,
@@ -68,6 +68,8 @@ void publish_scan(
     float max_distance,
     std::string frame_id)
 {
+/*
+
     bool reversed = (angle_max > angle_min);
     if ( reversed ) {
         ufr_put(&g_pub, "ff", M_PI - angle_max, M_PI - angle_min);
@@ -108,6 +110,7 @@ printf("reverso\n");
 
 
     ufr_put(&g_pub, "\n");
+*/
 
     /*
     static int scan_count = 0;
@@ -274,7 +277,7 @@ int main(int argc, char * argv[]) {
     int tcp_port = 20108;
     std::string udp_ip;
     int udp_port = 8089;
-    std::string serial_port = "/dev/ttyUSB0";
+    std::string serial_port = argv[1];
     int serial_baudrate = 115200;
     std::string frame_id;
     bool inverted = false;
@@ -286,7 +289,7 @@ int main(int argc, char * argv[]) {
     float max_distance;
     double scan_frequency = 10.0;
 
-    g_pub = ufr_publisher("@new zmq:topic @coder msgpack @debug 4");
+    // g_pub = ufr_publisher("@new zmq:topic @coder msgpack @debug 4");
 
 /*
     ros::NodeHandle nh;
