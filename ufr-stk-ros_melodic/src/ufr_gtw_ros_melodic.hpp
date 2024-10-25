@@ -48,6 +48,7 @@ extern "C" {
     int ufr_enc_ros_melodic_new_string(link_t* link, int type);
 
     // decoders
+    int ufr_dcr_ros_melodic_new_i16(link_t* link, int type);
     int ufr_dcr_ros_melodic_new_pose(link_t* link, int type);
     int ufr_dcr_ros_melodic_new_twist(link_t* link, int type);
     int ufr_dcr_ros_melodic_new_string(link_t* link, int type);

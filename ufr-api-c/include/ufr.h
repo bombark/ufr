@@ -580,6 +580,7 @@ link_t ufr_sys_publisher22(const char* name, const char* params);
 int ufr_recv_2s(link_t* link0, link_t* link1, int time_ms);
 int ufr_recv_2a(link_t* link0, link_t* link1, int time_ms);
 
+int ufr_recv_3a(link_t* link0, link_t* link1, link_t* link2, int time_ms);
 
 // ============================================================================
 //  Dummy functions
