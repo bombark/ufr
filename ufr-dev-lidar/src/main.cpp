@@ -38,6 +38,7 @@
 #include <cstring>
 #include <math.h>
 #include <ufr.h>
+#include <unistd.h>
 
 #include "sl_lidar.h"
 
@@ -81,21 +82,31 @@ void publish_scan(
     const float range_min = 0.15;
     const float range_max = max_distance;
 
+printf("count %d\n", node_count);
+
     const bool reverse_data = (!inverted && reversed) || (inverted && !reversed);
-    float ranges[1300];
-    float intensities[1300];
     if (!reverse_data) {
-printf("normal\n");
+// printf("normal\n");
+        ufr_enter_array(&g_pub, node_count);
         for (size_t i = 0; i < node_count; i++) {
-            const float read_value = (float) nodes[i].dist_mm_q2/4.0f/1000;
+            float read_value = (float) nodes[i].dist_mm_q2/4.0f/1000;
             if (read_value == 0.0)
-                ranges[i] = std::numeric_limits<float>::infinity();
-            else
-                ranges[i] = read_value;
-            intensities[i] = (float) (nodes[i].quality >> 2);
+                read_value = std::numeric_limits<float>::infinity();
+            ufr_put(&g_pub, "f", read_value);
         }
+        ufr_leave_array(&g_pub);
+
+        ufr_enter_array(&g_pub, node_count);
+        for (size_t i = 0; i < node_count; i++) {
+            float intensity = (float) (nodes[i].quality >> 2);
+            ufr_put(&g_pub, "f", intensity);
+        }
+        ufr_leave_array(&g_pub);
     } else {
-printf("reverso\n");
+// printf("reverso\n");
+        float ranges[1300];
+        float intensities[1300];
+
         for (size_t i = 0; i < node_count; i++) {
             const float read_value = (float)nodes[i].dist_mm_q2/4.0f/1000;
             if (read_value == 0.0)
@@ -104,6 +115,18 @@ printf("reverso\n");
                 ranges[node_count-1-i] = read_value;
             intensities[node_count-1-i] = (float) (nodes[i].quality >> 2);
         }
+
+        ufr_enter_array(&g_pub, node_count);
+        for (size_t i = 0; i < node_count; i++) {
+            ufr_put(&g_pub, "f", ranges[i]);
+        }
+        ufr_leave_array(&g_pub);
+
+        ufr_enter_array(&g_pub, node_count);
+        for (size_t i = 0; i < node_count; i++) {
+            ufr_put(&g_pub, "f", intensities[i]);
+        }
+        ufr_leave_array(&g_pub);
     }
 
 
@@ -286,7 +309,7 @@ int main(int argc, char * argv[]) {
     float max_distance;
     double scan_frequency = 10.0;
 
-    g_pub = ufr_publisher("@new zmq:topic @coder msgpack @debug 4");
+    g_pub = ufr_publisher("@new zmq:topic @coder msgpack @debug 4 @port 3001");
 
 /*
     ros::NodeHandle nh;
@@ -366,6 +389,7 @@ int main(int argc, char * argv[]) {
             // ros::Time last_time = ros::Time::now();
             while (!getRPLIDARDeviceInfo(drv))
             {
+                usleep(500000);
                 // ros::Duration(0.5).sleep();
                 // if ( (ros::Time::now() - last_time) > ros::Duration(RESET_TIMEOUT) )
                 // {
