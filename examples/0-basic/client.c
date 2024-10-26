@@ -51,7 +51,7 @@ int main_complex() {
     return 0;
 }
 
-int main() {
+int main_socket() {
     // configure the output
     link_t link = ufr_client("@new zmq:socket @coder msgpack @debug 4");
 
@@ -91,7 +91,14 @@ int main_ros() {
 }
 
 
-
+int main() {
+    link_t link = ufr_subscriber("@new posix:timer");
+    for (int i=0; i<10; i++) {
+        printf("aqui\n");
+        ufr_recv(&link);
+    }
+    return 0;
+}
 
 
 

@@ -11,6 +11,7 @@ add_library(ufr_gtw_posix SHARED
     ./src/ufr_posix_socket_srv.c
     ./src/ufr_posix_socket_cli.c
     ./src/ufr_message.c
+    ./src/ufr_gtw_timer.c 
     )
 
 target_compile_options(ufr_gtw_posix PUBLIC -O1)
