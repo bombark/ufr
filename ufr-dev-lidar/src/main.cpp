@@ -58,7 +58,7 @@ using namespace sl;
 
 ILidarDriver * drv = NULL;
 
-link_t g_pub;
+// link_t g_pub;
 
 void publish_scan(
     // ros::Publisher *pub,
@@ -69,6 +69,8 @@ void publish_scan(
     float max_distance,
     std::string frame_id)
 {
+/*
+
     bool reversed = (angle_max > angle_min);
     if ( reversed ) {
         ufr_put(&g_pub, "ff", M_PI - angle_max, M_PI - angle_min);
@@ -131,6 +133,7 @@ printf("count %d\n", node_count);
 
 
     ufr_put(&g_pub, "\n");
+*/
 
     /*
     static int scan_count = 0;
@@ -297,7 +300,7 @@ int main(int argc, char * argv[]) {
     int tcp_port = 20108;
     std::string udp_ip;
     int udp_port = 8089;
-    std::string serial_port = "/dev/ttyUSB0";
+    std::string serial_port = argv[1];
     int serial_baudrate = 115200;
     std::string frame_id;
     bool inverted = false;

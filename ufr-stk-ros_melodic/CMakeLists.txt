@@ -16,6 +16,10 @@ add_library(ufr_enc_ros_melodic SHARED src/ufr_enc_image.cpp)
 target_link_libraries(ufr_enc_ros_melodic ufr ${catkin_LIBRARIES})
 install(TARGETS ufr_enc_ros_melodic DESTINATION lib)
 
+# Decoder
+add_library(ufr_dcr_ros_melodic SHARED src/ufr_dcr_i16.cpp)
+target_link_libraries(ufr_dcr_ros_melodic ufr ${catkin_LIBRARIES})
+install(TARGETS ufr_dcr_ros_melodic DESTINATION lib)
 
 
 # Tests

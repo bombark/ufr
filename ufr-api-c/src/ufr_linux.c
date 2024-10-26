@@ -525,11 +525,26 @@ int ufr_recv_2a(link_t* link0, link_t* link1, int time_ms) {
         }
         usleep(time_us);
     }
-    if ( ufr_recv_async(link0) == UFR_OK ) {
-        return 0;
-    }
-    if ( ufr_recv_async(link1) == UFR_OK ) {
-        return 1;
+    return -1;
+}
+
+int ufr_recv_3a(link_t* link0, link_t* link1, link_t* link2, int time_ms) {
+    // check the 2 links
+    uint8_t i = 0;
+    const uint8_t max = 4;
+    const int time_us = time_ms * 1000/max;
+    for(; i<max; i++) {
+        if ( ufr_recv_async(link0) == UFR_OK ) {
+            return 0;
+        }
+        if ( ufr_recv_async(link1) == UFR_OK ) {
+            return 1;
+        }
+        if ( ufr_recv_async(link2) == UFR_OK ) {
+            return 2;
+        }
+        usleep(time_us);
     }
     return -1;
 }
+

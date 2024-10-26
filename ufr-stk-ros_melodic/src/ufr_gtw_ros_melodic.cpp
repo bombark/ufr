@@ -38,8 +38,10 @@
 
 int g_ros_count = 0;
 
+Gateway* g_gtw = NULL;
+
 // ======================================================================================
-//  Subscribe
+//  Topic
 // ======================================================================================
 
 int ufr_ros_topic_type(const link_t* link) {
@@ -59,12 +61,16 @@ int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
         int argc = 1;
         char* argv[] = {"node"};
         ros::init(argc, argv, "node");
-        g_ros_count = 1;
     }
-    
-    Gateway* gtw = new Gateway();
-    link->gtw_obj = gtw;
 
+    g_ros_count += 1;
+    
+    if ( g_gtw == NULL ) {
+        g_gtw = new Gateway();
+    }
+    link->gtw_obj = g_gtw;
+
+    // link->gtw_obj = new Gateway();
     return UFR_OK;
 }
 
@@ -73,14 +79,19 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
 
     if ( type == UFR_START_SUBSCRIBER ) {
 
+        if ( msg == "i16" ) {
+            sys_ufr_load(link, "dcr", "ros_melodic:i16", type, args);
+            ufr_log(link, "loaded ros_melodic:i16");
+        }
+
     } else if ( type == UFR_START_PUBLISHER ) {
         if ( msg == "string" ) {
             // ufr_enc_ros_noetic_new_string(link, UFR_START_PUBLISHER);
             // ufr_boot_enc(link, args);
-            sys_ufr_load(link, "enc", "ros_melodic:string", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_melodic:string", type, args);
             ufr_log(link, "loaded ros_melodic:string");
         } else if ( msg == "image" ) {
-            sys_ufr_load(link, "enc", "ros_melodic:image", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_melodic:image", type, args);
             ufr_log(link, "loaded ros_melodic:image");
         }
     }
@@ -103,12 +114,18 @@ size_t ufr_ros_topic_write(link_t* link, const char* buffer, size_t length) {
 
 static
 int ufr_ros_topic_recv(link_t* link) {
+    if ( link->dcr_api && link->dcr_api->recv_cb ) {
+        link->dcr_api->recv_cb(link, NULL, 0);
+    }
     return UFR_OK;
 }
 
 static
 int ufr_ros_topic_recv_async(link_t* link) {
-    return UFR_OK;
+    if ( link->dcr_api && link->dcr_api->recv_cb ) {
+        return link->dcr_api->recv_async_cb(link, NULL, 0);
+    }
+    return -1;
 }
 
 static
@@ -127,14 +144,9 @@ ufr_gtw_api_t ufr_ros_melodic_topic_drv = {
     .recv_async = ufr_ros_topic_recv_async,
 };
 
-
-
-
-
-
-
-
-
+// ======================================================================================
+//  Socket
+// ======================================================================================
 
 struct Decoder {
     ros::master::V_TopicInfo topics;
@@ -152,7 +164,7 @@ int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
 }
 
 static
-int ufr_dcr_ros_humble_get_str(link_t* link, char** val) {
+int ufr_dcr_ros_humble_get_str(link_t* link, char* val, size_t size) {
     return 0;
 }
 
@@ -187,19 +199,14 @@ ufr_dcr_api_t ufr_dcr_ros_driver = {
     .get_type = NULL,
     .get_size = NULL,
     .get_raw_ptr = NULL,
+    .get_raw = NULL,
+    .get_str = ufr_dcr_ros_humble_get_str,
     .get_u32 = NULL,
     .get_i32 = NULL,
     .get_f32 = NULL,
-    .get_str = ufr_dcr_ros_humble_get_str,
-    .get_arr = NULL,
-    .get_ai32 = NULL,
-    .copy_str = ufr_dcr_ros_humble_copy_str,
-    .copy_arr = NULL,
-    .enter_array = NULL,
-    .leave_array = NULL
+    .enter = NULL,
+    .leave = NULL
 };
-
-
 
 int ufr_ros_socket_start(link_t* link, int type, const ufr_args_t* args) {
     if ( type == UFR_START_CLIENT ) {
@@ -209,11 +216,9 @@ int ufr_ros_socket_start(link_t* link, int type, const ufr_args_t* args) {
     return UFR_OK;
 }
 
-
-
 static
 ufr_gtw_api_t ufr_ros_melodic_socket_drv = {
-    .name = "ROS/Melodic:Topic",
+    .name = "ROS/Melodic:Socket",
     .type = ufr_ros_topic_type,
     .state = ufr_ros_topic_state,
     .size = ufr_ros_topic_size,
@@ -227,11 +232,8 @@ ufr_gtw_api_t ufr_ros_melodic_socket_drv = {
     .recv_async = ufr_ros_topic_recv_async,
 };
 
-
-
-
 // ======================================================================================
-//  Constructors
+//  Public Constructors
 // ======================================================================================
 
 extern "C" {
