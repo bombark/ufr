@@ -35,6 +35,7 @@
 #include "ufr_gtw_ros_humble.hpp"
 
 size_t g_ros_count = 0;
+ll_gateway_t* g_gateway = NULL;
 
 // ======================================================================================
 //  Subscribe
@@ -55,13 +56,13 @@ size_t ufr_ros_topic_size(const link_t* link, int type) {
 int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
     if ( g_ros_count == 0 ) {
         ufr_info(link, "ROS2 start");
-        const char *argv[] = {"./teste1", NULL};
+        const char *argv[] = {"./teste2", NULL};
         rclcpp::init(1, argv);
+        g_gateway = new ll_gateway_t();
     }
     g_ros_count += 1;
 
-    ll_gateway_t* gtw_obj = new ll_gateway_t();
-    link->gtw_obj = (void*) gtw_obj;
+    link->gtw_obj = (void*) g_gateway;
     return UFR_OK;
 }
 
@@ -70,26 +71,32 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
 
     if ( type == UFR_START_SUBSCRIBER ) {
         if ( msg == "laserscan" ) {
-            sys_ufr_load(link, "dcr", "ros_humble:laserscan", UFR_START_SUBSCRIBER, args);
+            sys_ufr_load(link, "dcr", "ros_humble:laserscan", type, args);
             ufr_log(link, "loaded ros_humble:laserscan");
+        } else if ( msg == "pose" ) {
+            sys_ufr_load(link, "dcr", "ros_humble:pose", type, args);
+            ufr_log(link, "loaded ros_humble:pose");
+        } else {
+            ufr_log(link, "error, message is not registered");
+            return 1;
         }
 
     } else if ( type == UFR_START_PUBLISHER ) {
 
         if ( msg == "twist" ) {
-            sys_ufr_load(link, "enc", "ros_humble:twist", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_humble:twist", type, args);
             ufr_log(link, "loaded ros_humble:twist");
         } else if ( msg == "pose" ) {
-            sys_ufr_load(link, "enc", "ros_humble:pose", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_humble:pose", type, args);
             ufr_log(link, "loaded ros_humble:pode");
         } else if ( msg == "string" ) {
-            sys_ufr_load(link, "enc", "ros_humble:string", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_humble:string", type, args);
             ufr_log(link, "loaded ros_humble:string");
         } else if ( msg == "image" ) {
-            sys_ufr_load(link, "enc", "ros_humble:image", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_humble:image", type, args);
             ufr_log(link, "loaded ros_humble:image");
         } else if ( msg == "laser_scan" ) {
-            sys_ufr_load(link, "enc", "ros_humble:laser_scan", UFR_START_PUBLISHER, args);
+            sys_ufr_load(link, "enc", "ros_humble:laser_scan", type, args);
             ufr_log(link, "loaded ros_humble:laser_scan");
         } else {
             ufr_log(link, "error, message is not registered");

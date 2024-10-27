@@ -40,7 +40,7 @@ public:
 
 public:
     ll_gateway_t() {
-        rclcpp::Node* node = new rclcpp::Node("teste");
+        rclcpp::Node* node = new rclcpp::Node("teste1");
         m_node.reset(node);
     }
 };
@@ -84,7 +84,7 @@ public:
     }
 
     void topic_callback(const T& msg) {
-        // printf("OPa %g\n", msg.angle_max);
+        printf("Opa\n");
         m_message = msg;
         m_is_received = true;
         index = 0;

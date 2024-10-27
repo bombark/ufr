@@ -87,7 +87,7 @@ endif(BUILD_TESTS)
 add_subdirectory(./ufr-app-filesystem)
 add_subdirectory(./ufr-app-proxy)
 
-# add_subdirectory(./ufr-stk-ros_humble)
+add_subdirectory(./ufr-stk-ros_humble)
 # add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 

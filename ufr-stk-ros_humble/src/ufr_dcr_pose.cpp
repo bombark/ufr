@@ -53,9 +53,30 @@ const size_t g_translation[6] = {
 // ============================================================================
 
 static
+int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+
+    std::string topic_name = ufr_args_gets(args, "@topic", "topico");
+    ll_decoder_t* dcr_obj = new ll_decoder_t(gtw_obj, topic_name);
+    link->dcr_obj = dcr_obj;
+    ufr_info(link, "subscribed topic %s with geometry/pose", topic_name.c_str());
+    return UFR_OK;
+}
+
+static
 int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
+        switch (dcr->index) {
+            case 0: *val = dcr->m_message.position.x; break;
+            case 1: *val = dcr->m_message.position.y; break;
+            case 2: *val = dcr->m_message.position.z; break;
+            case 3: *val = dcr->m_message.orientation.x; break;
+            case 4: *val = dcr->m_message.orientation.y; break;
+            case 5: *val = dcr->m_message.orientation.z; break;
+            case 6: *val = dcr->m_message.orientation.w; break;
+            default: break;
+        }
 
         // update the index
         dcr->index += 1;
@@ -67,6 +88,17 @@ static
 int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
+        switch (dcr->index) {
+            case 0: *val = dcr->m_message.position.x; break;
+            case 1: *val = dcr->m_message.position.y; break;
+            case 2: *val = dcr->m_message.position.z; break;
+            case 3: *val = dcr->m_message.orientation.x; break;
+            case 4: *val = dcr->m_message.orientation.y; break;
+            case 5: *val = dcr->m_message.orientation.z; break;
+            case 6: *val = dcr->m_message.orientation.w; break;
+            default: break;
+        }
+
         // update the index
         dcr->index += 1;
 	}
@@ -77,7 +109,17 @@ static
 int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
-
+printf("%d\n", dcr->index);
+        switch (dcr->index) {
+            case 0: *val = dcr->m_message.position.x; break;
+            case 1: *val = dcr->m_message.position.y; break;
+            case 2: *val = dcr->m_message.position.z; break;
+            case 3: *val = dcr->m_message.orientation.x; break;
+            case 4: *val = dcr->m_message.orientation.y; break;
+            case 5: *val = dcr->m_message.orientation.z; break;
+            case 6: *val = dcr->m_message.orientation.w; break;
+            default: break;
+        }
         // update the index
         dcr->index += 1;
 	}
@@ -96,16 +138,18 @@ int ufr_dcr_ros_humble_get_str(link_t* link, std::string& val) {
 static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     dcr->index = 0;
+    dcr->m_is_received = false;
 
     ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
     while ( dcr->m_is_received == false ) {
         rclcpp::spin_some(gtw_obj->m_node);
     }
-    dcr->m_is_received = false;
 }
 
 static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
+    .boot = ufr_dcr_ros_humble_boot,
+    .close = NULL,
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
     .get_u32 = ufr_dcr_ros_humble_get_u32,
     .get_i32 = ufr_dcr_ros_humble_get_i32,

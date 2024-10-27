@@ -24,7 +24,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
 //  Header
 // ============================================================================
@@ -91,12 +91,49 @@ int main_ros() {
 }
 
 
+#include <time.h>
+#include <sys/time.h>
+
+static
+time_t get_time_ms() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    const time_t milliseconds = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return milliseconds;
+}
+
+
 int main() {
-    link_t link = ufr_subscriber("@new posix:timer");
+    link_t timer = ufr_subscriber("@new posix:timer @time 250ms");
+    link_t pose = ufr_subscriber("@new ros_humble:topic @msg pose @topic /turtle1/pose");
+    // link_t motors = ufr_publisher("@new ros_humble:topic @msg twist @topic /turtle1/cmd_vel");
+
     for (int i=0; i<10; i++) {
-        printf("aqui\n");
-        ufr_recv(&link);
+        ufr_recv(&timer);
+        uint32_t time;
+        // ufr_get(&timer, "u", &time);
+
+        printf("time\n");
+
+        // update the robot pose
+        float pos_x, pos_y;
+        ufr_get(&pose, "^ff", &pos_x, &pos_y);
+        
+        printf("%f %f\n", pos_x, pos_y);
+        // verifica a posicao do robo
+        // calcula 
+        
+        // envia valores para os motores
+        // ufr_put(&motors, "ffffff\n", 0.0, 0.0, 0.0, 0.0, 0.0, 0.2);
     }
+
+    /*for (int i=0; i<5;) {
+        if ( ufr_recv_async(&link) == 0 ) {
+            time_t now = get_time_ms();
+            printf("time %ld\n", now);
+        }
+    }*/
+
     return 0;
 }
 

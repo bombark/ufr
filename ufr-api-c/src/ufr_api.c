@@ -438,7 +438,7 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 				} break;
 
 				case 'f': {
-					const double val = va_arg(list, double);
+					const float val = va_arg(list, float);
 					link->enc_api->put_f32(link, val);
 				} break;
 
