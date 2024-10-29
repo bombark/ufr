@@ -84,7 +84,6 @@ public:
     }
 
     void topic_callback(const T& msg) {
-        printf("Opa\n");
         m_message = msg;
         m_is_received = true;
         index = 0;

@@ -329,6 +329,9 @@ int ufr_boot_dcr(link_t* link, const ufr_args_t* args);
 int ufr_boot_enc(link_t* link, const ufr_args_t* args);
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args);
 
+int ufr_boot_publisher(link_t* link, const char* text);
+int ufr_boot_subscriber(link_t* link, const char* text);
+
 // ============================================================================
 //  Start
 // ============================================================================
@@ -395,6 +398,10 @@ void ufr_stop(link_t* link);
  * @param link 
  */
 void ufr_close(link_t* link);
+
+
+bool ufr_loop_ok();
+int ufr_put_loop_callback( int (*loop_callback)(void)  );
 
 // ============================================================================
 //  Receive, Read and Get

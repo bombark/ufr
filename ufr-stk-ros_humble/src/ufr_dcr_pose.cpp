@@ -32,21 +32,11 @@
 #include <ufr.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose.hpp"
+// #include "geometry_msgs/msg/pose.hpp"
+#include "turtlesim/msg/pose.hpp"
 #include "ufr_gtw_ros_humble.hpp"
 
-typedef ufr_ros_decoder_t<geometry_msgs::msg::Pose> ll_decoder_t;
-
-/*
-const size_t g_translation[6] = {
-    offsetof(geometry_msgs::msg::Twist, linear.x),
-    offsetof(geometry_msgs::msg::Twist, linear.y),
-    offsetof(geometry_msgs::msg::Twist, linear.z),
-    offsetof(geometry_msgs::msg::Twist, angular.x),
-    offsetof(geometry_msgs::msg::Twist, angular.y),
-    offsetof(geometry_msgs::msg::Twist, angular.z)
-};
-*/
+typedef ufr_ros_decoder_t<turtlesim::msg::Pose> ll_decoder_t;
 
 // ============================================================================
 //  Twist - Private
@@ -68,13 +58,11 @@ int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
         switch (dcr->index) {
-            case 0: *val = dcr->m_message.position.x; break;
-            case 1: *val = dcr->m_message.position.y; break;
-            case 2: *val = dcr->m_message.position.z; break;
-            case 3: *val = dcr->m_message.orientation.x; break;
-            case 4: *val = dcr->m_message.orientation.y; break;
-            case 5: *val = dcr->m_message.orientation.z; break;
-            case 6: *val = dcr->m_message.orientation.w; break;
+            case 0: *val = dcr->m_message.x; break;
+            case 1: *val = dcr->m_message.y; break;
+            case 2: *val = dcr->m_message.theta; break;
+            case 3: *val = dcr->m_message.linear_velocity; break;
+            case 4: *val = dcr->m_message.angular_velocity; break;
             default: break;
         }
 
@@ -89,13 +77,13 @@ int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
         switch (dcr->index) {
-            case 0: *val = dcr->m_message.position.x; break;
+            /*case 0: *val = dcr->m_message.position.x; break;
             case 1: *val = dcr->m_message.position.y; break;
             case 2: *val = dcr->m_message.position.z; break;
             case 3: *val = dcr->m_message.orientation.x; break;
             case 4: *val = dcr->m_message.orientation.y; break;
             case 5: *val = dcr->m_message.orientation.z; break;
-            case 6: *val = dcr->m_message.orientation.w; break;
+            case 6: *val = dcr->m_message.orientation.w; break;*/
             default: break;
         }
 
@@ -109,15 +97,21 @@ static
 int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
-printf("%d\n", dcr->index);
         switch (dcr->index) {
-            case 0: *val = dcr->m_message.position.x; break;
+            case 0: *val = dcr->m_message.x; break;
+            case 1: *val = dcr->m_message.y; break;
+            case 2: *val = dcr->m_message.theta; break;
+            case 3: *val = dcr->m_message.linear_velocity; break;
+            case 4: *val = dcr->m_message.angular_velocity; break;
+
+/*            case 0: *val = dcr->m_message.position.x; break;
             case 1: *val = dcr->m_message.position.y; break;
             case 2: *val = dcr->m_message.position.z; break;
             case 3: *val = dcr->m_message.orientation.x; break;
             case 4: *val = dcr->m_message.orientation.y; break;
             case 5: *val = dcr->m_message.orientation.z; break;
             case 6: *val = dcr->m_message.orientation.w; break;
+*/
             default: break;
         }
         // update the index
@@ -146,11 +140,21 @@ static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_
     }
 }
 
+static 
+int ufr_dcr_ros_humble_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
+    ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
+    dcr->m_is_received = false;
+    rclcpp::spin_some(gtw_obj->m_node);
+    return ( dcr->m_is_received == true ) ? UFR_OK : -1;
+}
+
 static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
     .boot = ufr_dcr_ros_humble_boot,
     .close = NULL,
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
+    .recv_async_cb = ufr_dcr_ros_humble_recv_async_cb,
     .get_u32 = ufr_dcr_ros_humble_get_u32,
     .get_i32 = ufr_dcr_ros_humble_get_i32,
     .get_f32 = ufr_dcr_ros_humble_get_f32,

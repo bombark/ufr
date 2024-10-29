@@ -49,7 +49,7 @@ bool ufr_gtw_pack_recv(link_t* link) {
 
 }
 
-bool ufr_gtw_pack_recv_async(link_t* link) {
+int ufr_gtw_pack_recv_async(link_t* link) {
 
 }
 

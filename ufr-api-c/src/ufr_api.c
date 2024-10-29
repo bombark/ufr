@@ -38,10 +38,35 @@
 #include "ufr.h"
 
 uint8_t g_default_log_level = 2;
+volatile bool g_is_ok = true;
+
+typedef int (*loop_callback)(void);
+uint8_t g_callback_array_count = 0;
+loop_callback g_callback_array[5] = {NULL, NULL, NULL, NULL, NULL};
 
 // ============================================================================
 //  Link - Meta
 // ============================================================================
+
+int ufr_put_loop_callback( int (*loop_callback)(void)  ) {
+    if ( g_callback_array_count < 5 ) {
+        g_callback_array[ g_callback_array_count ] = loop_callback;
+        g_callback_array_count += 1;
+        return UFR_OK;
+    }
+    return -1;
+}
+
+bool ufr_loop_ok() {
+    for (uint8_t i=0; i<g_callback_array_count; i++) {
+        if ( g_callback_array[i]() != UFR_OK ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 
 const char* ufr_api_name(const link_t* link) {
 	if ( link == NULL || link->gtw_api == NULL ) {
@@ -110,6 +135,64 @@ int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
     ufr_log_end(link, "gateway booted");
     return state;
 }
+
+int ufr_boot_subscriber(link_t* link, const char* text) {
+    if ( link == NULL || link->gtw_api == NULL ) {
+        return 1;
+    }
+
+    const ufr_args_t args = {.text=text};
+    int retval = ufr_boot_gtw(link, &args);
+    if ( retval == UFR_OK ) {
+        if ( link->dcr_api != NULL ) {
+            retval = ufr_boot_dcr(link, &args);
+        }
+    }
+
+    if ( retval == UFR_OK ) {
+        retval = ufr_start(link, UFR_START_SUBSCRIBER, &args);
+    }
+
+    return retval;
+}
+
+int ufr_boot_publisher(link_t* link, const char* text) {
+    if ( link == NULL || link->gtw_api == NULL ) {
+        return 1;
+    }
+    link->log_ident = 0;
+
+    const ufr_args_t args = {.text=text};
+    int retval = ufr_boot_gtw(link, &args);
+    if ( retval == UFR_OK ) {
+        if ( link->enc_api != NULL ) {
+            retval = ufr_boot_enc(link, &args);
+        }
+    }
+
+    if ( retval == UFR_OK ) {
+        retval = ufr_start(link, UFR_START_PUBLISHER, &args);
+    }
+
+    return retval;
+}
+
+int ufr_boot_server(link_t* link, const char* text) {
+    if ( link == NULL || link->gtw_api == NULL ) {
+        return 1;
+    }
+
+    const ufr_args_t args = {.text=text};
+    int retval = ufr_boot_gtw(link, &args);
+    if ( retval == UFR_OK && link->dcr_api != NULL ) {
+        retval = ufr_boot_dcr(link, &args);
+    }
+    if ( retval == UFR_OK && link->enc_api != NULL ) {
+        retval = ufr_boot_enc(link, &args);
+    }
+    return retval;
+}
+
 
 int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
     if ( link == NULL ) {
@@ -438,7 +521,7 @@ void ufr_put_va(link_t* link, const char* format, va_list list) {
 				} break;
 
 				case 'f': {
-					const float val = va_arg(list, float);
+					const float val = (float) va_arg(list, double);
 					link->enc_api->put_f32(link, val);
 				} break;
 

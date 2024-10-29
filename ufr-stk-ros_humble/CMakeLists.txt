@@ -29,6 +29,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(turtlesim REQUIRED)
 
 # Gateway
 add_library(ufr_gtw_ros_humble SHARED src/ufr_gtw_ros_humble.cpp)
@@ -56,7 +57,7 @@ add_library(ufr_dcr_ros_humble SHARED
     src/ufr_dcr_twist.cpp
     src/ufr_dcr_laserscan.cpp
     )
-ament_target_dependencies(ufr_dcr_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs)
+ament_target_dependencies(ufr_dcr_ros_humble rclcpp std_msgs geometry_msgs sensor_msgs turtlesim)
 target_link_libraries(ufr_dcr_ros_humble ufr)
 install(TARGETS ufr_dcr_ros_humble DESTINATION lib)
 

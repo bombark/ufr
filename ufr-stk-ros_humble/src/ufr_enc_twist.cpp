@@ -103,6 +103,7 @@ int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
 
 static
 int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
+
 	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {

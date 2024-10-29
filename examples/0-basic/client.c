@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ufr.h>
+#include <math.h>
 
 // ============================================================================
 //  Main
@@ -91,58 +92,48 @@ int main_ros() {
 }
 
 
-#include <time.h>
-#include <sys/time.h>
-
-static
-time_t get_time_ms() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    const time_t milliseconds = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    return milliseconds;
-}
-
-
 int main() {
     link_t timer = ufr_subscriber("@new posix:timer @time 250ms");
     link_t pose = ufr_subscriber("@new ros_humble:topic @msg pose @topic /turtle1/pose");
-    // link_t motors = ufr_publisher("@new ros_humble:topic @msg twist @topic /turtle1/cmd_vel");
+    link_t motors = ufr_publisher("@new ros_humble:topic @msg twist @topic /turtle1/cmd_vel");
+    float pos_x=0, pos_y=0, pos_th=0;
+    float target_x=5.0, target_y=1.0;
 
-    for (int i=0; i<10; i++) {
-        ufr_recv(&timer);
-        uint32_t time;
-        // ufr_get(&timer, "u", &time);
+    for (int i=0; i<2500; i++) {
+        const int id = ufr_recv_2a(&timer, &pose, 100);
+        if ( id == 0 ) {
+            printf("time\n");
 
-        printf("time\n");
+            // mostra a posicao do robo
+            printf("%f %f\n", pos_x, pos_y);
 
-        // update the robot pose
-        float pos_x, pos_y;
-        ufr_get(&pose, "^ff", &pos_x, &pos_y);
-        
-        printf("%f %f\n", pos_x, pos_y);
-        // verifica a posicao do robo
-        // calcula 
-        
-        // envia valores para os motores
-        // ufr_put(&motors, "ffffff\n", 0.0, 0.0, 0.0, 0.0, 0.0, 0.2);
+            // Calcula a velocidade linear
+            float vel = 0;
+            float dx = target_x - pos_x;
+            float dy = target_y - pos_y;
+            float distance = sqrt(dx*dx + dy*dy);
+            if ( distance > 0.125 ) {
+                vel = 0.125;
+            }
+
+            // Calcula a velocidade rotacional
+            float target_th = atan2( target_y-pos_y, target_x-pos_x );
+            float rotvel = target_th - pos_th;
+            if ( rotvel > 0.125 ) {
+                rotvel = 0.125;
+            } else if ( rotvel < -0.125 ) {
+                rotvel = -0.125;
+            }
+
+            // Mostra o resultado e envia para o topico
+            printf("angulo %f -> %f = %f %f\n", pos_th*180.0/M_PI, target_th*180.0/M_PI, vel, rotvel);
+            ufr_put(&motors, "ffffff\n", vel, 0.0, 0.0, 0.0, 0.0, rotvel);
+            
+        } else if ( id == 1 ) {
+            ufr_get(&pose, "^fff", &pos_x, &pos_y, &pos_th);
+        } 
     }
-
-    /*for (int i=0; i<5;) {
-        if ( ufr_recv_async(&link) == 0 ) {
-            time_t now = get_time_ms();
-            printf("time %ld\n", now);
-        }
-    }*/
-
     return 0;
 }
-
-
-
-
-
-
-
-
 
 

@@ -11,7 +11,7 @@ install(TARGETS subscriber DESTINATION examples)
 # install(TARGETS server DESTINATION examples)
 
 add_executable(client 0-basic/client.c)
-target_link_libraries(client ufr)
+target_link_libraries(client ufr m)
 install(TARGETS client DESTINATION examples)
 
 # add_executable(publisher_2topic 0-basic/publisher_2topic.c)
