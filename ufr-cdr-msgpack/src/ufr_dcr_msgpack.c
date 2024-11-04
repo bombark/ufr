@@ -70,8 +70,8 @@ int ufr_dcr_msgpack_array_next(link_t* link) {
 }
 
 static
-void ufr_dcr_msgpack_array_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
-
+int ufr_dcr_msgpack_array_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+    return UFR_OK;
 }
 
 static
@@ -404,12 +404,13 @@ int ufr_dcr_msgpack_next(link_t* link) {
 }
 
 static
-void ufr_dcr_msgpack_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_msgpack_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     ll_decoder_t* decoder = link->dcr_obj;
     decoder->msg_data = msg_data;
     decoder->msg_size = msg_size;
     decoder->cursor = 0;
     ufr_dcr_msgpack_next(link);
+    return UFR_OK;
 }
 
 static
@@ -739,6 +740,7 @@ ufr_dcr_api_t ufr_dcr_msgpack_api = {
     .close = ufr_dcr_msgpack_close,
 
     .recv_cb = ufr_dcr_msgpack_recv_cb,
+    .recv_async_cb = ufr_dcr_msgpack_recv_cb,
     .next = ufr_dcr_msgpack_next,
 
     // metadata

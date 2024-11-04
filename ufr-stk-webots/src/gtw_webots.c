@@ -53,18 +53,22 @@ int webots_loop_cb(void) {
 //  Gateway
 // ============================================================================
 
+static
 int    ufr_gtw_webots_type(const link_t* link) {
     return 0;
 }
 
+static
 int    ufr_gtw_webots_state(const link_t* link) {
     return 0;
 }
 
+static
 size_t ufr_gtw_webots_size(const link_t* link, int type) {
     return 0;
 }
 
+static
 int  ufr_gtw_webots_boot(link_t* link, const ufr_args_t* args) {
     // Library initialization
     static uint8_t is_initialized = 0;
@@ -78,10 +82,13 @@ int  ufr_gtw_webots_boot(link_t* link, const ufr_args_t* args) {
     const char* dev_type = ufr_args_gets(args, "@type", "");
     if ( strcmp(dev_type, "motors") == 0 ) {
         ufr_enc_webots_new_motors(link, UFR_START_PUBLISHER);
+        ufr_boot_enc(link, args);
     } else if ( strcmp(dev_type, "encoders") == 0 ) {
         ufr_dcr_webots_new_encoders(link, UFR_START_SUBSCRIBER);
+        ufr_boot_dcr(link, args);
     } else if ( strcmp(dev_type, "lidar") == 0 ) {
         ufr_dcr_webots_new_lidar(link, UFR_START_SUBSCRIBER);
+        ufr_boot_dcr(link, args);
     } else {
         ufr_log(link, "error");
     }
@@ -89,51 +96,62 @@ int  ufr_gtw_webots_boot(link_t* link, const ufr_args_t* args) {
     return UFR_OK;
 }
 
+static
 int  ufr_gtw_webots_start(link_t* link, int type, const ufr_args_t* args) {
-    
-
     return UFR_OK;
 }
 
+static
 void ufr_gtw_webots_stop(link_t* link, int type) {
 
 }
 
+static
 int  ufr_gtw_webots_copy(link_t* link, link_t* out) {
 
 }
 
+static
 size_t ufr_gtw_webots_read(link_t* link, char* buffer, size_t length) {
     return 0;
 }
 
+static
 size_t ufr_gtw_webots_write(link_t* link, const char* buffer, size_t length) {
     return 0;
 }
 
+static
 int ufr_gtw_webots_recv(link_t* link) {
-    if ( link->dcr_api != NULL ) {
+    if ( link->dcr_api != NULL  && link->dcr_api->recv_cb != NULL ) {
         link->dcr_api->recv_cb(link, NULL, 0);
         return UFR_OK;
     }
     return UFR_OK;
 }
 
+static
 int ufr_gtw_webots_recv_async(link_t* link) {
-
+    if ( link->dcr_api != NULL  && link->dcr_api->recv_async_cb != NULL ) {
+        link->dcr_api->recv_async_cb(link, NULL, 0);
+        return UFR_OK;
+    }
+    return UFR_OK;
 }
 
+static
 int ufr_gtw_webots_send(link_t* link) {
-
+    return UFR_OK;
 }
 
+static
 int ufr_gtw_webots_accept(link_t* link, link_t* out_client) {
-
+    return UFR_OK;
 }
 
-// tests
+static
 const char* ufr_gtw_webots_test_args(const link_t* link) {
-
+    return "";
 }
 
 static

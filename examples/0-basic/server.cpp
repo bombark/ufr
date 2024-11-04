@@ -119,9 +119,7 @@ printf("%d\n", scan_jpg.size());
             // ufr_get(&scan, "ff", &g_lidar.range_min, &g_lidar.range_max);
             ufr_get(&scan, "af", g_lidar.ranges, 1200);
             ufr_get(&scan, "af", g_lidar.intensities, 1200);
-
             printf("%f %f\n", g_lidar.angle_min, g_lidar.angle_max);
-            
 
         } else if ( topic_id == 3 ) {
             /* int rows, cols;

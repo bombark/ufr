@@ -141,7 +141,7 @@ typedef struct {
     void (*close)(struct _link* link);
 
     // receive callback
-	void (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
+	int (*recv_cb)(struct _link* link, char* msg_data, size_t msg_size);
     int (*recv_async_cb)(struct _link* link, char* msg_data, size_t msg_size);
 
     // Next item

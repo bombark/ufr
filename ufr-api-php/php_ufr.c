@@ -248,10 +248,25 @@ PHP_FUNCTION(ufr_put) {
         if ( c == 'i' ) {           
             if ( Z_TYPE(varargs[i_v]) == IS_LONG ) {
                 ufr_put(link, "i", Z_LVAL(varargs[i_v]));
+            } else if ( Z_TYPE(varargs[i_v]) == IS_DOUBLE ) {
+                ufr_put(link, "i", Z_LVAL(varargs[i_v]));
             } else if ( Z_TYPE(varargs[i_v]) == IS_STRING ) {
                 const char* val_str = Z_STRVAL(varargs[i_v]);
                 const int64_t val_i64 = atoi(val_str);
                 ufr_put(link, "i", val_i64);
+            }
+            i_v += 1;
+
+        // send Float
+        } else if ( c == 'f' ) {
+            if ( Z_TYPE(varargs[i_v]) == IS_LONG ) {
+                ufr_put(link, "f", Z_DVAL(varargs[i_v]));
+            } else if ( Z_TYPE(varargs[i_v]) == IS_DOUBLE ) {
+                ufr_put(link, "f", Z_DVAL(varargs[i_v]));
+            } else if ( Z_TYPE(varargs[i_v]) == IS_STRING ) {
+                const char* val_str = Z_STRVAL(varargs[i_v]);
+                const float val_f32 = atof(val_str);
+                ufr_put(link, "f", val_f32);
             }
             i_v += 1;
 
@@ -267,6 +282,7 @@ PHP_FUNCTION(ufr_put) {
             }
             i_v += 1;
 
+        // end of message
         } else if ( c == '\n' ) {
             ufr_put(link, "\n");
 
@@ -310,23 +326,34 @@ PHP_FUNCTION(ufr_get) {
             if ( ufr_recv(link) != UFR_OK ) {
                 RETURN_FALSE;
             }
+
         } else if ( c == 'i' ) {
             int64_t val_i64 = 0;
             if ( ufr_get(link, "i", &val_i64) > 0 ) {
                 add_next_index_long(return_value, val_i64);
                 count += 1;
             }
+
+        } else if ( c == 'f' ) {
+            float val_f32 = 0;
+            if ( ufr_get(link, "f", &val_f32) > 0 ) {
+                add_next_index_double(return_value, val_f32);
+                count += 1;
+            }
+
         } else if ( c == 's' ) {
             char val_str[1024];
             if ( ufr_get(link, "s", val_str) > 0 ) {
                 add_next_index_string(return_value, val_str);
                 count += 1;
             }
+
         } else if ( c == 'b' ) {
             const size_t val_size = ufr_get_size(link);
             const char* val_str = ufr_get_raw_ptr(link);
             add_next_index_stringl(return_value, val_str, val_size);
             count += 1;
+
         } else if ( c == 'a' ) {
             zval array;
             array_init(&array);
@@ -340,7 +367,11 @@ PHP_FUNCTION(ufr_get) {
             add_next_index_zval(return_value, &array);
             // zval_ptr_dtor(&array);
             count += 1;
+
+        } else if ( c == '\n' ) {
+            ufr_get_eof(link);
         }
+
     }
 
     //

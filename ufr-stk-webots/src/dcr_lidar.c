@@ -15,7 +15,7 @@ typedef struct {
     float const* values_ptr;
     uint32_t values_size;
     int max_range;
-    uint8_t index;
+    uint16_t index;
 } decoder_t;
 
 // ============================================================================
@@ -29,11 +29,12 @@ int ufr_dcr_lidar_boot(link_t* link, const ufr_args_t* args) {
     dcr->index = 0;
     dcr->values_ptr = NULL;
 
-    // get sensor for both wheels
+    // get sensor for both wheel
+    const int time_step = ufr_gtw_webots_get_time_step();
     dcr->lidar = wb_robot_get_device("RPlidar A2");
-    dcr->values_size = wb_lidar_get_horizontal_resolution(dcr->lidar);
-    dcr->max_range = wb_lidar_get_max_range(dcr->lidar);
-    wb_lidar_enable(dcr->lidar, 100);
+    dcr->values_size = 0;
+    dcr->max_range = 0;
+    wb_lidar_enable(dcr->lidar, time_step);
 
     // success
     link->dcr_obj = dcr;
@@ -63,10 +64,15 @@ uint8_t* ufr_dcr_lidar_get_raw_ptr(link_t* link) {
 }
 
 static
-void ufr_dcr_lidar_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_lidar_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
-    dcr->values_ptr = wb_lidar_get_range_image(dcr->lidar);
-    dcr->index = 0;
+    if ( dcr ) {
+        dcr->values_ptr = wb_lidar_get_range_image(dcr->lidar);
+        dcr->values_size = wb_lidar_get_horizontal_resolution(dcr->lidar);
+        dcr->max_range = wb_lidar_get_max_range(dcr->lidar);
+        dcr->index = 0;
+    }
+    return UFR_OK;
 }
 
 static
@@ -128,6 +134,7 @@ ufr_dcr_api_t dcr_lidar_api = {
     .boot = ufr_dcr_lidar_boot,
     .close = ufr_dcr_lidar_close,
 	.recv_cb = ufr_dcr_lidar_recv_cb,
+    .recv_async_cb = ufr_dcr_lidar_recv_cb,
 
     .get_type = ufr_dcr_lidar_get_type,
     .get_size = ufr_dcr_lidar_get_size,

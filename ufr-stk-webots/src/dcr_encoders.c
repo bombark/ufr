@@ -7,8 +7,9 @@
 #include <string.h>
 #include <webots/position_sensor.h>
 #include <webots/robot.h>
+#include <ufr.h>
 
-#include "ufr.h"
+#include "ufr_webots.h"
 
 typedef struct {
     WbDeviceTag left;
@@ -47,11 +48,16 @@ void ufr_dcr_encoder_close(link_t* link) {
 }
 
 static
-void ufr_dcr_encoder_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_encoder_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     dcr_encoders_t* dcr = (dcr_encoders_t*) link->dcr_obj;
-    dcr->wheel_left = wb_position_sensor_get_value(dcr->left);
-    dcr->wheel_right = wb_position_sensor_get_value(dcr->right);
-    dcr->index = 0;
+    if ( dcr ) {
+        dcr->wheel_left = wb_position_sensor_get_value(dcr->left);
+        dcr->wheel_right = wb_position_sensor_get_value(dcr->right);
+        dcr->index = 0;
+    } else {
+        ufr_fatal(link, 1, "dcr is not booted");
+    }
+    return UFR_OK;
 }
 
 static
@@ -60,7 +66,7 @@ int ufr_dcr_encoder_get_u32(link_t* link, uint32_t* val) {
     switch (dcr->index) {
         case 0: *val = dcr->wheel_left; break;
         case 1: *val = dcr->wheel_right; break;
-        default: break;
+        default: *val = 0; break;
     }
     dcr->index += 1;
     return UFR_OK;
@@ -72,20 +78,20 @@ int ufr_dcr_encoder_get_i32(link_t* link, int32_t* val) {
     switch (dcr->index) {
         case 0: *val = dcr->wheel_left; break;
         case 1: *val = dcr->wheel_right; break;
-        default: break;
+        default: *val = 0; break;
     }
     dcr->index += 1;
     return UFR_OK;
 }
 
 static
-int ufr_dcr_encoder_get_f32(link_t* link, float* ret_val) {
+int ufr_dcr_encoder_get_f32(link_t* link, float* val) {
     dcr_encoders_t* dcr = (dcr_encoders_t*) link->dcr_obj;
     if ( dcr ) {
         switch (dcr->index) {
-            case 0: *ret_val = dcr->wheel_left; break;
-            case 1: *ret_val = dcr->wheel_right; break;
-            default: break;
+            case 0: *val = dcr->wheel_left; break;
+            case 1: *val = dcr->wheel_right; break;
+            default: *val = 0; break;
         }
         dcr->index += 1;
     } else {
@@ -100,27 +106,12 @@ int ufr_dcr_encoder_get_str(link_t* link, char* ret_val, size_t size) {
 }
 
 static
-int ufr_dcr_encoder_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
+int ufr_dcr_encoder_enter(link_t* link) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_encoder_copy_str(link_t* link, char* ret_val, size_t size_max) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_encoder_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_encoder_enter_array(link_t* link) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_encoder_leave_array(link_t* link) {
+int ufr_dcr_encoder_leave(link_t* link) {
     return UFR_OK;
 }
 
@@ -129,14 +120,15 @@ ufr_dcr_api_t dcr_encoder_api = {
     .boot = ufr_dcr_encoder_boot,
     .close = ufr_dcr_encoder_close,
 	.recv_cb = ufr_dcr_encoder_recv_cb,
+    .recv_async_cb = ufr_dcr_encoder_recv_cb,
 
 	.get_u32 = ufr_dcr_encoder_get_u32,
 	.get_i32 = ufr_dcr_encoder_get_i32,
 	.get_f32 = ufr_dcr_encoder_get_f32,
 	.get_str = ufr_dcr_encoder_get_str,
 
-    .enter = ufr_dcr_encoder_enter_array,
-    .leave = ufr_dcr_encoder_leave_array
+    .enter = ufr_dcr_encoder_enter,
+    .leave = ufr_dcr_encoder_leave
 };
 
 // ============================================================================

@@ -137,7 +137,7 @@ int ufr_enc_motors_put_cmd(link_t* link, char cmd) {
     if ( cmd == '\n' ) {
         const double speed_left = enc->vel - enc->rotvel * 0.125; // HALF_DISTANCE_BETWEEN_WHEELS
         const double speed_right = enc->vel + enc->rotvel * 0.125; // HALF_DISTANCE_BETWEEN_WHEELS
-        printf("%f %f\n", speed_left, speed_right);
+// printf("%f %f\n", speed_left, speed_right);
         wb_motor_set_velocity(enc->left, speed_left);
         wb_motor_set_velocity(enc->right, speed_right);
         ufr_enc_motors_clear(link);
