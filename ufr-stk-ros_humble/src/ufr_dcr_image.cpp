@@ -37,16 +37,7 @@
 
 typedef ufr_ros_decoder_t<sensor_msgs::msg::Image> ll_decoder_t;
 
-/*const size_t g_translation[6] = {
-    offsetof(sensor_msgs::msg::Image, linear.x),
-    offsetof(sensor_msgs::msg::Image, linear.y),
-    offsetof(sensor_msgs::msg::Image, linear.z),
-    offsetof(sensor_msgs::msg::Image, angular.x),
-    offsetof(sensor_msgs::msg::Image, angular.y),
-    offsetof(sensor_msgs::msg::Image, angular.z)
-};*/
-
-// ============================================================================
+// ============================================================================l
 //  Image - Private
 // ============================================================================
 
@@ -91,24 +82,27 @@ int ufr_dcr_ros_humble_get_str(link_t* link, std::string& val) {
 	return 0;
 }
 
-static void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+static 
+int ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
-    dcr->index = 0;
+    ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
+    return dcr->recv(gtw);
+}
 
-    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
-    while ( dcr->m_is_received == false ) {
-        rclcpp::spin_some(gtw_obj->m_node);
-    }
-    dcr->m_is_received = false;
+static 
+int ufr_dcr_ros_humble_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
+    ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
+    ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
+    return dcr->recv_async(gtw);
 }
 
 static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
-	.get_u32 = ufr_dcr_ros_humble_get_u32,
-	.get_i32 = ufr_dcr_ros_humble_get_i32,
-	.get_f32 = ufr_dcr_ros_humble_get_f32,
-	// .get_str = ufr_dcr_ros_humble_get_str
+    .get_u32 = ufr_dcr_ros_humble_get_u32,
+    .get_i32 = ufr_dcr_ros_humble_get_i32,
+    .get_f32 = ufr_dcr_ros_humble_get_f32,
+    // .get_str = ufr_dcr_ros_humble_get_str
 };
 
 // ============================================================================

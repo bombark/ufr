@@ -75,7 +75,7 @@ int ufr_ecr_ros_put_raw(struct _link* link, const uint8_t* val, size_t size) {
 
 
 static
-int ufr_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_ros_humble_put_u32(link_t* link, uint32_t val) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -93,7 +93,7 @@ int ufr_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
 }
 
 static
-int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
+int ufr_enc_ros_humble_put_i32(link_t* link, int32_t val) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -111,7 +111,7 @@ int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
 }
 
 static
-int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
+int ufr_enc_ros_humble_put_f32(link_t* link, float val) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
@@ -129,7 +129,7 @@ int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
 }
 
 static
-int ufr_enc_ros_twist_put_str(link_t* link, const char* val) {
+int ufr_enc_ros_humble_put_str(link_t* link, const char* val) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( enc_obj ) {
 
@@ -138,7 +138,7 @@ int ufr_enc_ros_twist_put_str(link_t* link, const char* val) {
 }
 
 static
-int ufr_enc_ros_twist_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
+int ufr_enc_ros_humble_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( type == 'i' ) {
 		
@@ -154,7 +154,7 @@ int ufr_ecr_ros_humble_put_cmd(link_t* link, char cmd) {
 	if ( cmd == '\n' ) {
 		enc_obj->publisher->publish(enc_obj->message);
         enc_obj->index = 0;
-        ufr_info(link, "sent message geometry/twist");
+        ufr_info(link, "sent message sensor_msgs/Image");
 	}
 	return 0;
 }
@@ -169,18 +169,18 @@ ufr_enc_api_t ufr_enc_ros_image = {
     .put_u8 = NULL,
     .put_i8 = NULL,
     .put_cmd = ufr_ecr_ros_humble_put_cmd,
-    .put_str = ufr_enc_ros_twist_put_str,
+    .put_str = ufr_enc_ros_humble_put_str,
     .put_raw = ufr_ecr_ros_put_raw,
 
-    .put_u32 = ufr_enc_ros_twist_put_u32,
-    .put_i32 = ufr_enc_ros_twist_put_i32,
-    .put_f32 = ufr_enc_ros_twist_put_f32,
+    .put_u32 = ufr_enc_ros_humble_put_u32,
+    .put_i32 = ufr_enc_ros_humble_put_i32,
+    .put_f32 = ufr_enc_ros_humble_put_f32,
 
     .put_u64 = NULL,
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-    .put_arr = ufr_enc_ros_twist_put_arr,
+    .put_arr = ufr_enc_ros_humble_put_arr,
     .put_mat = NULL,
 
     .enter_array = NULL,

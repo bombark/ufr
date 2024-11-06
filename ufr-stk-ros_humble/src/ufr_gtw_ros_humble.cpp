@@ -38,6 +38,17 @@ size_t g_ros_count = 0;
 ll_gateway_t* g_gateway = NULL;
 
 // ======================================================================================
+//  Header
+// ======================================================================================
+
+static
+int ufr_ros_humble_loop_cb(void) {
+    return ( rclcpp::ok() ) ? UFR_OK : 1;
+}
+
+
+
+// ======================================================================================
 //  Subscribe
 // ======================================================================================
 
@@ -59,6 +70,7 @@ int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
         const char *argv[] = {"./teste2", NULL};
         rclcpp::init(1, argv);
         g_gateway = new ll_gateway_t();
+        ufr_put_loop_callback( ufr_ros_humble_loop_cb );
     }
     g_ros_count += 1;
 
@@ -76,6 +88,9 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
         } else if ( msg == "pose" ) {
             sys_ufr_load(link, "dcr", "ros_humble:pose", type, args);
             ufr_log(link, "loaded ros_humble:pose");
+        } else if ( msg == "twist" ) {
+            sys_ufr_load(link, "dcr", "ros_humble:twist", type, args);
+            ufr_log(link, "loaded ros_humble:twist");
         } else {
             ufr_log(link, "error, message is not registered");
             return 1;

@@ -71,11 +71,11 @@ int ufr_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
             case 0: enc_obj->message.linear.x = val; break;
-            case 1: enc_obj->message.linear.y = val; break;
+            case 5: enc_obj->message.linear.y = val; break;
             case 2: enc_obj->message.linear.z = val; break;
             case 3: enc_obj->message.angular.x = val; break;
             case 4: enc_obj->message.angular.y = val; break;
-            case 5: enc_obj->message.angular.z = val; break;
+            case 1: enc_obj->message.angular.z = val; break;
             default: break;
         }
         enc_obj->index += 1;
@@ -89,11 +89,11 @@ int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
             case 0: enc_obj->message.linear.x = val; break;
-            case 1: enc_obj->message.linear.y = val; break;
+            case 5: enc_obj->message.linear.y = val; break;
             case 2: enc_obj->message.linear.z = val; break;
             case 3: enc_obj->message.angular.x = val; break;
             case 4: enc_obj->message.angular.y = val; break;
-            case 5: enc_obj->message.angular.z = val; break;
+            case 1: enc_obj->message.angular.z = val; break;
             default: break;
         }
         enc_obj->index += 1;
@@ -108,11 +108,11 @@ int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
 	if ( enc_obj ) {
 		switch(enc_obj->index) {
             case 0: enc_obj->message.linear.x = val; break;
-            case 1: enc_obj->message.linear.y = val; break;
+            case 5: enc_obj->message.linear.y = val; break;
             case 2: enc_obj->message.linear.z = val; break;
             case 3: enc_obj->message.angular.x = val; break;
             case 4: enc_obj->message.angular.y = val; break;
-            case 5: enc_obj->message.angular.z = val; break;
+            case 1: enc_obj->message.angular.z = val; break;
             default: break;
         }
         enc_obj->index += 1;

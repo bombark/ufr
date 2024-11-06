@@ -131,7 +131,7 @@ int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
         const char* data = enc_obj->sbuf.data;
         ufr_write(link, data, size);
         msgpack_sbuffer_clear(&enc_obj->sbuf);
-    } else if ( cmd == EOF ) {
+    } else if ( cmd == (char) EOF ) {
         ufr_write(link, NULL, 0);
         msgpack_sbuffer_clear(&enc_obj->sbuf);
     } else {

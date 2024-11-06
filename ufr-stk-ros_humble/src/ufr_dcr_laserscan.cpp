@@ -173,22 +173,17 @@ int ufr_dcr_ros_humble_get_str(link_t* link, std::string& val) {
 }
 
 static 
-void ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_ros_humble_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
-    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
-    while ( dcr->m_is_received == false ) {
-        rclcpp::spin_some(gtw_obj->m_node);
-    }
-    dcr->m_is_received = false;
+    ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
+    return dcr->recv(gtw);
 }
 
 static 
 int ufr_dcr_ros_humble_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
-    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
-    dcr->m_is_received = false;
-    rclcpp::spin_some(gtw_obj->m_node);
-    return ( dcr->m_is_received == true ) ? UFR_OK : -1;
+    ll_gateway_t* gtw = (ll_gateway_t*) link->gtw_obj;
+    return dcr->recv_async(gtw);
 }
 
 static 
