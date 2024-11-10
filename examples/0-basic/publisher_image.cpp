@@ -38,97 +38,90 @@ using namespace std;
 using namespace cv;
 
 // ============================================================================
+//  Private
+// ============================================================================
+
+int get_frame_and_send(VideoCapture& cap, link_t* topic, int count) {
+    Mat frame;
+    cap >> frame;
+
+    // If the frame is empty, break immediately
+    if (frame.empty()) {
+        return 1;
+    }
+
+    // Dont send the frame, decrease the framerate
+    if ( (count % 4) != 0 ) {
+        return UFR_OK;
+    }
+
+    // convert from bgr to rgb
+    // printf("%d\n", count);
+    Mat frame_rgb;
+    cvtColor(frame, frame_rgb, cv::COLOR_BGR2RGB);
+
+    // send the image
+    ufr_put(topic, "s", "rgb8");
+    ufr_put(topic, "iii", frame_rgb.rows, frame_rgb.cols, frame_rgb.cols*3);
+    ufr_put_raw(topic, frame_rgb.data, frame_rgb.total()*3);
+    ufr_put(topic, "\n");
+
+    return UFR_OK;
+}
+
+// ============================================================================
 //  Main
 // ============================================================================
 
-int main() {
-    // Begin
-    // link_t topic = ufr_sys_publisher22("video", "@new zmq:topic @coder msgpack @port 4000");
-    // link_t topic = ufr_publisher("@new video:topic @@new zmq:topic @@coder msgpack @@port 3000");
-    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @port 3001");
-    VideoCapture cap(0); 
-    
-    // Check if camera opened successfully
-    if (!cap.isOpened()) {
+int main(int argc, char** argv) {
+    // Open the first camera
+    VideoCapture cap_1(0); 
+    if ( !cap_1.isOpened() ) {
         cout << "Error opening video stream or file" << endl;
         return -1;
     }
-    
-    vector<uchar> buf;
-    for(int i=0; i<100; i++) {
-        Mat frame;
-        cap >> frame;
-  
-        // If the frame is empty, break immediately
-        if (frame.empty()) {
-            break;
-        }
- 
-        imencode(".jpg", frame, buf);
-        ufr_put(&topic, "ii", frame.rows, frame.cols);
-        // ufr_put_raw(&topic, (uint8_t*) frame.data, frame.total() );
-        ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
-        ufr_put(&topic, "\n");
-        
-        // Display the resulting frame
-        // imshow( "Frame", frame );
- 
-        // Press  ESC on keyboard to exit
-        char c = (char) waitKey(1000);
-        if( c == 27 ) {
-            break;
-        }
-    }
-  
-    // When everything done, release the video capture object
-    cap.release();
-    destroyAllWindows();
-   
-    // fim
-    return 0;
-}
+    // cap_1.set(CV_CAP_PROP_FPS, 24);
 
-int main_origin() {
-    // Begin
-    link_t topic = ufr_publisher("@new zmq:topic @coder msgpack @debug 4 @port 4000");
-    VideoCapture cap(0); 
-    
-    // Check if camera opened successfully
-    if (!cap.isOpened()) {
-        cout << "Error opening video stream or file" << endl;
-        return -1;
-    }
-    
-    vector<uchar> buf;
-    for(int i=0; i<100; i++) {
-        Mat frame;
-        cap >> frame;
-  
-        // If the frame is empty, break immediately
-        if (frame.empty()) {
-            break;
-        }
- 
-        imencode(".jpg", frame, buf);
+    link_t topic_1 = ufr_publisher("@new ros_humble:topic @msg image @topic camera1 @debug 0");
+    int num_cap = 1;
 
-        // ufr_put_raw(&topic, (uint8_t*) buf.data(), buf.size() );
-        
-        ufr_put(&topic, "i\n", 10+i);
-
-        // Display the resulting frame
-        // imshow( "Frame", frame );
- 
-        // Press  ESC on keyboard to exit
-        char c = (char) waitKey(1000);
-        if( c == 27 ) {
-            break;
-        }
+    // Open the second camera
+    link_t topic_2;
+    VideoCapture cap_2(1);
+    if ( cap_2.isOpened() == true ) {
+        num_cap = 2;
+        topic_2 = ufr_publisher("@new ros_humble:topic @msg image @topic camera2");
     }
-  
-    // When everything done, release the video capture object
-    cap.release();
-    destroyAllWindows();
-   
+
+    int count = 0;
+
+    // Main loop for just one Camera
+    if ( num_cap == 1 ) {
+        printf("One camera\n");
+        while ( ufr_loop_ok() ) {
+            if ( get_frame_and_send(cap_1, &topic_1, count) != UFR_OK ) {
+                break;
+            }
+            count += 1;
+        }
+        cap_1.release();
+
+    // Main loop for two Cameras
+    } else if ( num_cap == 2 ) {
+        printf("Two cameras\n");
+        while ( ufr_loop_ok() ) {
+            if ( get_frame_and_send(cap_1, &topic_1, count) != UFR_OK ) {
+                break;
+            }
+            if ( get_frame_and_send(cap_2, &topic_2, count) != UFR_OK ) {
+                break;
+            }
+            count += 1;
+        }
+        cap_1.release();
+        cap_2.release();
+    }
+
     // fim
     return 0;
 }

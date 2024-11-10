@@ -82,8 +82,8 @@ int ufr_enc_ros_humble_put_u32(link_t* link, uint32_t val) {
             case 0: enc_obj->message.height = val; break;
             case 1: enc_obj->message.width = val; break;
             // case 2: enc_obj->message.linear.z = val; break;
-            case 3: enc_obj->message.is_bigendian = val; break;
-            case 4: enc_obj->message.step = val; break;
+            // case 2: enc_obj->message.is_bigendian = val; break;
+            case 2: enc_obj->message.step = val; break;
             // case 5: enc_obj->message.data = val; break;
             default: break;
         }
@@ -100,8 +100,8 @@ int ufr_enc_ros_humble_put_i32(link_t* link, int32_t val) {
             case 0: enc_obj->message.height = val; break;
             case 1: enc_obj->message.width = val; break;
             // case 2: enc_obj->message.linear.z = val; break;
-            case 3: enc_obj->message.is_bigendian = val; break;
-            case 4: enc_obj->message.step = val; break;
+            // case 2: enc_obj->message.is_bigendian = val; break;
+            case 2: enc_obj->message.step = val; break;
             // case 5: enc_obj->message.angular.z = val; break;
             default: break;
         }
@@ -132,7 +132,7 @@ static
 int ufr_enc_ros_humble_put_str(link_t* link, const char* val) {
 	ll_enc_obj_t* enc_obj = (ll_enc_obj_t*) link->enc_obj;
 	if ( enc_obj ) {
-
+        enc_obj->message.encoding = val;
 	}
 	return 0;
 }
@@ -154,7 +154,7 @@ int ufr_ecr_ros_humble_put_cmd(link_t* link, char cmd) {
 	if ( cmd == '\n' ) {
 		enc_obj->publisher->publish(enc_obj->message);
         enc_obj->index = 0;
-        ufr_info(link, "sent message sensor_msgs/Image");
+        ufr_info(link, "sent message  %d %d sensor_msgs/Image", enc_obj->message.step, enc_obj->message.height );
 	}
 	return 0;
 }
@@ -192,7 +192,7 @@ ufr_enc_api_t ufr_enc_ros_image = {
 // ============================================================================
 
 extern "C"
-int ufr_ecr_ros_humble_new_image(link_t* link, const ufr_args_t* args) {
+int ufr_enc_ros_humble_new_image(link_t* link, const ufr_args_t* args) {
     link->enc_api = &ufr_enc_ros_image;
 	return UFR_OK;
 }

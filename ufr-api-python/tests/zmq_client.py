@@ -1,8 +1,7 @@
-from lt_api import Link
-import time
+from ufr import Client
 
-
-topic = Link(new="zmq:topic", host="127.0.0.1", port=5000, encoder="msgpack:obj")
-topic.start_publisher()
-topic.putln(10,20,30)
-topic.close()
+socket = Client("@new zmq:socket @host 127.0.0.1 @port 5000 @coder msgpack")
+socket.put("i\n\n", 40)
+res = socket.get("^s\n")
+socket.close()
+print(res)

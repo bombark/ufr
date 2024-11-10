@@ -77,6 +77,13 @@ void test_laserscan() {
 }
 
 
+void test_image_publisher() {
+    link_t topic;
+    ufr_boot_publisher(&topic, "@topic teste @msg image @debug 4");
+
+    ufr_close(&topic);
+}
+
 /*
 void test2() {
     link_t topic = ufr_publisher("@new ros_humble:topic @topic /cmd_vel @msg twist");
