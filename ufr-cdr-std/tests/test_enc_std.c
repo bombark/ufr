@@ -34,7 +34,7 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_enc_csv_new(link_t* link, const ufr_args_t* args);
+int ufr_enc_csv_new(link_t* link);
 
 // ============================================================================
 //  Tests
@@ -43,7 +43,7 @@ int ufr_enc_csv_new(link_t* link, const ufr_args_t* args);
 void test_simple() {
     link_t link = ufr_new("@new posix:pipe");
     ufr_args_t args = {.text="@sep ;"};  
-    ufr_enc_csv_new(&link, &args);
+    ufr_enc_csv_new(&link);
 
     // test 1
     {
@@ -82,7 +82,7 @@ void test_simple() {
 void test_simple_2() {
     link_t link = ufr_new("@new posix:pipe");
     ufr_args_t args = {.text="@sep ,"};  
-    ufr_enc_csv_new(&link, &args);
+    ufr_enc_csv_new(&link);
 
     // test 1
     {
@@ -124,15 +124,15 @@ void test3() {
 
     // boot the encoder
     ufr_args_t args = {.text="@sep ,"};  
-    ufr_enc_csv_new(&link, 0);
+    ufr_enc_csv_new(&link);
     ufr_boot_enc(&link, &args);
 
     for (int i=0; i<2; i++) {
         // write test data
         ufr_put(&link, "iii", 10,20,30);
-        ufr_enter_array(&link, 3);
+        ufr_put_enter(&link, 3);
         ufr_put(&link, "iii", 40,50,60);
-        ufr_leave_array(&link);
+        ufr_put_leave(&link);
         ufr_put(&link, "\n");
     }
 

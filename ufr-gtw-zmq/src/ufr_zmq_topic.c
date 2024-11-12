@@ -140,7 +140,7 @@ ufr_gtw_api_t ufr_zmq_topic_api = {
 //  Public Functions
 // ============================================================================
 
-int ufr_gtw_zmq_new_topic(link_t* link, const int type) {
+int ufr_gtw_zmq_new_topic(link_t* link) {
     ufr_init_link(link, &ufr_zmq_topic_api);
 	return UFR_OK;
 }

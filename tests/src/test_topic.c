@@ -59,7 +59,7 @@ void publisher(const char* link_params) {
         for (int i=0; i<vector_size; i++) {
             vector[i] = i;
         }
-        ufr_put_ai32(&pub, vector, vector_size);
+        ufr_put_i32(&pub, vector, vector_size);
     }
 
     /*{

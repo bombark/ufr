@@ -47,6 +47,7 @@ void test1() {
     
     {
         ufr_put(&link, "iii\n", 10, 20, 30);
+        assert( ufr_recv(&link) == UFR_OK );
         assert( ufr_read(&link, buffer, sizeof(buffer)) == 3 );
         assert( buffer[0] == 10 );
         assert( buffer[1] == 20 );
@@ -82,7 +83,7 @@ void test_encoder_array() {
     {
         int vet[5] = {20,21,22,23,24};
         // ufr_put(&link, "ai\n", 5, vet);
-        ufr_put_ai32(&link, vet, 5);
+        ufr_put_i32(&link, vet, 5);
         ufr_put(&link, "\n");
         uint8_t buffer[8];
         assert( ufr_read(&link, buffer, sizeof(buffer)) == 7 );
@@ -105,9 +106,9 @@ void show_encoder_bytes() {
     assert( ufr_enc_msgpack_new(&link, 0) == UFR_OK );
     assert( ufr_boot_enc(&link, NULL) == UFR_OK );
 
-    ufr_enter_array(&link, 5);
+    ufr_put_enter(&link, 5);
     ufr_put(&link, "iiiii", 10, 20, 30, 40, 50);
-    ufr_leave_array(&link);
+    ufr_put_leave(&link);
     ufr_put(&link, "\n");
 
     /* ufr_enter_array(&link, 3);
@@ -134,8 +135,8 @@ void show_encoder_bytes() {
 // ============================================================================
 
 int main() {
-    // test1();
-    test_encoder_array();
+    test1();
+    // test_encoder_array();
     // show_encoder_bytes();
     return 0;
 }

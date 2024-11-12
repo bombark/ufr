@@ -67,31 +67,77 @@ void ufr_enc_msgpack_close(link_t* link) {
 }
 
 static
-int ufr_enc_msgpack_put_u32(link_t* link, uint32_t val) {
-	ll_encoder_t* enc_obj = link->enc_obj;
-	if ( enc_obj ) {
-		msgpack_pack_int32(&enc_obj->pk, val);
-	}
-	return 0;
-}
-
-static
-int ufr_enc_msgpack_put_i32(link_t* link, int32_t val) {
+int ufr_enc_msgpack_put_u32(link_t* link, const uint32_t* val, int nitems) {
+    int wrote = 0;
     ll_encoder_t* enc_obj = link->enc_obj;
     if ( enc_obj ) {
-        msgpack_pack_int32(&enc_obj->pk, val);
+        for (; wrote<nitems; wrote++) {
+            msgpack_pack_uint32(&enc_obj->pk, val[wrote]);
+        }
     }
-    return 0;
+    return wrote;
 }
 
 static
-int ufr_enc_msgpack_put_f32(link_t* link, float val) {
+int ufr_enc_msgpack_put_i32(link_t* link, const int32_t* val, int nitems) {
+    int wrote = 0;
+    ll_encoder_t* enc_obj = link->enc_obj;
+    if ( enc_obj ) {
+        for (; wrote<nitems; wrote++) {
+            msgpack_pack_int32(&enc_obj->pk, val[wrote]);
+        }
+    }
+    return wrote;
+}
+
+static
+int ufr_enc_msgpack_put_f32(link_t* link, const float* val, int nitems) {
+    int wrote = 0;
 	ll_encoder_t* enc_obj = link->enc_obj;
 	if ( enc_obj ) {
-		msgpack_pack_float(&enc_obj->pk, val);
+        for (; wrote<nitems; wrote++) {
+		    msgpack_pack_float(&enc_obj->pk, val[wrote]);
+        }
 	}
-	return 0;
+	return wrote;
 }
+
+static
+int ufr_enc_msgpack_put_u64(link_t* link, const uint64_t* val, int nitems) {
+    int wrote = 0;
+    ll_encoder_t* enc_obj = link->enc_obj;
+    if ( enc_obj ) {
+        for (; wrote<nitems; wrote++) {
+            msgpack_pack_uint64(&enc_obj->pk, val[wrote]);
+        }
+    }
+    return wrote;
+}
+
+static
+int ufr_enc_msgpack_put_i64(link_t* link, const int64_t* val, int nitems) {
+    int wrote = 0;
+    ll_encoder_t* enc_obj = link->enc_obj;
+    if ( enc_obj ) {
+        for (; wrote<nitems; wrote++) {
+            msgpack_pack_int64(&enc_obj->pk, val[wrote]);
+        }
+    }
+    return wrote;
+}
+
+static
+int ufr_enc_msgpack_put_f64(link_t* link, const double* val, int nitems) {
+    int wrote = 0;
+	ll_encoder_t* enc_obj = link->enc_obj;
+	if ( enc_obj ) {
+        for (; wrote<nitems; wrote++) {
+		    msgpack_pack_double(&enc_obj->pk, val[wrote]);
+        }
+	}
+	return wrote;
+}
+
 
 static
 int ufr_enc_msgpack_put_str(link_t* link, const char* val) {
@@ -142,25 +188,25 @@ int ufr_enc_msgpack_put_cmd(link_t* link, char cmd) {
 }
 
 static
-int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, size_t size) {
+int ufr_enc_msgpack_put_raw(link_t* link, const uint8_t* buffer, int size) {
 	ll_encoder_t* enc_obj = link->enc_obj;
 	if ( enc_obj == NULL ) {
-		return 1;
+		return -1;
 	}
 
 	msgpack_pack_bin(&enc_obj->pk, size);
 	msgpack_pack_bin_body(&enc_obj->pk, buffer, size);
-	return 0;
+	return size;
 }
 
-int ufr_enc_msgpack_enter_array(link_t* link, size_t maxsize) {
+int ufr_enc_msgpack_enter(link_t* link, size_t maxsize) {
     ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
     msgpack_pack_array(&enc_obj->pk, maxsize);
     return UFR_OK;
 }
 
 
-int ufr_enc_msgpack_leave_array(link_t* link) {
+int ufr_enc_msgpack_leave(link_t* link) {
     ll_encoder_t* enc_obj = (ll_encoder_t*) link->enc_obj;
     return UFR_OK;
 }
@@ -173,20 +219,24 @@ ufr_enc_api_t ufr_enc_msgpack_api = {
 	.put_u32 = ufr_enc_msgpack_put_u32,
 	.put_i32 = ufr_enc_msgpack_put_i32,
 	.put_f32 = ufr_enc_msgpack_put_f32,
-	.put_str = ufr_enc_msgpack_put_str,
-	.put_arr = ufr_enc_msgpack_put_arr,
+
+	.put_u64 = ufr_enc_msgpack_put_u64,
+	.put_i64 = ufr_enc_msgpack_put_i64,
+	.put_f64 = ufr_enc_msgpack_put_f64,
+
 	.put_cmd = ufr_enc_msgpack_put_cmd,
+	.put_str = ufr_enc_msgpack_put_str,
     .put_raw = ufr_enc_msgpack_put_raw,
 	
-	.enter_array = ufr_enc_msgpack_enter_array,
-	.leave_array = ufr_enc_msgpack_leave_array
+	.enter = ufr_enc_msgpack_enter,
+	.leave = ufr_enc_msgpack_leave
 };
 
 // ============================================================================
 //  Public
 // ============================================================================
 
-int ufr_enc_msgpack_new(link_t* link, const int type) {
+int ufr_enc_msgpack_new(link_t* link) {
 	link->enc_api = &ufr_enc_msgpack_api;
 	return UFR_OK;
 }

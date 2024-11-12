@@ -9,6 +9,8 @@ include_directories(./include)
 
 add_library(ufr SHARED
     # core
+    ./src/ufr_api_get.c
+    ./src/ufr_api_put.c
     ./src/ufr_api.c
     ./src/ufr_sys.c
     ./src/ufr_linux.c

@@ -102,7 +102,7 @@ printf("%d\n", scan_jpg.size());
                 ufr_put_eof(&server);*/
 
                 // ufr_put(&server, "iii\n\n", 10, 20, 30);
-                ufr_put_af32(&server, g_lidar.ranges, 200);
+                // ufr_put_af32(&server, g_lidar.ranges, 200);
                 ufr_put(&server, "\n");
                 ufr_put_eof(&server);
 

@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
         }
         
         // copia a imagem
-        const size_t size = ufr_get_size(&link);
+        const int size = ufr_get_nbytes(&link);
         buffer.resize(size);
         ufr_get_raw(&link, buffer.data(), size);
         Mat image = imdecode(buffer, cv::IMREAD_COLOR);

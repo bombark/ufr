@@ -75,7 +75,7 @@ int ufr_dcr_sys_get_type(link_t* link) {
 }
 
 static
-int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val) {
+int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val, int nbytes) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
         return 1;
@@ -89,7 +89,7 @@ int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val) {
 }
 
 static
-int ufr_dcr_sys_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_sys_get_i32(link_t* link, int32_t* val, int nbytes) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
         return 1;
@@ -103,7 +103,7 @@ int ufr_dcr_sys_get_i32(link_t* link, int32_t* val) {
 }
 
 static
-int ufr_dcr_sys_get_f32(link_t* link, float* val) {
+int ufr_dcr_sys_get_f32(link_t* link, float* val, int nbytes) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
         return 1;

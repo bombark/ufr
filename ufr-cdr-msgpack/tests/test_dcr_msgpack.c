@@ -133,7 +133,7 @@ void test_decoded_array() {
 
         assert( ufr_get_type(&g_link) == 'a' );
         int num;
-        assert( ufr_dcr_enter(&g_link) == UFR_OK );
+        assert( ufr_get_enter(&g_link) == UFR_OK );
         assert( ufr_get(&g_link, "i", &num) == 1 );
         assert( num == 0x13 );
         assert( ufr_get(&g_link, "i", &num) == 1 );
@@ -146,7 +146,7 @@ void test_decoded_array() {
         assert( num == 0x32 );
         assert( ufr_get(&g_link, "i", &num) == 0 );
         assert( num == 0 );
-        assert( ufr_dcr_leave(&g_link) == UFR_OK );
+        assert( ufr_get_leave(&g_link) == UFR_OK );
     }
 
     printf("OK - decoded 1 array\n");

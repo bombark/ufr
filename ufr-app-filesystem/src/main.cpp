@@ -99,8 +99,8 @@ int main() {
         // ufr_put(&motors, "ff\n", 0.0, 1.0);
 
         ufr_recv(&lidar);
-        size_t lidar_size = ufr_get_size(&lidar);
-        ufr_get_af32(&lidar, lidar_ranges, lidar_size);
+        size_t lidar_size = ufr_get_nitems(&lidar);
+        // ufr_get_af32(&lidar, lidar_ranges, lidar_size);
 
         if ( ufr_recv_async(&server) == UFR_OK ) {
             char command[1024];

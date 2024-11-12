@@ -94,10 +94,6 @@ void ufr_enc_sys_clear(link_t* link) {
     ufr_buffer_clear(buffer);
 }
 
-int ufr_enc_sys_set_header(link_t* link, const char* header) {
-    return UFR_OK;
-}
-
 int ufr_enc_sys_put_u8(link_t* link, uint8_t val) {
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
     ufr_buffer_put_u8_as_str(buffer, val);
@@ -110,22 +106,31 @@ int ufr_enc_sys_put_i8(link_t* link, int8_t val) {
     return UFR_OK;
 }
 
-int ufr_enc_sys_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_sys_put_u32(link_t* link, const uint32_t* val, int nitems) {
+    int wrote = 0;
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
-    ufr_buffer_put_u32_as_str(buffer, val);
-    return UFR_OK;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_u32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
 }
 
-int ufr_enc_sys_put_i32(link_t* link, int32_t val) {
+int ufr_enc_sys_put_i32(link_t* link, const int32_t* val, int nitems) {
+    int wrote = 0;
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
-    ufr_buffer_put_i32_as_str(buffer, val);
-    return UFR_OK;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_i32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
 }
 
-int ufr_enc_sys_put_f32(link_t* link, float val) {
+int ufr_enc_sys_put_f32(link_t* link, const float* val, int nitems) {
+    int wrote = 0;
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
-    ufr_buffer_put_f32_as_str(buffer, val);
-    return UFR_OK;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_f32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
 }
 
 int ufr_enc_sys_put_str(link_t* link, const char* val) {
@@ -153,23 +158,13 @@ int ufr_enc_sys_put_cmd(link_t* link, char cmd) {
     return UFR_OK;
 }
 
-
-int ufr_enc_sys_put_arr(link_t* link, const void* array, char type, size_t size) {
-    return UFR_OK;
-}
-
-int ufr_enc_sys_put_mat(link_t* link, const void* vet, char type, size_t rows, size_t cols) {
-    return UFR_OK;
-}
-
-
-int ufr_enc_sys_enter_array(link_t* link, size_t maxsize) {
+int ufr_enc_sys_enter(link_t* link, size_t maxsize) {
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
     ufr_buffer_put_str(buffer, "[ ");
     return UFR_OK;
 }
 
-int ufr_enc_sys_leave_array(link_t* link) {
+int ufr_enc_sys_leave(link_t* link) {
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
     ufr_buffer_put_str(buffer, "] ");
     return UFR_OK;
@@ -179,22 +174,21 @@ ufr_enc_api_t ufr_enc_sys_api = {
     .boot = ufr_enc_sys_boot,
     .close = ufr_enc_sys_close,
     .clear = ufr_enc_sys_clear,
-    .set_header = ufr_enc_sys_set_header,
-
-    .put_u8 = ufr_enc_sys_put_u8,
-    .put_i8 = ufr_enc_sys_put_i8,
-    .put_cmd = ufr_enc_sys_put_cmd,
-    .put_str = ufr_enc_sys_put_str,
 
     .put_u32 = ufr_enc_sys_put_u32,
     .put_i32 = ufr_enc_sys_put_i32,
     .put_f32 = ufr_enc_sys_put_f32,
 
-    .put_arr = ufr_enc_sys_put_arr,
-    .put_mat = ufr_enc_sys_put_mat,
+    .put_u64 = NULL,
+    .put_i64 = NULL,
+    .put_f64 = NULL,
 
-    .enter_array = ufr_enc_sys_enter_array,
-    .leave_array = ufr_enc_sys_leave_array,
+    .put_cmd = ufr_enc_sys_put_cmd,
+    .put_str = ufr_enc_sys_put_str,
+    .put_raw = NULL,
+
+    .enter = ufr_enc_sys_enter,
+    .leave = ufr_enc_sys_leave,
 };
 
 // ============================================================================

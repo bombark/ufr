@@ -149,53 +149,48 @@ typedef struct {
 
     // Function on current Item
     char     (*get_type)(struct _link* link);
-    size_t   (*get_size)(struct _link* link);
+    int      (*get_nbytes)(struct _link* link);
+    int      (*get_nitems)(struct _link* link);
     uint8_t* (*get_raw_ptr)(struct _link* link);
 
-    int (*get_raw)(struct _link* link, uint8_t* out_val, size_t maxlen);
-    int (*get_str)(struct _link* link, char* out_val, size_t maxlen);
+    int (*get_raw)(struct _link* link, uint8_t* out, int max_nbytes);
+    int (*get_str)(struct _link* link, char* out, int max_nbytes);
 
-	int (*get_u32)(struct _link* link, uint32_t* out_val);
-	int (*get_i32)(struct _link* link, int32_t* out_val);
-	int (*get_f32)(struct _link* link, float* out_val);
+	int (*get_u32)(struct _link* link, uint32_t* out, int max_nitems);
+	int (*get_i32)(struct _link* link, int32_t* out, int max_nitems);
+	int (*get_f32)(struct _link* link, float* out, int max_nitems);
+
+    int (*get_u64)(struct _link* link, uint64_t* out, int max_nitems);
+	int (*get_i64)(struct _link* link, int64_t* out, int max_nitems);
+	int (*get_f64)(struct _link* link, double* out, int max_nitems);
 
     int (*enter)(struct _link* link);
     int (*leave)(struct _link* link);
 } ufr_dcr_api_t;
 
 typedef struct {
-    int (*boot)(struct _link* link, const ufr_args_t* args);
+    int  (*boot)(struct _link* link, const ufr_args_t* args);
     void (*close)(struct _link* link);
     void (*clear)(struct _link* link);
 
-    // remover
-    int (*set_header)(struct _link* link, const char* header);
-
-    // 8 bits
-    int (*put_u8)(struct _link* link, uint8_t val);
-    int (*put_i8)(struct _link* link, int8_t val);
-    int (*put_cmd)(struct _link* link, char cmd);
-    int (*put_str)(struct _link* link, const char* val);
-    int (*put_raw)(struct _link* link, const uint8_t* val, size_t size);
-
     // 32 bits
-	int (*put_u32)(struct _link* link, uint32_t val);
-	int (*put_i32)(struct _link* link, int32_t val);
-	int (*put_f32)(struct _link* link, float val);
+	int (*put_u32)(struct _link* link, const uint32_t* val, int nitems);
+	int (*put_i32)(struct _link* link, const int32_t* val, int nitems);
+	int (*put_f32)(struct _link* link, const float* val, int nitems);
 
     // 64 bits
-    int (*put_u64)(struct _link* link, uint64_t val);
-	int (*put_i64)(struct _link* link, int64_t val);
-	int (*put_f64)(struct _link* link, double val);
+    int (*put_u64)(struct _link* link, const uint64_t* val, int nitems);
+	int (*put_i64)(struct _link* link, const int64_t* val, int nitems);
+	int (*put_f64)(struct _link* link, const double* val, int nitems);
 
-    // pensar se mantem
-	int (*put_arr)(struct _link* link, const void* array, char type, size_t size);
-	int (*put_mat)(struct _link* link, const void* vet, char type, size_t rows, size_t cols);
+    // Single - 8 bits
+    int (*put_cmd)(struct _link* link, char cmd);
+    int (*put_str)(struct _link* link, const char* val);
+    int (*put_raw)(struct _link* link, const uint8_t* val, int nbytes);
 
     // acho que tah bom, talvez colocar o tipo
-    int (*enter_array)(struct _link* link, size_t maxsize);
-    int (*leave_array)(struct _link* link);
-
+    int (*enter)(struct _link* link, size_t max_nitems);
+    int (*leave)(struct _link* link);
 } ufr_enc_api_t;
 
 // ============================================================================
@@ -255,15 +250,20 @@ typedef struct _link {
 
 // Meta data
 const char* ufr_api_name(const link_t* link);
-int ufr_gtw_type(const link_t* link);
-int ufr_gtw_state(const link_t* link);
-size_t ufr_size(const link_t* link);
-size_t ufr_size_max(const link_t* link);
+// int ufr_gtw_type(const link_t* link);
+// int ufr_gtw_state(const link_t* link);
+// size_t ufr_size(const link_t* link);
+// size_t ufr_size_max(const link_t* link);
 
 bool ufr_link_is_publisher(const link_t* link);
 bool ufr_link_is_subscriber(const link_t* link);
 bool ufr_link_is_server(const link_t* link);
 bool ufr_link_is_client(const link_t* link);
+
+bool ufr_is_valid(const link_t* link);
+bool ufr_is_blank(const link_t* link);
+bool ufr_link_is_error(const link_t* link);
+
 
 // Set zeros to link
 void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api);
@@ -272,7 +272,7 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api);
 int ufr_init(link_t* link, const char* package_name, const char* class_name);
 
 /**
- * @brief 
+ * @brief Pensar em remover
  * 
  * @param text 
  * @return link_t 
@@ -280,15 +280,15 @@ int ufr_init(link_t* link, const char* package_name, const char* class_name);
 link_t ufr_new(const char* text);
 
 /**
- * @brief 
+ * @brief Create a new publisher
  * 
- * @param text 
- * @return link_t 
+ * @param text parameters for the publisher. Example "@new zmq:topic @coder msgpack"
+ * @return link_t opened link
  */
 link_t ufr_publisher(const char* text);
 
 /**
- * @brief 
+ * @brief Create a new subscriber 
  * 
  * @param text 
  * @return link_t 
@@ -296,7 +296,7 @@ link_t ufr_publisher(const char* text);
 link_t ufr_subscriber(const char* text);
 
 /**
- * @brief 
+ * @brief Create a new single thread server
  * 
  * @param text 
  * @return link_t 
@@ -304,7 +304,7 @@ link_t ufr_subscriber(const char* text);
 link_t ufr_server(const char* text);
 
 /**
- * @brief 
+ * @brief Create a new single thread server
  * 
  * @param text 
  * @return link_t 
@@ -335,7 +335,10 @@ int ufr_boot_subscriber(link_t* link, const char* text);
 // ============================================================================
 //  Start
 // ============================================================================
-/**
+
+// Eliminar essas funcoes
+
+/*
  * @brief 
  * 
  * @param link link to be started 
@@ -423,7 +426,14 @@ int ufr_recv(link_t* link);
  */
 int ufr_recv_async(link_t* link);
 
-size_t ufr_get_size(link_t* link);
+
+
+
+int ufr_get_nbytes(link_t* link);
+int ufr_get_nitems(link_t* link);
+
+
+
 
 const uint8_t* ufr_get_raw_ptr(link_t* link);
 
@@ -490,7 +500,7 @@ bool ufr_get_str(link_t* link, char* buffer);
  * @param maxsize 
  * @return size_t 
  */
-size_t ufr_get_raw(link_t* link, uint8_t* buffer, size_t maxsize);
+int ufr_get_raw(link_t* link, uint8_t buffer[], int max_nitems);
 
 // ============================================================================
 //  Send, Write and Put
@@ -522,7 +532,7 @@ size_t ufr_write(link_t* node, const char* buffer, size_t size);
  * @param format 
  * @param list 
  */
-void ufr_put_va(link_t* link, const char* format, va_list list);
+int ufr_put_va(link_t* link, const char* format, va_list list);
 
 
 /**
@@ -535,26 +545,34 @@ void ufr_put_va(link_t* link, const char* format, va_list list);
  * @param format format of the message (i: integer, s:string, f: float, \\n: send package)
  * @param ...  data for the format
  */
-void ufr_put(link_t* link, const char* format, ...);
+int ufr_put(link_t* link, const char* format, ...);
 
-void ufr_put_au8(link_t* link, const uint8_t* array, size_t size);
-void ufr_put_ai8(link_t* link, const int8_t* array, size_t size);
-void ufr_put_au32(link_t* link, const uint32_t* array, size_t size);
-void ufr_put_ai32(link_t* link, const int32_t* array, size_t size);
-void ufr_put_af32(link_t* link, const float* array, size_t size);
+// PUT
+int ufr_put_u32(link_t* link, const uint32_t* array, int nitems);
+int ufr_put_i32(link_t* link, const int32_t* array, int nitems);
+int ufr_put_f32(link_t* link, const float* array, int nitems);
+
+int ufr_put_u64(link_t* link, const uint64_t* array, int nitems);
+int ufr_put_i64(link_t* link, const int64_t* array, int nitems);
+int ufr_put_f64(link_t* link, const double* array, int nitems);
+
+int ufr_put_raw(link_t* link, const uint8_t* array, int nbytes);
+int ufr_put_u8(link_t* link, const uint8_t* array, int nbytes);
+int ufr_put_i8(link_t* link, const int8_t* array, int nbytes);
 
 int ufr_put_eof(link_t* link);
 
-void ufr_put_raw(link_t* link, const uint8_t* buffer, size_t size);
 
-size_t ufr_get_ai32(link_t* link, int32_t* arr_data, size_t arr_maxlen);
-size_t ufr_get_af32(link_t* link, float* arr_data, size_t arr_maxlen);
+// GET
 
-int ufr_enter_array(link_t* link, size_t arr_size_max);
-int ufr_leave_array(link_t* link);
+int ufr_get_i32(link_t* link, int32_t* array, int max_nitems);
+int ufr_get_f32(link_t* link, float* array, int max_nitems);
 
-int ufr_dcr_enter(link_t* link);
-int ufr_dcr_leave(link_t* link);
+int ufr_put_enter(link_t* link, int max_nitems);
+int ufr_put_leave(link_t* link);
+
+int ufr_get_enter(link_t* link);
+int ufr_get_leave(link_t* link);
 
 
 
@@ -569,9 +587,7 @@ const void* ufr_args_getp(const ufr_args_t* args, const char* noun, const void* 
 const char* ufr_args_gets(const ufr_args_t* args, const char* noun, const char* default_value);
 
 
-bool ufr_is_valid(const link_t* link);
-bool ufr_is_blank(const link_t* link);
-bool ufr_link_is_error(const link_t* link);
+
 
 const char* ufr_test_args(const link_t* link);
 

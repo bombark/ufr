@@ -40,20 +40,23 @@
 
 int main() {
     // abre um publicador
-    link_t pub = ufr_publisher("@new zmq:topic @coder msgpack @port 3002"); 
-    float lidar[32];
+    link_t pub = ufr_publisher("@new zmq:topic @coder msgpack"); 
+    float lidar[5] = {1.0,2.0,3.0,4.0,5.0};
+
+    ufr_put_enter(&pub, 5);
+    ufr_put_f32(&pub, lidar, 5);
+    ufr_put_leave(&pub);
+    ufr_send(&pub);
 
     // escreve 5 mensagens
-    for (int i=0; i<10; i++) {
+    //for (int i=0; i<10; i++) {
         // ufr_put(&pub, "i\n", 100, 2434, 123344, "mensagem");
-        ufr_enter_array(&pub, 32);
-        for(int i=0; i<32; i++) {
-            ufr_put(&pub,"f", i);
-        }
-        ufr_leave_array(&pub);
-        ufr_put(&pub, "\n");
-        sleep(1);
-    }
+        // ufr_put_enter(&pub, 32);
+        // ufr_put_f32(&pub, lidar, 32);
+        // ufr_put_leave(&pub);
+        // ufr_put(&pub, "\n");
+        // sleep(1);
+    // }
 
     // fim
     ufr_close(&pub);

@@ -42,6 +42,15 @@ typedef struct {
     int fd_wrte;
 } ll_shr_t;
 
+typedef struct {
+    uint32_t idx;
+    uint32_t size;
+    uint32_t maxsize;
+    uint8_t* data;
+} recv_buffer_t;
+
+const uint32_t g_ass = 0xCBFBAABB;
+
 // ============================================================================
 //  File
 // ============================================================================
@@ -70,7 +79,13 @@ int ufr_posix_pipe_boot(link_t* link, const ufr_args_t* args) {
     }
 	
     link->gtw_shr = shr;
-    link->gtw_obj = malloc(BUFFER_SIZE);
+
+    recv_buffer_t* buffer = malloc( sizeof(recv_buffer_t) );
+    buffer->idx = 0;
+    buffer->size = 0;
+    buffer->maxsize = BUFFER_SIZE;
+    buffer->data = malloc(BUFFER_SIZE);
+    link->gtw_obj = buffer;
 
 	return 0;
 }
@@ -97,44 +112,77 @@ int ufr_posix_pipe_copy(link_t* link, link_t* out) {
 }
 
 static
-size_t ufr_posix_pipe_read(link_t* link, char* buffer, size_t length) {
-	ll_shr_t* shr = link->gtw_shr;
-	return read(shr->fd_read, buffer, length);
+size_t ufr_posix_pipe_read(link_t* link, char* out_buffer, size_t length) {
+	recv_buffer_t* buffer = (recv_buffer_t*) link->gtw_obj;
+    const uint32_t idx = buffer->idx;
+    if ( idx >= buffer->size ) {
+        return 0;
+    }
+
+    const uint32_t rest_size =  (buffer->size - idx);
+    const uint32_t copied = (length < rest_size) ? length : rest_size;
+    memcpy(out_buffer, &buffer->data[idx], copied);
+    buffer->idx += copied;
+    return copied;
 }
 
 static
 size_t ufr_posix_pipe_write(link_t* link, const char* buffer, size_t length) {
     ll_shr_t* shr = link->gtw_shr;
-    const size_t retval = write(shr->fd_wrte, buffer, length);
-    write(shr->fd_wrte, "\n", 1);
-    return retval;
+    
+    const size_t retval1 = write(shr->fd_wrte, &g_ass, sizeof(g_ass));
+    if ( retval1 != sizeof(g_ass) ) {
+        return 0;
+    }
+
+    uint32_t ui32_length = length;
+    const size_t retval2 = write(shr->fd_wrte, &ui32_length, sizeof(ui32_length));
+    if ( retval2 != sizeof(ui32_length) ) {
+        return 0;
+    }
+    const size_t retval3 = write(shr->fd_wrte, buffer, length);
+    return retval3;
 }
 
 static
 int ufr_posix_pipe_recv(link_t* link) {
-    char* msg_data = (char*) link->gtw_obj;
+    recv_buffer_t* buffer = (char*) link->gtw_obj;
     ll_shr_t* shr = (ll_shr_t*) link->gtw_shr;
     
-    // read one line
-    size_t msg_size = 0;
-    while (msg_size<(BUFFER_SIZE-1) ) {
-        char c;
-        const int nbytes = read(shr->fd_read, &c, 1);
-        if ( nbytes != 1 ) {
-            break;
-        }
-        msg_data[msg_size] = c;
-        msg_size += 1;
-        if ( c == '\n' ) {
-            break;
-        }
-    }
-    msg_data[msg_size] = '\0';
-
-    if ( link->dcr_api != NULL ){
-        link->dcr_api->recv_cb(link, msg_data, msg_size);
+    uint32_t ass;
+    const uint32_t ret0 = read(shr->fd_read, &ass, sizeof(ass));
+    if ( ret0 != sizeof(ass) || ass != g_ass ) {
+        return -1;
     }
 
+    uint32_t size;
+    const uint32_t ret1 = read(shr->fd_read, &size, sizeof(size));
+    if ( ret1 != sizeof(ret1) ) {
+        return -1;
+    }
+
+    // realloc the buffer, case needed
+    if ( buffer->maxsize < size ) {
+        if ( buffer->data ) {
+            free(buffer->data);
+        }
+        const uint8_t* new_data = malloc(size);
+        if ( new_data == NULL ) {
+            ufr_fatal(link, 1, "Memory out");
+        }
+        buffer->data = new_data;
+        buffer->maxsize = size;
+    }
+
+    // read from pipe
+    const uint32_t msg_size = read(shr->fd_read, buffer->data, size);
+    buffer->idx = 0;
+    buffer->size = msg_size;
+    if ( link->dcr_api != NULL && link->dcr_api->recv_cb != NULL ) {
+        link->dcr_api->recv_cb(link, buffer->data, msg_size);
+    }
+
+    // success
     return UFR_OK;
 }
 
@@ -158,6 +206,5 @@ ufr_gtw_api_t ufr_posix_pipe = {
 
 int ufr_gtw_posix_new_pipe(link_t* link, int type) {
 	link->gtw_api = &ufr_posix_pipe;
-    link->type_started = type;
     return UFR_OK;
 }

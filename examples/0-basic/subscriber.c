@@ -40,13 +40,21 @@ int main() {
     // open link
     link_t sub = ufr_subscriber("@new zmq:topic @coder msgpack");
 
+    float lidar[5];
+    ufr_recv(&sub);
+    char type = ufr_get_type(&sub);
+    int nbytes = ufr_get_nbytes(&sub);
+    printf("%c %d\n", type, nbytes);
+    ufr_get_f32(&sub, lidar, 5);
+    printf("%f %f %f %f %f\n", lidar[0], lidar[1], lidar[2], lidar[3], lidar[4]);
+
     // read 5 messages
-    for (int i=0; i<5; i++) {
-        int a,b,c;
+    // for (int i=0; i<5; i++) {
+        /*int a,b,c;
         char buffer[1024];
         ufr_get(&sub, "^iiis", &a, &b, &c, buffer);
-        printf("%d %d %d %s\n", a, b, c, buffer);
-    }
+        printf("%d %d %d %s\n", a, b, c, buffer);*/
+    // }
 
     // end
     ufr_close(&sub);
