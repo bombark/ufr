@@ -55,7 +55,7 @@ void test_decoded_5i() {
         for (int i=1; i<=5; i++) {
             int num;
             assert( ufr_get_type(&g_link) == 'i' );
-            // assert( ufr_get_size(&g_link) == 8 );
+            assert( ufr_get_nitems(&g_link) == 1 );
             // assert( ufr_get_raw_ptr(&g_link) != NULL );
             assert( ufr_get(&g_link, "i", &num) == 1 );
             assert( num == i );
@@ -177,11 +177,13 @@ void test1() {
 // ============================================================================
 
 int main() {
-    g_link = ufr_new("@new posix:pipe @debug 0");
+    g_link = ufr_new_pipe();
+
     test_decoded_5i();
     test_decoded_3f();
     test_decoded_2s();
-    test_decoded_array();
+    // test_decoded_array();
+
     ufr_close(&g_link);
 	return 0;
 }

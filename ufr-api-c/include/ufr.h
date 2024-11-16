@@ -714,7 +714,7 @@ int sys_ufr_load (link_t* link, const char* library_type,
 int ufr_gtw_posix_new_pipe(link_t* link, int type);
 int ufr_dcr_sys_new_std(link_t* link, int type);
 int ufr_enc_sys_new_std(link_t* link, int type);
-
+link_t ufr_new_pipe();
 
 // ============================================================================
 //  Footer

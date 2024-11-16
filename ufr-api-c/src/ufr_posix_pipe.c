@@ -102,11 +102,23 @@ int ufr_posix_pipe_start(link_t* link, int type, const ufr_args_t* args) {
 
 static
 void ufr_posix_pipe_stop(link_t* link, int type) {
+    // Free Gateway Shared Object
     ll_shr_t* shr = link->gtw_shr;
     if ( shr != NULL ) {
         close(shr->fd_read);
         close(shr->fd_wrte);
         free(shr);
+        link->gtw_shr = NULL;
+    }
+
+    // Free Gateway Object
+    recv_buffer_t* buffer = link->gtw_obj;
+    if ( buffer != NULL ) {
+        if ( buffer->data ) {
+            free(buffer->data);
+        }
+        free(buffer);
+        link->gtw_obj = NULL;
     }
 }
 
@@ -219,4 +231,11 @@ int ufr_gtw_posix_new_pipe(link_t* link, int type) {
 	// link->gtw_api = &ufr_posix_pipe;
     ufr_init_link(link, &ufr_posix_pipe);
     return UFR_OK;
+}
+
+link_t ufr_new_pipe() {
+    link_t link;
+    ufr_gtw_posix_new_pipe(&link, 0);
+    ufr_boot_gtw(&link, NULL);
+    return link;
 }

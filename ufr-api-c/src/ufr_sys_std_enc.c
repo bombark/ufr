@@ -154,7 +154,7 @@ int ufr_enc_sys_put_str(link_t* link, const char* val) {
     if ( str_needs_quote(val, size) ) {
         ufr_buffer_put_chr(buffer, '\"');
         copy_str_replacing_symbols(buffer, val, size);
-        ufr_buffer_put_str(buffer, "\" ");
+        ufr_buffer_put_chr(buffer, '\"');
     } else {
         copy_str_replacing_symbols(buffer, val, size);
         ufr_buffer_put_chr(buffer, ' ');

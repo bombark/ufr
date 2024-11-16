@@ -107,8 +107,8 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
     link->status = UFR_STATUS_RESET;
     link->put_count = 0;
     // pensar sobre isso
-    // - link->log_level = g_default_log_level;
-    // - link->log_ident = 0;
+    link->log_level = g_default_log_level;
+    link->log_ident = 0;
 }
 
 int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
@@ -775,35 +775,60 @@ void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val) {
 void ufr_buffer_put_u8_as_str(ufr_buffer_t* buffer, uint8_t val) {
     ufr_buffer_check_size(buffer, 8);
     char* base = &buffer->ptr[buffer->size];
-    const size_t size = snprintf(base, 8, "%u ", val);
+    size_t size = 0;
+    if ( buffer->size == 0 ) {
+        size = snprintf(base, 8, "%u", val);
+    } else {
+        size = snprintf(base, 8, " %u", val);
+    }
     buffer->size += size;
 }
 
 void ufr_buffer_put_i8_as_str(ufr_buffer_t* buffer, int8_t val) {
     ufr_buffer_check_size(buffer, 8);
     char* base = &buffer->ptr[buffer->size];
-    const size_t size = snprintf(base, 8, "%u ", val);
+    size_t size = 0;
+    if ( buffer->size == 0 ) {
+        size = snprintf(base, 8, "%u", val);
+    } else {
+        size = snprintf(base, 8, " %u", val);
+    }
     buffer->size += size;
 }
 
 void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val) {
     ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
-    const size_t size = snprintf(base, 32, "%u ", val);
+    size_t size = 0;
+    if ( buffer->size == 0 ) {
+        size = snprintf(base, 32, "%u", val);
+    } else {
+        size = snprintf(base, 32, " %u", val);
+    }
     buffer->size += size;
 }
 
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val) {
     ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
-    const size_t size = snprintf(base, 32, "%d ", val);
+    size_t size = 0;
+    if ( buffer->size == 0 ) {
+        size = snprintf(base, 32, "%d", val);
+    } else {
+        size = snprintf(base, 32, " %d", val);
+    }
     buffer->size += size;
 }
 
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val) {
     ufr_buffer_check_size(buffer, 32);
     char* base = &buffer->ptr[buffer->size];
-    const size_t size = snprintf(base, 32, "%f ", val);
+    size_t size = 0;
+    if ( buffer->size == 0 ) {
+        size = snprintf(base, 32, "%f", val);
+    } else {
+        size = snprintf(base, 32, " %f", val);
+    }
     buffer->size += size;
 }
 

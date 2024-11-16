@@ -39,9 +39,7 @@
 // ============================================================================
 
 void test_simple() {
-    link_t link;
-    ufr_gtw_posix_new_pipe(&link, 0);
-    ufr_boot_gtw(&link, NULL);
+    link_t link = ufr_new_pipe();
     ufr_enc_sys_new_std(&link, 0);
     ufr_boot_enc(&link, NULL);
 
@@ -57,8 +55,6 @@ void test_simple() {
         assert( strcmp(buffer, "10 20 30\n") == 0 );
     }
 
-
-
     // test 2
     {
         char buffer[128];
@@ -67,7 +63,7 @@ void test_simple() {
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "30;20;10\n") == 0 );
+        assert( strcmp(buffer, "30 20 10\n") == 0 );
 
     }
 
@@ -77,60 +73,15 @@ void test_simple() {
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
         assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 34 );
+        printf("%d - %s\n", nbytes, buffer);
+        assert( nbytes == 36 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "string com espaco;8759834;-712345\n") == 0 );
+        assert( strcmp(buffer, "\"string com espaco\" 8759834 -712345\n") == 0 );
     }
 
     ufr_close(&link);
     printf("test_simple - OK\n");
 }
-
-void test_simple_2() {
-    link_t link;
-    ufr_gtw_posix_new_pipe(&link, 0);
-    ufr_boot_gtw(&link, NULL);
-    ufr_enc_sys_new_std(&link, 0);
-    ufr_boot_enc(&link, NULL);
-
-    // test 1
-    {
-        char buffer[128];
-        ufr_put(&link, "iii\n", 10, 20, 30);
-        assert( ufr_recv(&link) == UFR_OK );
-        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
-        buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "10,20,30\n") == 0 );
-    }
-
-    // test 2
-    {
-        char buffer[128];
-        ufr_put(&link, "iii\n", 30, 20, 10);
-        assert( ufr_recv(&link) == UFR_OK );
-        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
-        buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "30,20,10\n") == 0 );
-
-    }
-
-    // test 3
-    {
-        char buffer[128];
-        ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        assert( ufr_recv(&link) == UFR_OK );
-        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 34 );
-        buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "string com espaco,8759834,-712345\n") == 0 );
-    }
-
-    ufr_close(&link);
-    printf("test_simple_2 - OK\n");
-}
-
 
 // ============================================================================
 //  Main
@@ -138,6 +89,5 @@ void test_simple_2() {
 
 int main() {
     test_simple();
-    test_simple_2();
     return 0;
 }
