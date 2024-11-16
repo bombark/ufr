@@ -94,18 +94,6 @@ void ufr_enc_sys_clear(link_t* link) {
     ufr_buffer_clear(buffer);
 }
 
-int ufr_enc_sys_put_u8(link_t* link, uint8_t val) {
-    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
-    ufr_buffer_put_u8_as_str(buffer, val);
-    return UFR_OK;
-}
-
-int ufr_enc_sys_put_i8(link_t* link, int8_t val) {
-    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
-    ufr_buffer_put_u8_as_str(buffer, val);
-    return UFR_OK;
-}
-
 int ufr_enc_sys_put_u32(link_t* link, const uint32_t* val, int nitems) {
     int wrote = 0;
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
@@ -125,6 +113,33 @@ int ufr_enc_sys_put_i32(link_t* link, const int32_t* val, int nitems) {
 }
 
 int ufr_enc_sys_put_f32(link_t* link, const float* val, int nitems) {
+    int wrote = 0;
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_f32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
+}
+
+int ufr_enc_sys_put_u64(link_t* link, const uint64_t* val, int nitems) {
+    int wrote = 0;
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_u32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
+}
+
+int ufr_enc_sys_put_i64(link_t* link, const int64_t* val, int nitems) {
+    int wrote = 0;
+    ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
+    for (; wrote<nitems; wrote++) {
+        ufr_buffer_put_i32_as_str(buffer, val[wrote]);
+    }
+    return wrote;
+}
+
+int ufr_enc_sys_put_f64(link_t* link, const double* val, int nitems) {
     int wrote = 0;
     ufr_buffer_t* buffer = (ufr_buffer_t*) link->enc_obj;
     for (; wrote<nitems; wrote++) {
@@ -179,9 +194,9 @@ ufr_enc_api_t ufr_enc_sys_api = {
     .put_i32 = ufr_enc_sys_put_i32,
     .put_f32 = ufr_enc_sys_put_f32,
 
-    .put_u64 = NULL,
-    .put_i64 = NULL,
-    .put_f64 = NULL,
+    .put_u64 = ufr_enc_sys_put_u64,
+    .put_i64 = ufr_enc_sys_put_i64,
+    .put_f64 = ufr_enc_sys_put_f64,
 
     .put_cmd = ufr_enc_sys_put_cmd,
     .put_str = ufr_enc_sys_put_str,

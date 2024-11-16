@@ -104,7 +104,7 @@ void test_new() {
 
 int main() {
     test_simple();
-    //test_new();
+    test_new();
     test_message_4kb();
 	return 0;
 }

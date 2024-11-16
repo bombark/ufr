@@ -41,24 +41,32 @@ int ufr_enc_csv_new(link_t* link);
 // ============================================================================
 
 void test_simple() {
-    link_t link = ufr_new("@new posix:pipe");
+    link_t link;
+    ufr_gtw_posix_new_pipe(&link, 0);
+    ufr_boot_gtw(&link, NULL);
+
     ufr_args_t args = {.text="@sep ;"};  
     ufr_enc_csv_new(&link);
+    ufr_boot_enc(&link, &args);
 
     // test 1
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
         assert( strcmp(buffer, "10;20;30\n") == 0 );
     }
 
+
+
     // test 2
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 30, 20, 10);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
@@ -70,6 +78,7 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 34 );
         buffer[nbytes] = '\0';
@@ -77,17 +86,23 @@ void test_simple() {
     }
 
     ufr_close(&link);
+    printf("test_simple - OK\n");
 }
 
 void test_simple_2() {
-    link_t link = ufr_new("@new posix:pipe");
+    link_t link;
+    ufr_gtw_posix_new_pipe(&link, 0);
+    ufr_boot_gtw(&link, NULL);
+
     ufr_args_t args = {.text="@sep ,"};  
     ufr_enc_csv_new(&link);
+    ufr_boot_enc(&link, &args);
 
     // test 1
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
@@ -98,6 +113,7 @@ void test_simple_2() {
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 30, 20, 10);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 9 );
         buffer[nbytes] = '\0';
@@ -109,6 +125,7 @@ void test_simple_2() {
     {
         char buffer[128];
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
+        assert( ufr_recv(&link) == UFR_OK );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         assert( nbytes == 34 );
         buffer[nbytes] = '\0';
@@ -116,40 +133,38 @@ void test_simple_2() {
     }
 
     ufr_close(&link);
+    printf("test_simple_2 - OK\n");
 }
 
-void test3() {
-    // open a link with gateway
-    link_t link = ufr_publisher("@new posix:file @path saida.txt");
 
-    // boot the encoder
+void test_simple_without_recv() {
+    link_t link;
+    ufr_gtw_posix_new_pipe(&link, 0);
+    ufr_boot_gtw(&link, NULL);
+
     ufr_args_t args = {.text="@sep ,"};  
     ufr_enc_csv_new(&link);
     ufr_boot_enc(&link, &args);
 
-    for (int i=0; i<2; i++) {
-        // write test data
-        ufr_put(&link, "iii", 10,20,30);
-        ufr_put_enter(&link, 3);
-        ufr_put(&link, "iii", 40,50,60);
-        ufr_put_leave(&link);
-        ufr_put(&link, "\n");
+    // test 1
+    {
+        char buffer[128];
+        ufr_put(&link, "iii\n", 10, 20, 30);
+        int nbytes = ufr_read(&link, buffer, sizeof(buffer));
+        assert( nbytes == 0 );
     }
 
-    // close the link
     ufr_close(&link);
+    printf("test_simple_without_recv - OK\n");
 }
-
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    test3();
+    test_simple();
+    test_simple_2();
+    test_simple_without_recv();
     return 0;
-
-    // test_simple();
-    // test_simple_2();
-	// return 0;
 }

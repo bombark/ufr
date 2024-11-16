@@ -39,7 +39,7 @@
 
 struct encoder_obj_t {
     const char* header;
-    const char* sep;
+    char sep;
     std::string line;
 };
 
@@ -57,7 +57,7 @@ int ufr_enc_csv_boot(link_t* link, const ufr_args_t* args) {
 
     // fill the encoder data
     const char* sep = ufr_args_gets(args, "@sep", ",");
-    enc_obj->sep = sep;
+    enc_obj->sep = sep[0];
     link->enc_obj = enc_obj;
     return UFR_OK;
 }
@@ -71,69 +71,24 @@ void ufr_enc_csv_close(link_t* link) {
 }
 
 static
-int ufr_enc_csv_put_u8(link_t* link, uint8_t val) {
-    char buffer[32];
-    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-    const char* sep = enc_obj->sep;
-
-    if ( enc_obj->line.size() == 0 ) {
-        const size_t size = snprintf(buffer, sizeof(buffer), "%u", val);
-        enc_obj->line += buffer;
-    } else {
-        const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val);
-        enc_obj->line += buffer;
-    }
-
-    return 0;
-}
-
-static
-int ufr_enc_csv_put_i8(link_t* link, int8_t val) {
-    char buffer[32];
-    encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-    const char* sep = enc_obj->sep;
-
-    if ( enc_obj->line.size() == 0 ) {
-        const size_t size = snprintf(buffer, sizeof(buffer), "%d", val);
-        enc_obj->line += buffer;
-    } else {
-        const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val);
-        enc_obj->line += buffer;
-    }
-
-    return 0;
-}
-
-static
-int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
-    if ( cmd == '\n' ) {
-        encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-        enc_obj->line += '\n';
-        ufr_write(link, enc_obj->line.c_str(), enc_obj->line.size());
-        enc_obj->line.clear();
-    }
-    return 0;
-}
-
-static
 int ufr_enc_csv_put_u32(link_t* link, const uint32_t* val, int nitems) {
     int wrote = 0;
     char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-    const char* sep = enc_obj->sep;
+    const char sep = enc_obj->sep;
 
     if ( nitems > 0 ) {
         if ( enc_obj->line.size() == 0 ) {
             const size_t size = snprintf(buffer, sizeof(buffer), "%u", val[0]);
             enc_obj->line += buffer;
         } else {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val[0]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%u", sep, val[0]);
             enc_obj->line += buffer;
         }
         wrote += 1;
 
         for (; wrote<nitems; wrote++) {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%u", sep, val[wrote]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%u", sep, val[wrote]);
             enc_obj->line += buffer;
             wrote += 1;
         }
@@ -147,20 +102,19 @@ int ufr_enc_csv_put_i32(link_t* link, const int32_t* val, int nitems) {
     int wrote = 0;
     char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-    const char* sep = enc_obj->sep;
 
     if ( nitems > 0 ) {
         if ( enc_obj->line.size() == 0 ) {
             const size_t size = snprintf(buffer, sizeof(buffer), "%d", val[0]);
             enc_obj->line += buffer;
         } else {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val[0]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%d", enc_obj->sep, val[0]);
             enc_obj->line += buffer;
         }
         wrote += 1;
 
         for (; wrote<nitems; wrote++) {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%d", sep, val[wrote]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%d", enc_obj->sep, val[wrote]);
             enc_obj->line += buffer;
             wrote += 1;
         }
@@ -174,26 +128,39 @@ int ufr_enc_csv_put_f32(link_t* link, const float* val, int nitems) {
     int wrote = 0;
     char buffer[32];
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
-    const char* sep = enc_obj->sep;
+    const char sep = enc_obj->sep;
 
     if ( nitems > 0 ) {
         if ( enc_obj->line.size() == 0 ) {
             const size_t size = snprintf(buffer, sizeof(buffer), "%f", val[0]);
             enc_obj->line += buffer;
         } else {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%f", sep, val[0]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%f", sep, val[0]);
             enc_obj->line += buffer;
         }
         wrote += 1;
 
         for (; wrote<nitems; wrote++) {
-            const size_t size = snprintf(buffer, sizeof(buffer), "%s%f", sep, val[wrote]);
+            const size_t size = snprintf(buffer, sizeof(buffer), "%c%f", sep, val[wrote]);
             enc_obj->line += buffer;
             wrote += 1;
         }
     }
 
     return wrote;
+}
+
+static
+int ufr_enc_csv_put_cmd(link_t* link, char cmd) {
+    if ( cmd == '\n' ) {
+        encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
+        enc_obj->line += '\n';
+        ufr_write(link, enc_obj->line.c_str(), enc_obj->line.size());
+        enc_obj->line.clear();
+        return UFR_OK;
+    }
+    
+    return ufr_error(link, -1, "Command invalid");
 }
 
 static
@@ -210,7 +177,7 @@ int ufr_enc_csv_put_str(link_t* link, const char* val) {
     return 0;
 }
 
-int ufr_enc_enter_array(link_t* link, size_t maxsize) {
+int ufr_enc_enter(link_t* link, size_t maxsize) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
     if ( enc_obj->line.size() > 0 ) {
         enc_obj->line += enc_obj->sep;
@@ -220,7 +187,7 @@ int ufr_enc_enter_array(link_t* link, size_t maxsize) {
 }
 
 
-int ufr_enc_leave_array(link_t* link) {
+int ufr_enc_leave(link_t* link) {
     encoder_obj_t* enc_obj = (encoder_obj_t*) link->enc_obj;
     if ( enc_obj->line.size() > 0 ) {
         enc_obj->line += enc_obj->sep;
@@ -246,8 +213,8 @@ ufr_enc_api_t ufr_enc_std_csv_api = {
     .put_str = ufr_enc_csv_put_str,
     .put_raw = NULL,
 
-    .enter = ufr_enc_enter_array,
-    .leave = ufr_enc_leave_array
+    .enter = ufr_enc_enter,
+    .leave = ufr_enc_leave
 };
 
 // ============================================================================

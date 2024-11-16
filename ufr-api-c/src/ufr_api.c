@@ -113,6 +113,15 @@ void ufr_init_link(link_t* link, ufr_gtw_api_t* gtw_api) {
 
 int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
     ufr_log_ini(link, "booting decoder");
+    if ( link == NULL ) {
+        return ufr_log_error(link, 1, "Link is NULL");
+    }
+    if ( link->dcr_api == NULL ) {
+        return ufr_log_error(link, 1, "Decoder API is NULL");
+    }
+    if ( link->dcr_api->boot == NULL ) {
+        return ufr_log_error(link, 1, "Function boot on Decoder API is NULL");
+    }
     const int state = link->dcr_api->boot(link, args);
     ufr_log_end(link, "decoder booted");
     return state;
@@ -120,6 +129,15 @@ int ufr_boot_dcr(link_t* link, const ufr_args_t* args) {
 
 int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
     ufr_log_ini(link, "booting encoder");
+    if ( link == NULL ) {
+        return ufr_log_error(link, 1, "Link is NULL");
+    }
+    if ( link->enc_api == NULL ) {
+        return ufr_log_error(link, 1, "Encoder API is NULL");
+    }
+    if ( link->enc_api->boot == NULL ) {
+        return ufr_log_error(link, 1, "Function boot on Encoder API is NULL");
+    }
     const int state = link->enc_api->boot(link, args);
     ufr_log_end(link, "encoder booted");
     return state;
@@ -127,6 +145,16 @@ int ufr_boot_enc(link_t* link, const ufr_args_t* args) {
 
 int ufr_boot_gtw(link_t* link, const ufr_args_t* args) {
     ufr_log_ini(link, "booting gateway");
+    if ( link == NULL ) {
+        return ufr_log_error(link, 1, "Link is NULL");
+    }
+    if ( link->gtw_api == NULL ) {
+        return ufr_log_error(link, 1, "Gateway API is NULL");
+    }
+    if ( link->gtw_api->boot == NULL ) {
+        return ufr_log_error(link, 1, "Function boot on Gateway API is NULL");
+    }
+
     const int state = link->gtw_api->boot(link, args);
     if ( state == UFR_OK ) {
         link->status = UFR_STATUS_BOOTED;

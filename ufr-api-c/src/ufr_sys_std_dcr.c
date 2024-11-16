@@ -37,7 +37,8 @@
 typedef struct {
     char* msg_ptr;
     size_t msg_size;
-    size_t msg_idx;
+    char* msg_end;
+    char* msg_cur;
 } decoder_t;
 
 // ============================================================================
@@ -60,13 +61,18 @@ void ufr_dcr_sys_close(link_t* link) {
 }
 
 static
-void ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr != NULL ) {
+printf("%s\n", msg_data);
         dcr->msg_ptr = msg_data;
         dcr->msg_size = msg_size;
-        dcr->msg_idx = 0;
+        dcr->msg_cur = msg_data;
+        dcr->msg_end = msg_data+msg_size;
+        return UFR_OK;
     }
+    
+    return -1;
 }
 
 static
@@ -75,64 +81,81 @@ int ufr_dcr_sys_get_type(link_t* link) {
 }
 
 static
-int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val, int nbytes) {
+int ufr_dcr_sys_get_u32(link_t* link, uint32_t* val, int nitems) {
     decoder_t* dcr = link->dcr_obj;
-    if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
-        return 1;
+    if ( dcr == NULL || dcr->msg_cur >= dcr->msg_end ) {
+        return -1;
     }
 
     char* saveptr;
-    char* val_str = strtok_r( &dcr->msg_ptr[dcr->msg_idx], " ", &saveptr );
-    sscanf(val_str, "%u", val);
-    dcr->msg_idx += saveptr - dcr->msg_ptr;
+    int wrote = 0;
+    for (;wrote<nitems; wrote++) {
+        const char* val_str = strtok_r( dcr->msg_cur, " \n", &saveptr );
+        if ( val_str == NULL ) {
+            break;
+        }
+        sscanf(val_str, "%u", val);
+    }
+    dcr->msg_cur = saveptr;
     return UFR_OK;
 }
 
 static
-int ufr_dcr_sys_get_i32(link_t* link, int32_t* val, int nbytes) {
+int ufr_dcr_sys_get_i32(link_t* link, int32_t* val, int nitems) {
     decoder_t* dcr = link->dcr_obj;
-    if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
-        return 1;
+    if ( dcr == NULL || dcr->msg_cur >= dcr->msg_end ) {
+        return -1;
     }
 
     char* saveptr;
-    char* val_str = strtok_r( &dcr->msg_ptr[dcr->msg_idx], " ", &saveptr );
-    sscanf(val_str, "%d", val);
-    dcr->msg_idx += saveptr - dcr->msg_ptr;
-    return UFR_OK;
+    int wrote = 0;
+    for (;wrote<nitems; wrote++) {
+        const char* val_str = strtok_r( dcr->msg_cur, " \n", &saveptr );
+        if ( val_str == NULL ) {
+            break;
+        }
+        sscanf(val_str, "%d", val);
+    }
+    dcr->msg_cur = saveptr;
+    return wrote;
 }
 
 static
-int ufr_dcr_sys_get_f32(link_t* link, float* val, int nbytes) {
+int ufr_dcr_sys_get_f32(link_t* link, float* val, int nitems) {
     decoder_t* dcr = link->dcr_obj;
-    if ( dcr == NULL || dcr->msg_idx >= dcr->msg_size ) {
-        return 1;
+    if ( dcr == NULL || dcr->msg_cur >= dcr->msg_end ) {
+        return -1;
     }
 
     char* saveptr;
-    char* val_str = strtok_r( &dcr->msg_ptr[dcr->msg_idx], " ", &saveptr );
-    sscanf(val_str, "%f", val);
-    dcr->msg_idx += saveptr - dcr->msg_ptr;
-    return UFR_OK;
+    int wrote = 0;
+    for (;wrote<nitems; wrote++) {
+        const char* val_str = strtok_r( dcr->msg_cur, " \n", &saveptr );
+        if ( val_str == NULL ) {
+            break;
+        }
+        sscanf(val_str, "%f", val);
+    }
+    dcr->msg_cur = saveptr;
+    return wrote;
 }
 
 static
-int ufr_dcr_sys_get_str(link_t* link, char** ret_val) {
-    return UFR_OK;
-}
+int ufr_dcr_sys_get_str(link_t* link, char* ret_val, int maxbytes) {
+    ret_val[0] = '\0';
 
-static
-int ufr_dcr_sys_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-    return UFR_OK;
-}
+    decoder_t* dcr = link->dcr_obj;
+    if ( dcr == NULL || dcr->msg_cur >= dcr->msg_end ) {
+        return -1;
+    }
 
-static
-int ufr_dcr_sys_copy_str(link_t* link, char* ret_val, size_t size_max) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_sys_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
+    char* saveptr;
+    const char* val_str = strtok_r( dcr->msg_cur, " \n", &saveptr );
+    if ( val_str == NULL ) {
+        return -1;
+    }
+    strcpy(ret_val, val_str);
+    dcr->msg_cur = saveptr;
     return UFR_OK;
 }
 
@@ -157,11 +180,12 @@ ufr_dcr_api_t dcr_sys_api = {
 
     .get_type = NULL,
 
-    .get_raw = NULL,
-    .get_str = NULL,
 	.get_u32 = ufr_dcr_sys_get_u32,
 	.get_i32 = ufr_dcr_sys_get_i32,
 	.get_f32 = ufr_dcr_sys_get_f32,
+
+    .get_raw = NULL,
+    .get_str = ufr_dcr_sys_get_str,
 
     .enter = ufr_dcr_sys_enter,
     .leave = ufr_dcr_sys_leave

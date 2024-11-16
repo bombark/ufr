@@ -33,39 +33,37 @@
 #include <unistd.h>
 #include <string.h>
 #include <ufr.h>
+#include <ufr_test.h>
 #include <pthread.h>
 
 int ufr_gtw_zmq_new_topic(link_t* link, const int type);
 
 // ============================================================================
-//  Tests
+//  Test 1
 // ============================================================================
 
 ufr_args_t g_test1_args = {.text="@host 127.0.0.1 @port 3000 @debug 0"};
 
 void test1_publisher() {
-    printf("opa\n");
+    printf("Starting publisher\n");
     link_t link;
-    ufr_init_link(&link, NULL);
-
     assert( ufr_gtw_zmq_new_topic(&link, UFR_START_PUBLISHER) == UFR_OK );  
     assert( ufr_boot_gtw(&link,&g_test1_args) == UFR_OK );
-    // ???
+    assert( ufr_enc_sys_new_std(&link, 0) == UFR_OK );
     assert( ufr_boot_enc(&link,&g_test1_args) == UFR_OK );
     assert( ufr_start_publisher(&link,&g_test1_args) == UFR_OK );
-
     ufr_put(&link, "iii\n", 10, 20, 30);
-
     ufr_close(&link);
 }
 
 void* test1_subscriber(void* ptr) {
+    printf("Starting subscriber\n");
     link_t link;
     assert( ufr_gtw_zmq_new_topic(&link, UFR_START_SUBSCRIBER) == UFR_OK );
     assert( ufr_boot_gtw(&link,&g_test1_args) == UFR_OK );
+    assert( ufr_dcr_sys_new_std(&link, 0) == UFR_OK );
     assert( ufr_boot_dcr(&link,&g_test1_args) == UFR_OK );
     assert( ufr_start_subscriber(&link,&g_test1_args) == UFR_OK );
-    // assert( ufr_start_subscriber(&link,&args) == UFR_OK );
 
     int a=0,b=0,c=0;
     ufr_get(&link, "^iii", &a, &b, &c);
@@ -74,15 +72,14 @@ void* test1_subscriber(void* ptr) {
     assert( b==20 );
     assert( c==30 );
 
-
     return NULL;
 }
 
 void test1() {
     pthread_t thread_sub;
-    // pthread_create(&thread_sub, NULL, test1_subscriber, NULL);
+    pthread_create(&thread_sub, NULL, test1_subscriber, NULL);
     test1_publisher();
-    // pthread_join(thread_sub, NULL);
+    pthread_join(thread_sub, NULL);
 }
 
 // ============================================================================

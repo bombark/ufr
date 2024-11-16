@@ -706,6 +706,16 @@ int sys_ufr_load (link_t* link, const char* library_type,
     const char* class_path, int boot_type, const ufr_args_t* args);
 
 
+
+// ============================================================================
+//  Use for tests
+// ============================================================================
+
+int ufr_gtw_posix_new_pipe(link_t* link, int type);
+int ufr_dcr_sys_new_std(link_t* link, int type);
+int ufr_enc_sys_new_std(link_t* link, int type);
+
+
 // ============================================================================
 //  Footer
 // ============================================================================

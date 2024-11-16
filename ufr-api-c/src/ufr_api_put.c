@@ -38,15 +38,32 @@
 // ============================================================================
 
 int ufr_put_va(link_t* link, const char* format, va_list list) {
-    if ( link->enc_api == NULL ) {
-        return ufr_error(link, 0, "Encoder is not loaded");
+    if ( link ) {
+        if ( link->log_level > 0 ) {
+            if ( link->enc_api == NULL ) {
+                ufr_fatal(link, 0, "Encoder is not loaded");
+            }
+            if ( link->enc_api->put_cmd == NULL ) {
+                ufr_fatal(link, 0, "Function put_cmd is NULL");
+            }
+            if ( link->enc_api->put_u32 == NULL ) {
+                ufr_fatal(link, -1, "Function put_u32 is NULL");
+            }
+            if ( link->enc_api->put_i32 == NULL ) {
+                ufr_fatal(link, -1, "Function put_i32 is NULL");
+            }
+            if ( link->enc_api->put_f32 == NULL ) {
+                ufr_fatal(link, -1, "Function put_f32 is NULL");
+            }
+        }
+    } else {
+        ufr_fatal(link, -1, "Link is NULL");
     }
 
 	char type;
 	while( format != NULL ) {
 		type = *format;
         format += 1;
-
 		// end of string
 		if ( type == '\0' ) {
 			break;

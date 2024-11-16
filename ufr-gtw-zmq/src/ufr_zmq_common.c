@@ -112,9 +112,11 @@ int ufr_zmq_boot (link_t* link, const ufr_args_t* args) {
 void ufr_zmq_stop(link_t* link, int type) {
     if ( type == UFR_STOP_CLOSE ) {
         ll_obj_t* obj = link->gtw_obj;
-        zmq_close(obj->socket);
-        free(obj);
-        link->gtw_obj = NULL;
+        if ( obj ) {
+            zmq_close(obj->socket);
+            free(obj);
+            link->gtw_obj = NULL;
+        }
     }
 }
 
@@ -216,12 +218,4 @@ int ufr_zmq_recv_peer_name(link_t* link, char* buffer, size_t maxbuffer) {
     char* ip = inet_ntoa(addr.sin_addr);
     strcpy(buffer, ip);
     return UFR_OK;
-}
-
-// ============================================================================
-//  Public Functions
-// ============================================================================
-
-const char* ufr_zmq_list() {
-    return "file";
 }

@@ -29,6 +29,7 @@
 //  Header
 // ============================================================================
 
+#include <stdlib.h>
 #include "ufr.h"
 
 // ============================================================================
@@ -36,9 +37,26 @@
 // ============================================================================
 
 int ufr_get_va(link_t* link, const char* format, va_list list) {
-    if ( link->dcr_api == NULL ) {
-        ufr_error(link, 0, "Decoder is not loaded");
-        return -1;
+    if ( link ) {
+        if ( link->log_level > 0 ) {
+            if ( link->dcr_api == NULL ) {
+                ufr_fatal(link, 0, "Encoder is not loaded");
+            }
+            if ( link->dcr_api->get_u32 == NULL ) {
+                ufr_fatal(link, 0, "Function get_u32 is NULL");
+            }
+            if ( link->dcr_api->get_i32 == NULL ) {
+                ufr_fatal(link, -1, "Function get_i32 is NULL");
+            }
+            if ( link->dcr_api->get_f32 == NULL ) {
+                ufr_fatal(link, -1, "Function put_f32 is NULL");
+            }
+            if ( link->dcr_api->get_str == NULL ) {
+                ufr_fatal(link, -1, "Function put_str is NULL");
+            }
+        }
+    } else {
+        ufr_fatal(link, -1, "Link is NULL");
     }
 
     int retval = 0;
@@ -76,14 +94,14 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
             switch (type) {
                 case 's': {
                     char* buffer = va_arg(list, char*);
-                    if ( link->dcr_api->get_str(link, buffer, 1024) != -1 ) {
+                    if ( link->dcr_api->get_str(link, buffer, 1024) >= 0 ) {
                         retval += 1;
                     }
                 } break;
 
                 case 'u': {
                     uint32_t *val = va_arg(list, uint32_t*);
-                    if ( link->dcr_api->get_i32(link, val, 1) == UFR_OK ) {
+                    if ( link->dcr_api->get_u32(link, val, 1) == 1 ) {
                         retval += 1;
                     }
                 } break;
@@ -91,32 +109,35 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
                 case 'i':
                 case 'd': {
                     int32_t *val = va_arg(list, int32_t*);
-                    if ( link->dcr_api->get_i32(link, val, 1) == UFR_OK ) {
+                    if ( link->dcr_api->get_i32(link, val, 1) == 1 ) {
                         retval += 1;
                     }
                 } break;
 
                 case 'l': {
                     int64_t *val = va_arg(list, int64_t*);
-                    if ( link->dcr_api->get_i64(link, val, 1) == UFR_OK ) {
+                    if ( link->dcr_api->get_i64(link, val, 1) == 1 ) {
                         retval += 1;
                     }
                 } break;
 
                 case 'f': {
                     float* val = va_arg(list, float*);
-                    if ( link->dcr_api->get_f32(link, val, 1) == UFR_OK ) {
+                    if ( link->dcr_api->get_f32(link, val, 1) == 1 ) {
                         retval += 1;
                     }
                 } break;
 
                 case 'g': {
                     double* val = va_arg(list, double*);
-                    if ( link->dcr_api->get_f64(link, val, 1) == UFR_OK ) {
+                    if ( link->dcr_api->get_f64(link, val, 1) == 1 ) {
                         retval += 1;
                     }
                 } break;
 
+                case '-': {
+                    link->dcr_api->next(link);
+                } break;
             }
         }
 	}

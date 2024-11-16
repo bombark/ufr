@@ -40,8 +40,8 @@
 
 typedef struct {
     char const* msg_ptr;
-    size_t msg_size;
-    size_t msg_index;
+    uint32_t msg_size;
+    uint32_t msg_index;
     char sep; 
 } ll_decoder_t;
 
@@ -52,9 +52,9 @@ typedef struct {
 int lex_next_token(ll_decoder_t* decoder, char* out_token) {
     const char sep = decoder->sep;
     const char* msg = decoder->msg_ptr;
-    const size_t size = decoder->msg_size;
-    size_t cursor = decoder->msg_index;
-    size_t i_token = 0;    
+    const uint32_t size = decoder->msg_size;
+    uint32_t cursor = decoder->msg_index;
+    uint32_t i_token = 0;    
 
     while( cursor < size ) {
         const char c = msg[cursor];
@@ -106,6 +106,13 @@ void ufr_dcr_csv_close(link_t* link) {
 }
 
 static
+int ufr_dcr_csv_next(link_t* link) {
+    ll_decoder_t* decoder = link->dcr_obj;
+    char token[TOKEN_SIZE];
+    return lex_next_token(decoder, token);
+}
+
+static
 int ufr_dcr_csv_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
 	ll_decoder_t* decoder = link->dcr_obj;
 
@@ -127,7 +134,7 @@ int ufr_dcr_csv_get_u32(link_t* link, uint32_t* val, int max_nitems) {
         if ( lex_next_token(decoder, token) != UFR_OK ) {
             break;
         }
-        val[copied] = atoi(token);
+        val[copied] = (uint32_t) atoi(token);
     }
     return copied;
 }
@@ -141,7 +148,7 @@ int ufr_dcr_csv_get_i32(link_t* link, int32_t* val, int max_nitems) {
         if ( lex_next_token(decoder, token) != UFR_OK ) {
             break;
         }
-        val[copied] = atoi(token);
+        val[copied] = (int32_t) atoi(token);
     }
     return copied;
 }
@@ -155,10 +162,53 @@ int ufr_dcr_csv_get_f32(link_t* link, float* val, int max_nitems) {
         if ( lex_next_token(decoder, token) != UFR_OK ) {
             break;
         }
+        val[copied] = (float) atof(token);
+    }
+    return copied;
+}
+
+static
+int ufr_dcr_csv_get_u64(link_t* link, uint64_t* val, int max_nitems) {
+    char token[TOKEN_SIZE];
+    ll_decoder_t* decoder = link->dcr_obj;
+    int copied = 0;
+    for (; copied<max_nitems; copied++) {
+        if ( lex_next_token(decoder, token) != UFR_OK ) {
+            break;
+        }
+        val[copied] = (uint64_t) atoi(token);
+    }
+    return copied;
+}
+
+static
+int ufr_dcr_csv_get_i64(link_t* link, int64_t* val, int max_nitems) {
+    char token[TOKEN_SIZE];
+    ll_decoder_t* decoder = link->dcr_obj;
+    int copied = 0;
+    for (; copied<max_nitems; copied++) {
+        if ( lex_next_token(decoder, token) != UFR_OK ) {
+            break;
+        }
+        val[copied] = atoi(token);
+    }
+    return copied;
+}
+
+static
+int ufr_dcr_csv_get_f64(link_t* link, double* val, int max_nitems) {
+    char token[TOKEN_SIZE];
+    ll_decoder_t* decoder = link->dcr_obj;
+    int copied = 0;
+    for (; copied<max_nitems; copied++) {
+        if ( lex_next_token(decoder, token) != UFR_OK ) {
+            break;
+        }
         val[copied] = atof(token);
     }
     return copied;
 }
+
 
 static
 int ufr_dcr_csv_get_raw(link_t* link, uint8_t* out_val, int maxlen) {
@@ -169,7 +219,7 @@ int ufr_dcr_csv_get_raw(link_t* link, uint8_t* out_val, int maxlen) {
 static
 int ufr_dcr_csv_get_str(link_t* link, char* out_val, int maxlen) {
 	ll_decoder_t* decoder = link->dcr_obj;
-	return 0;
+    return lex_next_token(decoder, out_val);
 }
 
 static
@@ -177,22 +227,36 @@ ufr_dcr_api_t ufr_dcr_std_csv_api = {
     .boot = ufr_dcr_csv_boot,
     .close = ufr_dcr_csv_close,
 
-    .next = NULL,
-
+    // Receive
 	.recv_cb = ufr_dcr_csv_recv_cb,
     .recv_async_cb = ufr_dcr_csv_recv_cb,
 
+    // ignore
+    .next = ufr_dcr_csv_next,
+
+    // metadata
+    .get_type = NULL,
+    .get_nbytes = NULL,
+    .get_nitems = NULL,
+    .get_raw_ptr = NULL,
+
+    // 32 bits
 	.get_u32 = ufr_dcr_csv_get_u32,
 	.get_i32 = ufr_dcr_csv_get_i32,
 	.get_f32 = ufr_dcr_csv_get_f32,
 
-	.get_u64 = NULL,
-	.get_i64 = NULL,
-	.get_f64 = NULL,
+    // 64 bits
+	.get_u64 = ufr_dcr_csv_get_u64,
+	.get_i64 = ufr_dcr_csv_get_i64,
+	.get_f64 = ufr_dcr_csv_get_f64,
 
-
+    // Binary and String
     .get_raw = ufr_dcr_csv_get_raw,
     .get_str = ufr_dcr_csv_get_str,
+
+    // Enter and Leave
+    .enter = NULL,
+    .leave = NULL,
 };
 
 // ============================================================================
