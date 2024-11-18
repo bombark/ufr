@@ -465,7 +465,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list);
  * @param ... 
  * @return int 
  */
-int ufr_get(link_t* link, char* format, ...);
+int ufr_get(link_t* link, const char* format, ...);
 
 /**
  * @brief 
@@ -501,6 +501,7 @@ bool ufr_get_str(link_t* link, char* buffer);
  * @return size_t 
  */
 int ufr_get_raw(link_t* link, uint8_t buffer[], int max_nitems);
+
 
 // ============================================================================
 //  Send, Write and Put
@@ -548,29 +549,41 @@ int ufr_put_va(link_t* link, const char* format, va_list list);
 int ufr_put(link_t* link, const char* format, ...);
 
 // PUT
-int ufr_put_u32(link_t* link, const uint32_t* array, int nitems);
-int ufr_put_i32(link_t* link, const int32_t* array, int nitems);
-int ufr_put_f32(link_t* link, const float* array, int nitems);
+int ufr_put_pu32(link_t* link, const uint32_t* array, int nitems);
+int ufr_put_pi32(link_t* link, const int32_t* array, int nitems);
+int ufr_put_pf32(link_t* link, const float* array, int nitems);
 
-int ufr_put_u64(link_t* link, const uint64_t* array, int nitems);
-int ufr_put_i64(link_t* link, const int64_t* array, int nitems);
-int ufr_put_f64(link_t* link, const double* array, int nitems);
+int ufr_put_pu64(link_t* link, const uint64_t* array, int nitems);
+int ufr_put_pi64(link_t* link, const int64_t* array, int nitems);
+int ufr_put_pf64(link_t* link, const double* array, int nitems);
 
 int ufr_put_raw(link_t* link, const uint8_t* array, int nbytes);
 int ufr_put_u8(link_t* link, const uint8_t* array, int nbytes);
 int ufr_put_i8(link_t* link, const int8_t* array, int nbytes);
 
+
+int ufr_put_str(link_t* link, const char* value);
 int ufr_put_eof(link_t* link);
 
-
-// GET
-
-int ufr_get_i32(link_t* link, int32_t* array, int max_nitems);
-int ufr_get_f32(link_t* link, float* array, int max_nitems);
 
 int ufr_put_enter(link_t* link, int max_nitems);
 int ufr_put_leave(link_t* link);
 
+
+// GET Scalar - 32 bites 
+uint32_t ufr_get_u32(link_t* link, uint32_t defval);
+int32_t  ufr_get_i32(link_t* link, int32_t defval);
+float    ufr_get_f32(link_t* link, float defval);
+
+// GET Vector - 64 bites
+int ufr_get_pf32(link_t* link, float buffer[], int max_nitems);
+
+// GET Scalar - 64 bites
+uint64_t ufr_get_u64(link_t* link, uint64_t defval);
+int64_t  ufr_get_i64(link_t* link, int64_t defval);
+double   ufr_get_f64(link_t* link, double defval);
+
+// Enter and Leave
 int ufr_get_enter(link_t* link);
 int ufr_get_leave(link_t* link);
 

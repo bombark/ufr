@@ -7,8 +7,9 @@
 #include <string.h>
 #include <webots/lidar.h>
 #include <webots/robot.h>
+#include <ufr.h>
 
-#include "ufr.h"
+#include "ufr_webots.h"
 
 typedef struct {
     WbDeviceTag lidar;
@@ -30,8 +31,9 @@ int ufr_dcr_lidar_boot(link_t* link, const ufr_args_t* args) {
     dcr->values_ptr = NULL;
 
     // get sensor for both wheel
+    const char* dev_tag_name = ufr_args_gets(args, "@tag", "RPlidar A2");
     const int time_step = ufr_gtw_webots_get_time_step();
-    dcr->lidar = wb_robot_get_device("RPlidar A2");
+    dcr->lidar = wb_robot_get_device(dev_tag_name);
     dcr->values_size = 0;
     dcr->max_range = 0;
     wb_lidar_enable(dcr->lidar, time_step);
@@ -43,14 +45,20 @@ int ufr_dcr_lidar_boot(link_t* link, const ufr_args_t* args) {
 
 static
 void ufr_dcr_lidar_close(link_t* link) {
-
+    decoder_t* dcr = (decoder_t*) link->dcr_obj;
+    if ( dcr ) {
+        free(dcr);
+        link->dcr_obj = NULL;
+    }
 }
 
+static
 char ufr_dcr_lidar_get_type(link_t* link) {
     return 'a';
 }
 
-size_t ufr_dcr_lidar_get_size(link_t* link) {
+static
+int ufr_dcr_lidar_get_nitems(link_t* link) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
     if ( dcr->values_ptr ) {
         return dcr->values_size;
@@ -58,6 +66,16 @@ size_t ufr_dcr_lidar_get_size(link_t* link) {
     return 0;
 }
 
+static
+int ufr_dcr_lidar_get_nbytes(link_t* link) {
+    decoder_t* dcr = (decoder_t*) link->dcr_obj;
+    if ( dcr->values_ptr ) {
+        return dcr->values_size * sizeof(float);
+    }
+    return 0;
+}
+
+static
 uint8_t* ufr_dcr_lidar_get_raw_ptr(link_t* link) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
     return (uint8_t*) dcr->values_ptr;
@@ -76,46 +94,104 @@ int ufr_dcr_lidar_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
 }
 
 static
-int ufr_dcr_lidar_get_u32(link_t* link, uint32_t* val) {
+int ufr_dcr_lidar_get_u32(link_t* link, uint32_t val[], int nitems) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
     if ( dcr->values_ptr == NULL ) {
         return -1;
     }
-    if ( dcr->index < dcr->values_size ) {
-        *val = dcr->values_ptr[dcr->index];
-        dcr->index += 1;
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
     }
-    return UFR_OK;
+    return wrote;
 }
 
 static
-int ufr_dcr_lidar_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_lidar_get_i32(link_t* link, int32_t val[], int nitems) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
     if ( dcr->values_ptr == NULL ) {
         return -1;
     }
-    if ( dcr->index < dcr->values_size ) {
-        *val = dcr->values_ptr[dcr->index];
-        dcr->index += 1;
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
     }
-    return UFR_OK;
+    return wrote;
 }
 
 static
-int ufr_dcr_lidar_get_f32(link_t* link, float* val) {
+int ufr_dcr_lidar_get_f32(link_t* link, float val[], int nitems) {
     decoder_t* dcr = (decoder_t*) link->dcr_obj;
     if ( dcr->values_ptr == NULL ) {
         return -1;
     }
-    if ( dcr->index < dcr->values_size ) {
-        *val = dcr->values_ptr[dcr->index];
-        dcr->index += 1;
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
     }
-    return UFR_OK;
+    return wrote;
 }
 
 static
-int ufr_dcr_lidar_get_str(link_t* link, char* ret_val, size_t size) {
+int ufr_dcr_lidar_get_u64(link_t* link, uint64_t val[], int nitems) {
+    decoder_t* dcr = (decoder_t*) link->dcr_obj;
+    if ( dcr->values_ptr == NULL ) {
+        return -1;
+    }
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
+    }
+    return wrote;
+}
+
+static
+int ufr_dcr_lidar_get_i64(link_t* link, int64_t val[], int nitems) {
+    decoder_t* dcr = (decoder_t*) link->dcr_obj;
+    if ( dcr->values_ptr == NULL ) {
+        return -1;
+    }
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
+    }
+    return wrote;
+}
+
+static
+int ufr_dcr_lidar_get_f64(link_t* link, double val[], int nitems) {
+    decoder_t* dcr = (decoder_t*) link->dcr_obj;
+    if ( dcr->values_ptr == NULL ) {
+        return -1;
+    }
+    int wrote = 0;
+    for (; wrote<nitems; wrote++) {
+        if ( dcr->index < dcr->values_size ) {
+            val[wrote] = dcr->values_ptr[dcr->index];
+            dcr->index += 1;
+        }
+    }
+    return wrote;
+}
+
+
+static
+int ufr_dcr_lidar_get_str(link_t* link, char* ret_val, int size) {
     return UFR_OK;
 }
 
@@ -137,12 +213,18 @@ ufr_dcr_api_t dcr_lidar_api = {
     .recv_async_cb = ufr_dcr_lidar_recv_cb,
 
     .get_type = ufr_dcr_lidar_get_type,
-    .get_size = ufr_dcr_lidar_get_size,
+    .get_nbytes = ufr_dcr_lidar_get_nbytes,
+    .get_nitems = ufr_dcr_lidar_get_nitems,
     .get_raw_ptr = ufr_dcr_lidar_get_raw_ptr,
 
 	.get_u32 = ufr_dcr_lidar_get_u32,
 	.get_i32 = ufr_dcr_lidar_get_i32,
 	.get_f32 = ufr_dcr_lidar_get_f32,
+
+	.get_u64 = ufr_dcr_lidar_get_u64,
+	.get_i64 = ufr_dcr_lidar_get_i64,
+	.get_f64 = ufr_dcr_lidar_get_f64,
+
 	.get_str = ufr_dcr_lidar_get_str,
 
     .enter = ufr_dcr_lidar_enter,

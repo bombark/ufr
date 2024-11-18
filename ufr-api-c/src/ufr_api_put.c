@@ -86,13 +86,13 @@ int ufr_put_va(link_t* link, const char* format, va_list list) {
             const int32_t arr_size = va_arg(list, int32_t);
             if ( arr_type == 'i' ) {
                 const int32_t* arr_ptr = va_arg(list, int32_t*);
-                ufr_put_i32(link, arr_ptr, arr_size);
+                ufr_put_pi32(link, arr_ptr, arr_size);
             } else if ( arr_type == 'f' ) {
                 const float* arr_ptr = va_arg(list, float*);
-                ufr_put_f32(link, arr_ptr, arr_size);
+                ufr_put_pf32(link, arr_ptr, arr_size);
             } else if ( arr_type == 'b' ) {
                 const int8_t* arr_ptr = va_arg(list, int8_t*);
-                ufr_put_i8(link, arr_ptr, arr_size);
+                ufr_put_raw(link, arr_ptr, arr_size);
             } 
 
 		// s, i or f
@@ -142,23 +142,34 @@ int ufr_put(link_t* link, const char* format, ...) {
     return nitems;
 }
 
-int ufr_put_u8(link_t* link, const uint8_t* array, int nitems) {
-    const int wrote_nitems = link->enc_api->put_raw(link, array, nitems);
-    if ( wrote_nitems > 0 ) {
-        link->put_count += wrote_nitems;
-    }
-    return wrote_nitems;
+
+int ufr_put_u32(link_t* link, const uint32_t val) {
+    return link->enc_api->put_u32(link, &val, 1);
+
 }
 
-int ufr_put_i8(link_t* link, const int8_t* array, int nitems) {
-    const int wrote_nitems = link->enc_api->put_raw(link, array, nitems);
-    if ( wrote_nitems > 0 ) {
-        link->put_count += wrote_nitems;
-    }
-    return wrote_nitems;
+int ufr_put_i32(link_t* link, const int32_t val) {
+    return link->enc_api->put_i32(link, &val, 1);
+
 }
 
-int ufr_put_u32(link_t* link, const uint32_t* array, int nitems) {
+int ufr_put_f32(link_t* link, const float val) {
+    // check inputs
+    if ( link != NULL && link->log_level > 0 ) {
+        if ( link->enc_api == NULL ) {
+            ufr_fatal(link, 1, "Encoder is NULL");
+        }
+        if ( link->enc_api->put_f32 == NULL ) {
+            ufr_fatal(link, 1, "enc_api->put_f32 is NULL");
+        }
+    }
+    // send data
+    return link->enc_api->put_f32(link, &val, 1);
+}
+
+
+
+int ufr_put_pu32(link_t* link, const uint32_t* array, int nitems) {
     const int wrote_nitems = link->enc_api->put_u32(link, array, nitems);
     if ( wrote_nitems > 0 ) {
         link->put_count += wrote_nitems;
@@ -166,7 +177,7 @@ int ufr_put_u32(link_t* link, const uint32_t* array, int nitems) {
     return wrote_nitems;
 }
 
-int ufr_put_i32(link_t* link, const int32_t* array, int nitems) {
+int ufr_put_pi32(link_t* link, const int32_t* array, int nitems) {
     const int wrote_nitems = link->enc_api->put_i32(link, array, nitems);
     if ( wrote_nitems > 0 ) {
         link->put_count += wrote_nitems;
@@ -174,7 +185,7 @@ int ufr_put_i32(link_t* link, const int32_t* array, int nitems) {
     return wrote_nitems;
 }
 
-int ufr_put_f32(link_t* link, const float* array, int nitems) {
+int ufr_put_pf32(link_t* link, const float* array, int nitems) {
     // check inputs
     if ( link != NULL && link->log_level > 0 ) {
         if ( link->enc_api == NULL ) {
@@ -192,7 +203,9 @@ int ufr_put_f32(link_t* link, const float* array, int nitems) {
     return wrote_nitems;
 }
 
-int ufr_put_u64(link_t* link, const uint64_t* array, int nitems) {
+// 64bits
+
+int ufr_put_pu64(link_t* link, const uint64_t* array, int nitems) {
     const int wrote_nitems = link->enc_api->put_u64(link, array, nitems);
     if ( wrote_nitems > 0 ) {
         link->put_count += wrote_nitems;
@@ -200,7 +213,7 @@ int ufr_put_u64(link_t* link, const uint64_t* array, int nitems) {
     return wrote_nitems;
 }
 
-int ufr_put_i64(link_t* link, const int64_t* array, int nitems) {
+int ufr_put_pi64(link_t* link, const int64_t* array, int nitems) {
     const int wrote_nitems = link->enc_api->put_i64(link, array, nitems);
     if ( wrote_nitems > 0 ) {
         link->put_count += wrote_nitems;
@@ -208,7 +221,7 @@ int ufr_put_i64(link_t* link, const int64_t* array, int nitems) {
     return wrote_nitems;
 }
 
-int ufr_put_f64(link_t* link, const double* array, int nitems) {
+int ufr_put_pf64(link_t* link, const double* array, int nitems) {
     const int wrote_nitems = link->enc_api->put_f64(link, array, nitems);
     if ( wrote_nitems > 0 ) {
         link->put_count += wrote_nitems;
@@ -227,8 +240,14 @@ int ufr_put_eof(link_t* link) {
     return retval;
 }
 
+int ufr_put_str(link_t* link, const char* value) {
+    return link->enc_api->put_str(link, value);
+}
+
+
 int ufr_put_raw(link_t* link, const uint8_t* buffer, int nitems) {
-    return ufr_put_u8(link, buffer, nitems);
+    return -1;
+    // return ufr_put_u8(link, buffer, nitems);
 }
 
 

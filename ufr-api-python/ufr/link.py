@@ -34,6 +34,26 @@ class Link(ctypes.Structure):
     dll.ufr_link.argtypes = [ ctypes.c_void_p, ctypes.c_char_p ]
     dll.ufr_link.restype =  ctypes.c_int32
 
+    # Meta
+    dll.ufr_get_nbytes.argtypes = [ ctypes.c_void_p ]
+    dll.ufr_get_nbytes.restype =  ctypes.c_uint32
+
+    # Get Scalar - 32bits
+    dll.ufr_get_u32.argtypes = [ ctypes.c_void_p, ctypes.c_uint32 ]
+    dll.ufr_get_u32.restype =  ctypes.c_uint32
+    dll.ufr_get_i32.argtypes = [ ctypes.c_void_p, ctypes.c_int32 ]
+    dll.ufr_get_i32.restype =  ctypes.c_int32
+    dll.ufr_get_f32.argtypes = [ ctypes.c_void_p, ctypes.c_float ]
+    dll.ufr_get_f32.restype =  ctypes.c_float
+
+    # Get Scalar - 64bits
+    dll.ufr_get_u64.argtypes = [ ctypes.c_void_p, ctypes.c_uint64 ]
+    dll.ufr_get_u64.restype =  ctypes.c_uint64
+    dll.ufr_get_i64.argtypes = [ ctypes.c_void_p, ctypes.c_int64 ]
+    dll.ufr_get_i64.restype =  ctypes.c_int64
+    dll.ufr_get_f64.argtypes = [ ctypes.c_void_p, ctypes.c_double ]
+    dll.ufr_get_f64.restype =  ctypes.c_double
+
     _fields_ = [
         ('gtw_api', ctypes.c_void_p),
         ('gtw_shr', ctypes.c_void_p),
@@ -107,81 +127,45 @@ class Link(ctypes.Structure):
     def put(self, format, *args):
         index = 0
         for c in format:
+            # send message
             if c == '\n':
-                Link.dll.ufr_put( ctypes.pointer(self), bytes('\n', 'utf-8') )
+                Link.dll.ufr_send( ctypes.pointer(self) )
                 continue
 
+            # put integer
             elif c == 'i':
-                arg = args[index]
-                value = ctypes.c_int64(arg)
-                Link.dll.ufr_put (
-                    ctypes.pointer(self),
-                    bytes('i', 'utf-8'),
-                    value
-                )
+                value = ctypes.c_int32( args[index] )
+                Link.dll.ufr_put_i32(ctypes.pointer(self), value)
 
+            # put float
             elif c == 'f':
-                arg = args[index]
-                value = ctypes.c_float(arg)
-                Link.dll.ufr_put ( 
-                    ctypes.pointer(self),
-                    bytes('f', 'utf-8'),
-                    value 
-                )
+                value = ctypes.c_float( args[index] )
+                Link.dll.ufr_put_f32(ctypes.pointer(self), value)
 
+            # put string
             elif c == 's':
-                arg = args[index]
-                Link.dll.ufr_put ( 
-                    ctypes.pointer(self),
-                    bytes('s', 'utf-8'),
-                    bytes(arg, 'utf-8')
-                )
+                value = args[index]
+                Link.dll.ufr_put_str (ctypes.pointer(self), bytes(value, 'utf-8'))
 
+            # error
             else:
-                Exception(f"The variable {arg} is not allowed to serialize")
+                Exception(f"The variable {c} is not allowed to serialize")
+
+            # loop step
             index += 1
-
-
-    def putln(self, *args):
-        for arg in args:
-            if type(arg) == int:
-                value = ctypes.c_int64(arg)
-                Link.dll.ufr_put (
-                    ctypes.pointer(self), 
-                    bytes('i', 'utf-8'), 
-                    value
-                )
-            elif type(arg) == float:
-                value = ctypes.c_float(arg)
-                Link.dll.ufr_put ( 
-                    ctypes.pointer(self), 
-                    bytes('f', 'utf-8'), 
-                    value 
-                )
-            elif type(arg) == str:
-                Link.dll.ufr_put ( 
-                    ctypes.pointer(self), 
-                    bytes('s', 'utf-8'), 
-                    bytes(arg, 'utf-8') 
-                )
-            else:
-                Exception(f"The variable {arg} is not allowed to serialize")
-        Link.dll.ufr_put( ctypes.pointer(self), bytes('\n', 'utf-8') )
-        
 
     def get(self, format: str):
         resp = []
         for c in format:
             if c == 'i':
-                var = ctypes.c_int32(0)
-                Link.dll.ufr_get(ctypes.pointer(self), bytes('i', 'utf-8'), ctypes.byref(var))
-                resp.append(var.value)
+                var = Link.dll.ufr_get_i32(ctypes.pointer(self), ctypes.c_int32(0))
+                resp.append(var)
             elif c == 'f':
-                var = ctypes.c_float(0)
-                Link.dll.ufr_get(ctypes.pointer(self), bytes('f', 'utf-8'), ctypes.byref(var))
-                resp.append(var.value)
+                var = Link.dll.ufr_get_f32(ctypes.pointer(self), ctypes.c_float(0))
+                resp.append(var)
             elif c == 's':
-                buffer = (ctypes.c_ubyte * 1024)()
+                size = Link.dll.ufr_get_nbytes(ctypes.pointer(self))
+                buffer = (ctypes.c_ubyte * size)
                 Link.dll.ufr_get(ctypes.pointer(self), bytes('s', 'utf-8'), ctypes.pointer(buffer))
                 text = bytes(buffer).decode('utf-8').rstrip('\0')
                 resp.append(text)

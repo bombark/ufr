@@ -10,6 +10,7 @@ add_library(ufr_gtw_webots SHARED
     ./src/enc_motors.c
     ./src/dcr_encoders.c
     ./src/dcr_lidar.c
+    ./src/dcr_pose.c
     )
 
 target_compile_options(ufr_gtw_webots PUBLIC -O1)

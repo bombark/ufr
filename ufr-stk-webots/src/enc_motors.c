@@ -41,7 +41,7 @@
 typedef struct {
     WbDeviceTag left;
     WbDeviceTag right;
-    float vel, rotvel;
+    double vel, rotvel;
     uint8_t index;
 } enc_motors_t;
 
@@ -54,18 +54,21 @@ int ufr_enc_motors_boot(link_t* link, const ufr_args_t* args) {
     const char* dev_tag1_name = ufr_args_gets(args, "@tag1", "left wheel");
     const char* dev_tag2_name = ufr_args_gets(args, "@tag2", "right wheel");
 
+    // Prepare encoder
     enc_motors_t* enc = malloc(sizeof(enc_motors_t));
-    enc->vel = 0;
-    enc->rotvel = 0;
-    enc->index = 0;
     enc->left = wb_robot_get_device( dev_tag1_name );
     enc->right = wb_robot_get_device( dev_tag2_name );
+    enc->vel = 0.0;
+    enc->rotvel = 0.0;
+    enc->index = 0;    
 
+    // Start the WeBots encoders
     wb_motor_set_position(enc->left, INFINITY);
     wb_motor_set_position(enc->right, INFINITY);
     wb_motor_set_velocity(enc->left, 0.0);
     wb_motor_set_velocity(enc->right, 0.0);
 
+    // Success
     link->enc_obj = enc;
     return UFR_OK;
 }
@@ -80,54 +83,111 @@ void ufr_enc_motors_close(link_t* link) {
 static
 void ufr_enc_motors_clear(link_t* link) {
     enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
-    enc->vel = 0;
-    enc->rotvel = 0;
+    enc->vel = 0.0;
+    enc->rotvel = 0.0;
     enc->index = 0;
 }
 
 static
-int ufr_enc_motors_set_header(link_t* link, const char* header) {
+int ufr_enc_motors_put_u32(link_t* link, const uint32_t val[], int nitems) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = (double) val[wrote]; break;
+            case 1: enc->rotvel = (double) val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
     return UFR_OK;
 }
 
 static
-int ufr_enc_motors_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_motors_put_i32(link_t* link, const int32_t val[], int nitems) {
     enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = (double) val[wrote]; break;
+            case 1: enc->rotvel = (double) val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
+    return UFR_OK;
+}
+
+static
+int ufr_enc_motors_put_f32(link_t* link, const float val[], int nitems) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = (double) val[wrote]; break;
+            case 1: enc->rotvel = (double) val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
+    return wrote;
+}
+
+static
+int ufr_enc_motors_put_u64(link_t* link, const uint64_t val[], int nitems) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = (double) val[wrote]; break;
+            case 1: enc->rotvel = (double) val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
+    return UFR_OK;
+}
+
+static
+int ufr_enc_motors_put_i64(link_t* link, const int64_t val[], int nitems) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = (double) val[wrote]; break;
+            case 1: enc->rotvel = (double) val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
+    return UFR_OK;
+}
+
+static
+int ufr_enc_motors_put_f64(link_t* link, const double val[], int nitems) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    int wrote = 0;
+    for (; wrote < nitems; wrote++) {
+        switch (enc->index) {
+            case 0: enc->vel = val[wrote]; break;
+            case 1: enc->rotvel = val[wrote]; break;
+            default: break;
+        }
+        enc->index += 1;
+    }
+    return wrote;
+}
+
+static
+int ufr_enc_motors_put_str(link_t* link, const char* val_str) {
+    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
+    const double val = atof(val_str);
     switch (enc->index) {
         case 0: enc->vel = val; break;
         case 1: enc->rotvel = val; break;
         default: break;
     }
     enc->index += 1;
-    return UFR_OK;
-}
-
-static
-int ufr_enc_motors_put_i32(link_t* link, int32_t val) {
-    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
-    switch (enc->index) {
-        case 0: enc->vel = val; break;
-        case 1: enc->rotvel = val; break;
-        default: break;
-    }
-    enc->index += 1;
-    return UFR_OK;
-}
-
-static
-int ufr_enc_motors_put_f32(link_t* link, float val) {
-    enc_motors_t* enc = (enc_motors_t*) link->enc_obj;
-    switch (enc->index) {
-        case 0: enc->vel = val; break;
-        case 1: enc->rotvel = val; break;
-        default: break;
-    }
-    enc->index += 1;
-    return UFR_OK;
-}
-
-static
-int ufr_enc_motors_put_str(link_t* link, const char* val) {
     return UFR_OK;
 }
 
@@ -146,23 +206,13 @@ int ufr_enc_motors_put_cmd(link_t* link, char cmd) {
 }
 
 static
-int ufr_enc_motors_put_arr(link_t* link, const void* array, char type, size_t size) {
-    return UFR_OK;
+int ufr_enc_motors_enter(link_t* link, size_t maxsize) {
+    return -1;
 }
 
 static
-int ufr_enc_motors_put_mat(link_t* link, const void* vet, char type, size_t rows, size_t cols) {
-    return UFR_OK;
-}
-
-static
-int ufr_enc_motors_enter_array(link_t* link, size_t maxsize) {
-    return UFR_OK;
-}
-
-static
-int ufr_enc_motors_leave_array(link_t* link) {
-    return UFR_OK;
+int ufr_enc_motors_leave(link_t* link) {
+    return -1;
 }
 
 static
@@ -170,19 +220,20 @@ ufr_enc_api_t ufr_enc_motors_api = {
     .boot = ufr_enc_motors_boot,
     .close = ufr_enc_motors_close,
     .clear = ufr_enc_motors_clear,
-    .set_header = ufr_enc_motors_set_header,
 
     .put_u32 = ufr_enc_motors_put_u32,
     .put_i32 = ufr_enc_motors_put_i32,
     .put_f32 = ufr_enc_motors_put_f32,
+
+    .put_u64 = ufr_enc_motors_put_u64,
+    .put_i64 = ufr_enc_motors_put_i64,
+    .put_f64 = ufr_enc_motors_put_f64,
+
     .put_str = ufr_enc_motors_put_str,
     .put_cmd = ufr_enc_motors_put_cmd,
 
-    .put_arr = ufr_enc_motors_put_arr,
-    .put_mat = ufr_enc_motors_put_mat,
-
-    .enter_array = ufr_enc_motors_enter_array,
-    .leave_array = ufr_enc_motors_leave_array,
+    .enter = ufr_enc_motors_enter,
+    .leave = ufr_enc_motors_leave,
 };
 
 // ============================================================================

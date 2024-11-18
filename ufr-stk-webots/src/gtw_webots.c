@@ -89,6 +89,9 @@ int  ufr_gtw_webots_boot(link_t* link, const ufr_args_t* args) {
     } else if ( strcmp(dev_type, "lidar") == 0 ) {
         ufr_dcr_webots_new_lidar(link, UFR_START_SUBSCRIBER);
         ufr_boot_dcr(link, args);
+    } else if ( strcmp(dev_type, "pose") == 0 ) {
+        ufr_dcr_webots_new_pose(link, UFR_START_SUBSCRIBER);
+        ufr_boot_dcr(link, args);
     } else {
         ufr_log(link, "error");
     }

@@ -146,7 +146,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
     return retval;
 }
 
-int ufr_get(link_t* link, char* format, ...) {
+int ufr_get(link_t* link, const char* format, ...) {
     va_list list;
     va_start(list, format);
     const int retval = ufr_get_va(link, format, list);
@@ -165,25 +165,6 @@ void ufr_get_eof(link_t* link) {
 char ufr_get_type(link_t* link) {
     return link->dcr_api->get_type(link);
 }
-
-
-int ufr_get_raw(link_t* link, uint8_t* buffer, int max_nitems) {
-    size_t arr_size = 0;
-    // link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
-    return arr_size;
-}
-
-int ufr_get_f32(link_t* link, float buffer[], int max_nitems) {
-    const size_t nitems = ufr_get_nitems(link);
-    const size_t size = (nitems > max_nitems) ? max_nitems : nitems;
-    for (size_t i=0; i<size; i++) {
-        link->dcr_api->get_f32(link, buffer, max_nitems);
-    }
-    return size;
-}
-
-
-
 
 int ufr_get_nbytes(link_t* link) {
     if ( link == NULL ) {
@@ -206,11 +187,88 @@ int ufr_get_nitems(link_t* link) {
         ufr_error(link, 0, "Decoder of link is null");
     }
     if ( link->dcr_api->get_nitems == NULL ) {
-        ufr_error(link, 0, "Function get_size of the decoder is null");
+        ufr_error(link, 0, "Function get_nitems of the decoder is null");
     }
     return link->dcr_api->get_nitems(link);
 }
 
+const uint8_t* ufr_get_raw_ptr(link_t* link) {
+    return link->dcr_api->get_raw_ptr(link);
+}
+
+
+
+// GET 32 bites
+
+uint32_t ufr_get_u32(link_t* link, uint32_t defval) {
+    uint32_t retval;
+    if ( link->dcr_api->get_u32(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+int32_t ufr_get_i32(link_t* link, int32_t defval) {
+    int32_t retval;
+    if ( link->dcr_api->get_i32(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+float ufr_get_f32(link_t* link, float defval) {
+    float retval;
+    if ( link->dcr_api->get_f32(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+int ufr_get_pf32(link_t* link, float buffer[], int max_nitems) {
+    return link->dcr_api->get_f32(link, buffer, max_nitems);
+}
+
+// GET 64 bites
+
+uint64_t ufr_get_u64(link_t* link, uint64_t defval) {
+    uint64_t retval;
+    if ( link->dcr_api->get_u64(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+int64_t ufr_get_i64(link_t* link, int64_t defval) {
+    int64_t retval;
+    if ( link->dcr_api->get_i64(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+double ufr_get_f64(link_t* link, double defval) {
+    double retval;
+    if ( link->dcr_api->get_f64(link, &retval, 1) != 1 ) {
+        retval = defval;
+    }
+    return retval;
+}
+
+// Arrays
+
+bool ufr_get_str(link_t* link, char* buffer) {
+    // const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
+    // return is_ok == UFR_OK;
+    return false;
+}
+
+int ufr_get_raw(link_t* link, uint8_t* buffer, int max_nitems) {
+    size_t arr_size = 0;
+    // link->dcr_api->copy_arr(link, 'b', maxsize, &arr_size, (void*) buffer);
+    return arr_size;
+}
+
+// Enter and Leave
 
 int ufr_get_enter(link_t* link) {
     if (link->dcr_api->enter == NULL ) {
@@ -224,14 +282,4 @@ int ufr_get_leave(link_t* link) {
         return ufr_error(link, 1, "Function leave in Decoder is NULL");
     }
     return link->dcr_api->leave(link);
-}
-
-const uint8_t* ufr_get_raw_ptr(link_t* link) {
-    return link->dcr_api->get_raw_ptr(link);
-}
-
-bool ufr_get_str(link_t* link, char* buffer) {
-    // const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
-    // return is_ok == UFR_OK;
-    return false;
 }
