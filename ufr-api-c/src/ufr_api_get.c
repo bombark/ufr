@@ -256,10 +256,9 @@ double ufr_get_f64(link_t* link, double defval) {
 
 // Arrays
 
-bool ufr_get_str(link_t* link, char* buffer) {
-    // const int is_ok = link->dcr_api->copy_str(link, buffer, -1);
-    // return is_ok == UFR_OK;
-    return false;
+int ufr_get_str(link_t* link, char* buffer, int maxlen) {
+    const int is_ok = link->dcr_api->get_str(link, buffer, maxlen);
+    return is_ok == UFR_OK;
 }
 
 int ufr_get_raw(link_t* link, uint8_t* buffer, int max_nitems) {

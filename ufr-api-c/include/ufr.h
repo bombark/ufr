@@ -487,10 +487,8 @@ char ufr_get_type(link_t* link);
  * 
  * @param link 
  * @param buffer 
- * @return true 
- * @return false 
  */
-bool ufr_get_str(link_t* link, char* buffer);
+int ufr_get_str(link_t* link, char* buffer, int maxlen);
 
 /**
  * @brief 
@@ -669,7 +667,7 @@ int  ufr_put_log_error_ident(link_t* link, int error, const char* func_name, con
 #define ufr_warn(link, ...) ufr_put_log(link, 1, __func__, __VA_ARGS__)
 #define ufr_info(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
 #define ufr_log(link, ...) ufr_put_log(link, 2, __func__, __VA_ARGS__)
-#define ufr_log_end(link, ...) link->log_ident-=1; ufr_put_log(link, 3, __func__, __VA_ARGS__)
+#define ufr_log_end(link, ...) if (link->log_ident > 0){link->log_ident-=1;} ufr_put_log(link, 3, __func__, __VA_ARGS__)
 #define ufr_log_ini(link, ...) ufr_put_log(link, 4, __func__, __VA_ARGS__); link->log_ident+=1
 #define ufr_log_error(link, error, ...) ufr_put_log_error_ident(link, error, __func__, __VA_ARGS__);
 

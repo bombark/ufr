@@ -40,7 +40,7 @@
 
 int main() {
     // abre um publicador
-    link_t pub = ufr_publisher("@new zmq:topic @coder msgpack"); 
+    link_t pub = ufr_publisher("@new zmq:topic @coder msgpack @debug 4"); 
     float lidar[5] = {1.0,2.0,3.0,4.0,5.0};
 
     ufr_put_enter(&pub, 5);

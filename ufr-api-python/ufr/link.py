@@ -54,6 +54,20 @@ class Link(ctypes.Structure):
     dll.ufr_get_f64.argtypes = [ ctypes.c_void_p, ctypes.c_double ]
     dll.ufr_get_f64.restype =  ctypes.c_double
 
+    dll.ufr_get_str.argtypes = [ ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32 ]
+    dll.ufr_get_str.restype =  ctypes.c_int32
+
+    # Put - 32bits
+    dll.ufr_put_u32.argtypes = [ ctypes.c_void_p, ctypes.c_uint32 ]
+    dll.ufr_put_u32.restype =  ctypes.c_uint32
+    dll.ufr_put_i32.argtypes = [ ctypes.c_void_p, ctypes.c_int32 ]
+    dll.ufr_put_i32.restype =  ctypes.c_int32
+    dll.ufr_put_f32.argtypes = [ ctypes.c_void_p, ctypes.c_float ]
+    dll.ufr_put_f32.restype =  ctypes.c_int32
+
+
+
+
     _fields_ = [
         ('gtw_api', ctypes.c_void_p),
         ('gtw_shr', ctypes.c_void_p),
@@ -135,7 +149,7 @@ class Link(ctypes.Structure):
             # put integer
             elif c == 'i':
                 value = ctypes.c_int32( args[index] )
-                Link.dll.ufr_put_i32(ctypes.pointer(self), value)
+                Link.dll.ufr_put_i32(ctypes.pointer(self), value, 1)
 
             # put float
             elif c == 'f':
@@ -165,14 +179,14 @@ class Link(ctypes.Structure):
                 resp.append(var)
             elif c == 's':
                 size = Link.dll.ufr_get_nbytes(ctypes.pointer(self))
-                buffer = (ctypes.c_ubyte * size)
-                Link.dll.ufr_get(ctypes.pointer(self), bytes('s', 'utf-8'), ctypes.pointer(buffer))
+                buffer = ctypes.create_string_buffer(b"", size)
+                Link.dll.ufr_get_str( ctypes.pointer(self), ctypes.pointer(buffer), size)
                 text = bytes(buffer).decode('utf-8').rstrip('\0')
                 resp.append(text)
             elif c == '^':
-                Link.dll.ufr_get(ctypes.pointer(self), bytes('^', 'utf-8'))
+                Link.dll.ufr_recv(ctypes.pointer(self))
             elif c == '\n':
-                Link.dll.ufr_get(ctypes.pointer(self), bytes('\n', 'utf-8'))
+                Link.dll.ufr_get_eof(ctypes.pointer(self))
             else:
                 Exception(f"The variable {c} is not allowed to unpack")
         # case just one, return scalar value
