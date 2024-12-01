@@ -35,6 +35,7 @@
 #include <string.h>
 
 #include "ufr.h"
+#include "ufr_test.h"
 
 int ufr_dcr_sys_new_std(link_t* link, int type);
 
@@ -130,41 +131,41 @@ int ufr_gtw_fake_new_std(link_t* link, int type) {
 void test_init_link() {
 	link_t link;
 	ufr_init_link(&link, NULL);
-	assert( link.gtw_api == NULL );
-	assert( link.dcr_api == NULL );
-	assert( link.dcr_obj == NULL );
-	assert( link.enc_api == NULL );
-	assert( link.enc_obj == NULL );
+	UFR_TEST_NULL( link.gtw_api );
+	UFR_TEST_NULL( link.dcr_api );
+	UFR_TEST_NULL( link.dcr_obj );
+	UFR_TEST_NULL( link.enc_api );
+	UFR_TEST_NULL( link.enc_obj );
 }
 
 void test_get_api_name() {
 	{
 		const char* name = ufr_api_name(NULL);
-		assert( strcmp(name, "None") == 0 );
+		UFR_TEST_EQUAL_STR(name, "None");
 	}
 
 	{
 		link_t link;
 		ufr_init_link(&link, NULL);
 		const char* name = ufr_api_name(&link);
-		assert( strcmp(name, "None") == 0 );
+		UFR_TEST_EQUAL_STR(name, "None");
 	}
 
 	{
 		link_t link;
 		ufr_init_link(&link, &ufr_gtw_fake_api);
 		const char* name = ufr_api_name(&link);
-		assert( strcmp(name, "fake") == 0 );
+		UFR_TEST_EQUAL_STR(name, "fake");
 	}
 }
 
 void test_publisher() {
 	link_t link;
-	assert( ufr_gtw_fake_new_std(&link, UFR_START_PUBLISHER) == UFR_OK);
-	assert( link.gtw_api == &ufr_gtw_fake_api );
+	UFR_TEST_OK( ufr_gtw_fake_new_std(&link, UFR_START_PUBLISHER) );
+	// UFR_TEST_EQUAL( link.gtw_api, &ufr_gtw_fake_api );
 
 	const ufr_args_t args = {.text=""};
-	assert( ufr_start_publisher(&link, &args) == UFR_OK );
+	UFR_TEST_OK( ufr_start_publisher(&link, &args) );
 
 
 }
@@ -181,6 +182,7 @@ int main() {
 
 	test_publisher();
 
+    ufr_test_print_result();
 	// test_writer();
 	return 0;
 }

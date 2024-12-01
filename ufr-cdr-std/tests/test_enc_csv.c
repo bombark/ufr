@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ufr.h>
+#include <ufr_test.h>
 
 int ufr_enc_csv_new(link_t* link);
 
@@ -53,11 +54,11 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "10;20;30\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "10;20;30\n");
     }
 
 
@@ -66,11 +67,11 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 30, 20, 10);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "30;20;10\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "30;20;10\n");
 
     }
 
@@ -78,15 +79,14 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 34 );
+        UFR_TEST_EQUAL_I32( nbytes, 34 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "string com espaco;8759834;-712345\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "string com espaco;8759834;-712345\n");
     }
 
     ufr_close(&link);
-    printf("test_simple - OK\n");
 }
 
 void test_simple_2() {
@@ -102,22 +102,22 @@ void test_simple_2() {
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "10,20,30\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "10,20,30\n");
     }
 
     // test 2
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 30, 20, 10);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "30,20,10\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "30,20,10\n");
 
     }
 
@@ -125,15 +125,14 @@ void test_simple_2() {
     {
         char buffer[128];
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 34 );
+        UFR_TEST_EQUAL_I32( nbytes, 34 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "string com espaco,8759834,-712345\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "string com espaco,8759834,-712345\n");
     }
 
     ufr_close(&link);
-    printf("test_simple_2 - OK\n");
 }
 
 
@@ -151,11 +150,10 @@ void test_simple_without_recv() {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 0 );
+        UFR_TEST_EQUAL_I32( nbytes, 0 );
     }
 
     ufr_close(&link);
-    printf("test_simple_without_recv - OK\n");
 }
 
 // ============================================================================
@@ -166,5 +164,6 @@ int main() {
     test_simple();
     test_simple_2();
     test_simple_without_recv();
+    ufr_test_print_result();
     return 0;
 }

@@ -727,6 +727,9 @@ int ufr_dcr_sys_new_std(link_t* link, int type);
 int ufr_enc_sys_new_std(link_t* link, int type);
 link_t ufr_new_pipe();
 
+void ufr_test_inc_count();
+void ufr_test_print_result();
+
 // ============================================================================
 //  Footer
 // ============================================================================

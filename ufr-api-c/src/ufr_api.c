@@ -838,3 +838,15 @@ void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text) {
     ufr_buffer_put(buffer, text, size);
 }
 
+
+
+
+uint32_t g_ufr_test_count = 0;
+
+void ufr_test_inc_count() {
+    g_ufr_test_count += 1;
+}
+
+void ufr_test_print_result() {
+    printf("OK - %d tests passed\n", g_ufr_test_count);
+} 

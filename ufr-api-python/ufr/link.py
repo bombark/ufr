@@ -178,7 +178,7 @@ class Link(ctypes.Structure):
                 var = Link.dll.ufr_get_f32(ctypes.pointer(self), ctypes.c_float(0))
                 resp.append(var)
             elif c == 's':
-                size = Link.dll.ufr_get_nbytes(ctypes.pointer(self))
+                size = Link.dll.ufr_get_nbytes(ctypes.pointer(self)) + 1
                 buffer = ctypes.create_string_buffer(b"", size)
                 Link.dll.ufr_get_str( ctypes.pointer(self), ctypes.pointer(buffer), size)
                 text = bytes(buffer).decode('utf-8').rstrip('\0')

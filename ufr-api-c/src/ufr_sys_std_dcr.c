@@ -64,7 +64,6 @@ static
 int ufr_dcr_sys_recv(link_t* link, char* msg_data, size_t msg_size) {
     decoder_t* dcr = link->dcr_obj;
     if ( dcr != NULL ) {
-printf("%s\n", msg_data);
         dcr->msg_ptr = msg_data;
         dcr->msg_size = msg_size;
         dcr->msg_cur = msg_data;

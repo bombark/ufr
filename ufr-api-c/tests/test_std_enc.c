@@ -32,7 +32,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <ufr.h>
+
+#include "ufr.h"
+#include "ufr_test.h"
 
 // ============================================================================
 //  Tests
@@ -47,23 +49,22 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 10, 20, 30);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        printf("%d - %s\n", nbytes, buffer);
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "10 20 30\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "10 20 30\n");
     }
 
     // test 2
     {
         char buffer[128];
         ufr_put(&link, "iii\n", 30, 20, 10);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        assert( nbytes == 9 );
+        UFR_TEST_EQUAL_I32( nbytes, 9 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "30 20 10\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "30 20 10\n");
 
     }
 
@@ -71,16 +72,14 @@ void test_simple() {
     {
         char buffer[128];
         ufr_put(&link, "sii\n", "string com espaco", 8759834, -712345);
-        assert( ufr_recv(&link) == UFR_OK );
+        UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
-        printf("%d - %s\n", nbytes, buffer);
-        assert( nbytes == 36 );
+        UFR_TEST_EQUAL_I32( nbytes, 36 );
         buffer[nbytes] = '\0';
-        assert( strcmp(buffer, "\"string com espaco\" 8759834 -712345\n") == 0 );
+        UFR_TEST_EQUAL_STR(buffer, "\"string com espaco\" 8759834 -712345\n");
     }
 
     ufr_close(&link);
-    printf("test_simple - OK\n");
 }
 
 // ============================================================================
@@ -89,5 +88,6 @@ void test_simple() {
 
 int main() {
     test_simple();
+    ufr_test_print_result();
     return 0;
 }
