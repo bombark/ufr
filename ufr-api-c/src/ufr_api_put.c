@@ -60,6 +60,7 @@ int ufr_put_va(link_t* link, const char* format, va_list list) {
         ufr_fatal(link, -1, "Link is NULL");
     }
 
+    int count = 0;
 	char type;
 	while( format != NULL ) {
 		type = *format;
@@ -128,10 +129,11 @@ int ufr_put_va(link_t* link, const char* format, va_list list) {
 					break;
 			}
             link->put_count += 1;
+            count += 1;
 		}
 
 	}
-    return 0;
+    return count;
 }
 
 int ufr_put(link_t* link, const char* format, ...) {

@@ -50,10 +50,14 @@ void test_simple() {
     ufr_enc_csv_new(&link);
     ufr_boot_enc(&link, &args);
 
+    // ufr_topic_message(&link, 3, "x", "y", "th")
+    // ufr_server_register(&link, "add");
+    // ufr_client_register(&link, "add");
+
     // test 1
     {
         char buffer[128];
-        ufr_put(&link, "iii\n", 10, 20, 30);
+        UFR_TEST_EQUAL_I32( ufr_put(&link, "iii\n", 10, 20, 30), 3 );
         UFR_TEST_OK( ufr_recv(&link) );
         int nbytes = ufr_read(&link, buffer, sizeof(buffer));
         UFR_TEST_EQUAL_I32( nbytes, 9 );

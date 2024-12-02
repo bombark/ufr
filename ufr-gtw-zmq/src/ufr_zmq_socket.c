@@ -195,3 +195,18 @@ int ufr_gtw_zmq_new_socket(link_t* link, int type) {
     }
 	return UFR_OK;
 }
+
+int ufr_gtw_zmq_new(link_t* link, int type) {
+    if ( type == UFR_START_SERVER_ST || type == UFR_START_CLIENT ) {
+	    ufr_init_link(link, &ufr_zmq_socket_st_api);
+    } else if ( type == UFR_START_SERVER_MT ) {
+        ufr_init_link(link, &ufr_zmq_socket_mt_api);
+    } else if ( type == UFR_START_PUBLISHER ) {
+        ufr_gtw_zmq_new_topic(link);
+    } else if ( type == UFR_START_SUBSCRIBER ) {
+        ufr_gtw_zmq_new_topic(link);
+    } else {
+        return ufr_error(link, 1, "invalid type");
+    }
+	return UFR_OK;
+}
