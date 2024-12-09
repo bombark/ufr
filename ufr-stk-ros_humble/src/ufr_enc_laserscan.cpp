@@ -221,13 +221,6 @@ ufr_enc_api_t ufr_enc_ros_api = {
     .boot = ufr_enc_ros_humble_boot,
     .close = NULL,
     .clear = NULL,
-    .set_header = NULL,
-
-    .put_u8 = NULL,
-    .put_i8 = NULL,
-    .put_cmd = ufr_ecr_ros_humble_put_cmd,
-    .put_str = ufr_enc_ros_humble_put_str,
-    .put_raw = NULL,
 
     .put_u32 = ufr_enc_ros_humble_put_u32,
     .put_i32 = ufr_enc_ros_humble_put_i32,
@@ -237,11 +230,12 @@ ufr_enc_api_t ufr_enc_ros_api = {
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-    .put_arr = ufr_enc_ros_humble_put_arr,
-    .put_mat = NULL,
+    .put_cmd = ufr_ecr_ros_humble_put_cmd,
+    .put_str = ufr_enc_ros_humble_put_str,
+    .put_raw = NULL,
 
-    .enter_array = ufr_ros_topic_enter_array,
-    .leave_array = ufr_ros_topic_leave_array,
+    .enter = ufr_ros_topic_enter_array,
+    .leave = ufr_ros_topic_leave_array,
 };
 
 // ============================================================================
