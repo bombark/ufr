@@ -328,7 +328,8 @@ size_t urf_gtw_mqtt_write(link_t* link, const char* buffer, size_t size) {
 }
 
 static
-ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
+ufr_gtw_api_t urf_gtw_mqtt_topic_api = {
+    .name = "mqtt/topic",
 	.type = urf_gtw_mqtt_type,
 	.state = urf_gtw_mqtt_state,
 	.size = urf_gtw_mqtt_size,
@@ -347,14 +348,13 @@ ufr_gtw_api_t urf_gtw_mqtt_socket_api = {
 // ============================================================================
 
 int ufr_gtw_mqtt_new_topic(link_t* link, int type) {
-	ufr_init_link(link, &urf_gtw_mqtt_socket_api);
+	ufr_init_link(link, &urf_gtw_mqtt_topic_api);
     link->type_started = type;
 	return UFR_OK;
 }
 
-const char* urf_gtw_mqtt_list(uint8_t idx) {
-    if ( idx > 1 ) {
-        return NULL;
-    }
-    return "topic";
+int ufr_gtw_mqtt_new(link_t* link, int type) {
+	ufr_init_link(link, &urf_gtw_mqtt_topic_api);
+    link->type_started = type;
+	return UFR_OK;
 }

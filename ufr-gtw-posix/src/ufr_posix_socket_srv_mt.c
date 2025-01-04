@@ -154,6 +154,7 @@ int ufr_posix_socket_srv_recv(link_t* link) {
 }
 
 ufr_gtw_api_t ufr_posix_socket_srv = {
+    .name = "PosixSocketServerMt",
 	.type = ufr_posix_socket_type,
 	.state = ufr_posix_socket_state,
 	.size = ufr_posix_socket_size,

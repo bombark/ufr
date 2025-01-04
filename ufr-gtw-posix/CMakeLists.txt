@@ -8,7 +8,7 @@ add_library(ufr_gtw_posix SHARED
     ./src/ufr_posix_file.c 
     ./src/ufr_posix_pipe.c 
     ./src/ufr_posix_socket.c 
-    ./src/ufr_posix_socket_srv.c
+    ./src/ufr_posix_socket_srv_st.c
     ./src/ufr_posix_socket_cli.c
     ./src/ufr_message.c
     ./src/ufr_gtw_timer.c 

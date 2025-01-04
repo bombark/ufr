@@ -92,7 +92,7 @@ int main_ros() {
 }
 
 
-int main() {
+int main_complexo() {
     link_t timer = ufr_subscriber("@new posix:timer @time 250ms");
     link_t pose = ufr_subscriber("@new ros_humble:topic @msg pose @topic /turtle1/pose");
     link_t motors = ufr_publisher("@new ros_humble:topic @msg twist @topic /turtle1/cmd_vel");
@@ -137,3 +137,20 @@ int main() {
 }
 
 
+int main() {
+    // configure the output
+    link_t link = ufr_client("@new posix:socket @coder msgpack @host 127.0.0.1 @port 4000");
+    link.log_level = 10;
+    // send command
+    // for (int i=0; i<3; i++) {
+        char buffer[1024];
+
+        ufr_put(&link, "s\n\n", "Comando");
+        ufr_get(&link, "^s", buffer);
+        printf("%s\n", buffer);
+    // }
+
+    // end
+    ufr_close(&link);
+    return 0;
+}

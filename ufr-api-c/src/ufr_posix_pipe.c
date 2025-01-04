@@ -211,6 +211,7 @@ int ufr_posix_pipe_recv(link_t* link) {
 
 static
 ufr_gtw_api_t ufr_posix_pipe = {
+    .name = "pipe",
 	.type = ufr_posix_pipe_type,
 	.state = ufr_posix_pipe_state,
 	.size = ufr_posix_pipe_size,

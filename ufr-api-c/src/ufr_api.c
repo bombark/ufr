@@ -63,9 +63,12 @@ bool ufr_loop_ok() {
             return false;
         }
     }
-    return true;
+    return g_is_ok;
 }
 
+void ufr_loop_set_end() {
+    g_is_ok = false;
+}
 
 
 const char* ufr_api_name(const link_t* link) {
@@ -238,7 +241,7 @@ int ufr_start(link_t* link, int type, const ufr_args_t* param_args) {
 
     if ( link->status == UFR_STATUS_RESET ) {
         if ( ufr_boot_gtw(link, param_args) != UFR_OK ) {
-            return 1;
+            return ufr_log_error(link, 1, "Error in the link boot");
         }
     }
 
@@ -367,15 +370,23 @@ size_t ufr_write(link_t* link, const char* buffer, size_t size) {
     if ( link == NULL ) {
         ufr_fatal(link, 1, "link is null");
     }
+
+    // With Debug
     if ( link->log_level > 0 ) {
         if ( link->gtw_api == NULL ) {
             ufr_fatal(link, 1, "gtw_api is null");
         } else if ( link->gtw_api->read == NULL ) {
             ufr_fatal(link, 1, "gtw_api->write is null");
         }
-    }
 
-	return link->gtw_api->write(link, buffer, size);
+        const size_t wrote = link->gtw_api->write(link, buffer, size);
+        ufr_log(link, "sent %ld bytes", wrote);
+        return wrote;
+
+    // No Debug
+    } else {
+    	return link->gtw_api->write(link, buffer, size);
+    }
 }
 
 // ============================================================================
@@ -621,7 +632,8 @@ void ufr_put_log(link_t* link, uint8_t level, const char* func_name, const char*
     va_list list;
     va_start(list, format);
     const int space = 24U - strlen(func_name);
-    fprintf(stderr, "# info:%d %d: %s%*s: ", level, link->log_level, func_name, space, "");
+    const char* name = ufr_api_name(link);
+    fprintf(stderr, "# info:%10s: %s%*s: ", name, func_name, space, "");
     fprintf(stderr, "%*s", link->log_ident, "");
     vfprintf(stderr, format, list);
     fprintf(stderr, "\n");
@@ -838,8 +850,9 @@ void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text) {
     ufr_buffer_put(buffer, text, size);
 }
 
-
-
+// ============================================================================
+//  Use for tests
+// ============================================================================
 
 uint32_t g_ufr_test_count = 0;
 
@@ -850,3 +863,66 @@ void ufr_test_inc_count() {
 void ufr_test_print_result() {
     printf("OK - %d tests passed\n", g_ufr_test_count);
 } 
+
+// ============================================================================
+//  App
+// ============================================================================
+
+ufr_node_t* g_app_root = NULL;
+
+int ufr_app_init(ufr_node_t* root) {
+    if ( root == NULL ) {
+        return -1;
+    }
+
+    if ( g_app_root != NULL ) {
+        return -2;
+    }
+
+    g_app_root = root;
+    return UFR_OK;
+}
+
+
+int ufr_app_open(link_t* link, const char* name, int type) {
+    if ( g_app_root == NULL ) {
+        return -1;
+    }
+
+    for (int i=0; i<32; i++) {
+        if ( g_app_root[i].name == NULL ) {
+            break;
+        }
+
+        if ( strcmp(name, g_app_root[i].name) == 0 ) {
+            printf("%s %s\n", name, g_app_root[i].args.text);
+            return sys_ufr_new_link(link, type, &g_app_root[i].args);
+        }
+    }
+    // Error: not found
+    return -2;
+}
+
+link_t ufr_app_publisher(const char* name) {
+    link_t link;
+    ufr_app_open(&link, name, UFR_START_PUBLISHER);
+    return link;
+}
+
+link_t ufr_app_subscriber(const char* name) {
+    link_t link;
+    ufr_app_open(&link, name, UFR_START_SUBSCRIBER);
+    return link;
+}
+
+link_t ufr_app_client(const char* name) {
+    link_t link;
+    ufr_app_open(&link, name, UFR_START_CLIENT);
+    return link;
+}
+
+link_t ufr_app_server(const char* name) {
+    link_t link;
+    ufr_app_open(&link, name, UFR_START_SERVER_ST);
+    return link;
+}

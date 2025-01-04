@@ -56,14 +56,13 @@ typedef struct {
 
 static
 int ufr_posix_socket_start_client(link_t* link, int type, const ufr_args_t* args) {
-
+link->log_level = 10;
     ufr_log_ini(link, "recvaa");
     struct sockaddr_in serverAddr;
-    socklen_t addr_size;
 
     // get the parameters
-    const char* address = "127.0.0.1";
-    const uint16_t port = 2000;
+    const char* address = ufr_args_gets(args, "@host", "127.0.0.1");
+    const uint16_t port = ufr_args_geti(args, "@port", 2000);
 
     /*---- Create the socket. The three arguments are: ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
@@ -75,15 +74,19 @@ int ufr_posix_socket_start_client(link_t* link, int type, const ufr_args_t* args
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.s_addr = inet_addr(address);
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
-    connect(sockfd, (struct sockaddr *) &serverAddr, addr_size);
+    const int rc = connect(sockfd, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+    if ( rc != 0 ) {
+        return ufr_error(link, 1, "Nao foi possivel conectar %s:%d", address, port);
+    }
 
     // update the link
     ll_conn_t* conn = malloc( sizeof(ll_conn_t) );
     conn->sockfd = sockfd;
-    link->gtw_obj = conn;
+    message_init( &conn->message );
 
     // change the API function to client
     ufr_log_end(link, "created socket %s on port %d", address, port);
+    link->gtw_obj = conn;
     return UFR_OK;
 }
 
@@ -94,26 +97,36 @@ void ufr_posix_socket_cli_stop(link_t* link, int type) {
 
 static
 size_t ufr_posix_socket_cli_read(link_t* link, char* buffer, size_t length) {
-    ll_conn_t* conn = link->gtw_obj;
-    return 0; // read(conn->sockfd, buffer, length);
+    return 0;
 }
 
 static
 size_t ufr_posix_socket_cli_write(link_t* link, const char* buffer, size_t length) {
-    ufr_log_ini(link, "recvaa");
     ll_conn_t* conn = link->gtw_obj;
-    size_t wrote = write(conn->sockfd, buffer, length);
-    close(conn->sockfd);
-    ufr_log_end(link, "recvaa");
+    size_t wrote = 0;
+    if ( length == 0 ) {
+        close(conn->sockfd);
+    } else {
+        wrote = send(conn->sockfd, buffer, length, 0);
+    }
     return wrote;
 }
 
 static
 int ufr_posix_socket_cli_recv(link_t* link) {
-    return -1;
+    ll_conn_t* conn = link->gtw_obj;
+    // message_write_from_fd(&conn->message, conn->sockfd);
+
+    conn->message.size = recv(conn->sockfd, conn->message.ptr, conn->message.max, 0);
+
+    if ( link->dcr_api != NULL ) {
+        link->dcr_api->recv_cb(link, conn->message.ptr, conn->message.size);
+    }
+    return UFR_OK;
 }
 
 ufr_gtw_api_t ufr_posix_socket_cli = {
+    .name = "PosixSocketClient",
 	.type = ufr_posix_socket_type,
 	.state = ufr_posix_socket_state,
 	.size = ufr_posix_socket_size,

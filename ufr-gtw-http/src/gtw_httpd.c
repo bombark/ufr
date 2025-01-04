@@ -31,8 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <microhttpd.h>
-
-#include "lt_api.h"
+#include <ufr.h>
 
 struct MHD_Daemon* g_daemon;
 
@@ -99,18 +98,18 @@ size_t gw_httpd_socket_size(const link_t* link, int type){
 }
 
 static
-int gw_httpd_socket_boot(link_t* link, const lt_args_t* args) {
+int gw_httpd_socket_boot(link_t* link, const ufr_args_t* args) {
 
-	return LT_OK;
+	return UFR_OK;
 }
 
 static
-int gw_httpd_socket_start(link_t* link, int type, const lt_args_t* args) {
+int gw_httpd_socket_start(link_t* link, int type, const ufr_args_t* args) {
 
-    if ( type == LT_START_BIND ) {
+    if ( type == UFR_START_SERVER ) {
         g_wait = 0;
-        lt_new_ptr(&g_ahc_input, "@new posix:pipe");
-        lt_new_ptr(&g_ahc_output, "@new posix:pipe");
+        // lt_new_ptr(&g_ahc_input, "@new posix:pipe");
+        // lt_new_ptr(&g_ahc_output, "@new posix:pipe");
 
         g_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, 2000,
             NULL,
@@ -136,12 +135,12 @@ int gw_httpd_socket_copy(link_t* link, link_t* out) {
 
 static
 size_t gw_httpd_socket_read(link_t* link, char* buffer, size_t length) {
-    return lt_read(&g_ahc_output, buffer, length);
+    return 0; // lt_read(&g_ahc_output, buffer, length);
 }
 
 static
 size_t gw_httpd_socket_write(link_t* link, const char* buffer, size_t length) {
-    return lt_write(&g_ahc_input, buffer, length);
+    return 0; // lt_write(&g_ahc_input, buffer, length);
 }
 
 static
@@ -152,7 +151,7 @@ void gw_httpd_socket_recv(link_t* link) {
 }
 
 static
-lt_api_t lt_httpd_socket = {
+ufr_gtw_api_t lt_httpd_socket = {
 	.type = gw_httpd_socket_type,
 	.state = gw_httpd_socket_state,
 	.size = gw_httpd_socket_size,
@@ -165,16 +164,11 @@ lt_api_t lt_httpd_socket = {
     .recv = gw_httpd_socket_recv,
 };
 
-int lt_new_httpd_socket(link_t* link, const lt_args_t* args) {
-	link->gw_api = &lt_httpd_socket;
-	gw_httpd_socket_boot(link, args);
-	return LT_OK;
-}
-
 // ============================================================================
 //  Public Functions
 // ============================================================================
 
-const char* lt_http_list() {
-    return "socket";
+int ufr_gtw_http_socket_new(link_t* link, int type) {
+	link->gtw_api = &lt_httpd_socket;
+	return UFR_OK;
 }

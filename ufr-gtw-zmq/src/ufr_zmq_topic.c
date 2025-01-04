@@ -122,6 +122,7 @@ int ufr_zmq_topic_start(struct _link* link, int type, const ufr_args_t* args) {
 
 static
 ufr_gtw_api_t ufr_zmq_topic_api = {
+    .name = "zmq/topic",
 	.type = ufr_zmq_topic_type,
 	.state = ufr_zmq_state,
 	.size = ufr_zmq_size,

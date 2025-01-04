@@ -6,7 +6,7 @@ add_library(gtw_http SHARED
     ./src/gtw_httpd.c    
     )
 target_compile_options(gtw_http PUBLIC -O1)
-target_link_libraries(gtw_http ufr_api microhttpd)
+target_link_libraries(gtw_http ufr microhttpd)
 install(TARGETS gtw_http DESTINATION lib)
 
 # test

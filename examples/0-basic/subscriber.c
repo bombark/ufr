@@ -49,12 +49,18 @@ int main() {
     printf("%f %f %f %f %f\n", lidar[0], lidar[1], lidar[2], lidar[3], lidar[4]);*/
 
     // read 5 messages
-    for (int i=0; i<5; i++) {
+    /*for (int i=0; i<5; i++) {
         int a,b,c;
         float d,e;
         char buffer[1024];
         ufr_get(&sub, "^iiiff", &a, &b, &c, &d, &e);
         printf("%d %d %d %f %f\n", a, b, c, d, e);
+    }*/
+
+    for (int i=0; i<5; i++) {
+        char buffer[1024];
+        ufr_get(&sub, "^s", buffer);
+        printf("%s\n", buffer);
     }
 
     // end

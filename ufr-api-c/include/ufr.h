@@ -243,6 +243,10 @@ typedef struct _link {
     char errstr[180];
 } link_t;
 
+typedef struct {
+    char const* name;
+    ufr_args_t args;
+} ufr_node_t;
 
 // ============================================================================
 //  Link Functions
@@ -404,6 +408,7 @@ void ufr_close(link_t* link);
 
 
 bool ufr_loop_ok();
+void ufr_loop_set_end();
 int ufr_put_loop_callback( int (*loop_callback)(void)  );
 
 // ============================================================================
@@ -729,6 +734,20 @@ link_t ufr_new_pipe();
 
 void ufr_test_inc_count();
 void ufr_test_print_result();
+
+
+// ============================================================================
+//  App
+// ============================================================================
+
+int sys_ufr_new_link(link_t* link, int boot_type, const ufr_args_t* args);
+
+int ufr_app_init(ufr_node_t* root);
+int ufr_app_open(link_t* link, const char* name, int type);
+link_t ufr_app_publisher(const char* name);
+link_t ufr_app_subscriber(const char* name);
+link_t ufr_app_client(const char* name);
+link_t ufr_app_server(const char* name);
 
 // ============================================================================
 //  Footer

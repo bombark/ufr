@@ -1,19 +1,17 @@
 #include <stdio.h>
-#include <lt_api.h>
+#include <ufr.h>
 
-int lt_new_httpd_socket(link_t* link, const lt_args_t* args);
+int ufr_gtw_http_socket_new(link_t* link, int type);
 
 
 int main() {
     link_t server;
-    lt_new_httpd_socket(&server, NULL);
-    lt_start_bind(&server);
+    ufr_gtw_http_socket_new(&server, NULL);
+    ufr_boot_gtw(&server, NULL);
 
     while(1) {
-        lt_recv(&server);
-        lt_write(&server, "Opa!", 4);
     }
 
-    lt_close(&server);
+    ufr_close(&server);
     return 0;
 }
