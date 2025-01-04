@@ -94,7 +94,7 @@ add_subdirectory(./ufr-gtw-gtk)
 
 # add_subdirectory(./ufr-stk-ssh)
 
-# add_subdirectory(./ufr-stk-ros_humble)
+add_subdirectory(./ufr-stk-ros_humble)
 # add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 # add_subdirectory(./ufr-stk-webots)

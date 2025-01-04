@@ -66,58 +66,72 @@ int ufr_enc_ros_humble_boot(link_t* link, const ufr_args_t* args) {
 }
 
 static
-int ufr_enc_ros_twist_put_u32(link_t* link, uint32_t val) {
-	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
-	if ( enc_obj ) {
-		switch(enc_obj->index) {
-            case 0: enc_obj->message.linear.x = val; break;
-            case 5: enc_obj->message.linear.y = val; break;
-            case 2: enc_obj->message.linear.z = val; break;
-            case 3: enc_obj->message.angular.x = val; break;
-            case 4: enc_obj->message.angular.y = val; break;
-            case 1: enc_obj->message.angular.z = val; break;
+int ufr_enc_ros_twist_put_u32(link_t* link, const uint32_t* val, int nitems) {
+    ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
+    if ( enc_obj == NULL ) {
+        return -1;
+    }
+
+    int i=0;
+    for (;i<nitems; i++) {
+        switch(enc_obj->index) {
+            case 0: enc_obj->message.linear.x = val[i]; break;
+            case 5: enc_obj->message.linear.y = val[i]; break;
+            case 2: enc_obj->message.linear.z = val[i]; break;
+            case 3: enc_obj->message.angular.x = val[i]; break;
+            case 4: enc_obj->message.angular.y = val[i]; break;
+            case 1: enc_obj->message.angular.z = val[i]; break;
             default: break;
         }
         enc_obj->index += 1;
-	}
-	return 0;
+    }
+    return i;
 }
 
 static
-int ufr_enc_ros_twist_put_i32(link_t* link, int32_t val) {
-	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
-	if ( enc_obj ) {
-		switch(enc_obj->index) {
-            case 0: enc_obj->message.linear.x = val; break;
-            case 5: enc_obj->message.linear.y = val; break;
-            case 2: enc_obj->message.linear.z = val; break;
-            case 3: enc_obj->message.angular.x = val; break;
-            case 4: enc_obj->message.angular.y = val; break;
-            case 1: enc_obj->message.angular.z = val; break;
+int ufr_enc_ros_twist_put_i32(link_t* link, const int32_t* val, int nitems) {
+    ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
+    if ( enc_obj == NULL ) {
+        return -1;
+    }
+
+    int i=0;
+    for (;i<nitems; i++) {
+        switch(enc_obj->index) {
+            case 0: enc_obj->message.linear.x = val[i]; break;
+            case 5: enc_obj->message.linear.y = val[i]; break;
+            case 2: enc_obj->message.linear.z = val[i]; break;
+            case 3: enc_obj->message.angular.x = val[i]; break;
+            case 4: enc_obj->message.angular.y = val[i]; break;
+            case 1: enc_obj->message.angular.z = val[i]; break;
             default: break;
         }
         enc_obj->index += 1;
-	}
-	return 0;
+    }
+    return i;
 }
 
 static
-int ufr_enc_ros_twist_put_f32(link_t* link, float val) {
+int ufr_enc_ros_twist_put_f32(link_t* link, const float* val, int nitems) {
+    ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
+    if ( enc_obj == NULL ) {
+        return -1;
+    }
 
-	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
-	if ( enc_obj ) {
-		switch(enc_obj->index) {
-            case 0: enc_obj->message.linear.x = val; break;
-            case 5: enc_obj->message.linear.y = val; break;
-            case 2: enc_obj->message.linear.z = val; break;
-            case 3: enc_obj->message.angular.x = val; break;
-            case 4: enc_obj->message.angular.y = val; break;
-            case 1: enc_obj->message.angular.z = val; break;
+    int i=0;
+    for (;i<nitems; i++) {
+        switch(enc_obj->index) {
+            case 0: enc_obj->message.linear.x = val[i]; break;
+            case 5: enc_obj->message.linear.y = val[i]; break;
+            case 2: enc_obj->message.linear.z = val[i]; break;
+            case 3: enc_obj->message.angular.x = val[i]; break;
+            case 4: enc_obj->message.angular.y = val[i]; break;
+            case 1: enc_obj->message.angular.z = val[i]; break;
             default: break;
         }
         enc_obj->index += 1;
-	}
-	return 0;
+    }
+    return i;
 }
 
 static
@@ -127,17 +141,6 @@ int ufr_enc_ros_twist_put_str(link_t* link, const char* val) {
 
 	}
 	return 0;
-}
-
-static
-int ufr_enc_ros_twist_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
-	ll_encoder_twist* enc_obj = (ll_encoder_twist*) link->enc_obj;
-	if ( type == 'i' ) {
-		
-	} else if ( type == 'f' ) {
-		
-	}
-    return 0;
 }
 
 static
@@ -156,13 +159,6 @@ ufr_enc_api_t ufr_enc_ros_api = {
     .boot = ufr_enc_ros_humble_boot,
     .close = NULL,
     .clear = NULL,
-    .set_header = NULL,
-
-    .put_u8 = NULL,
-    .put_i8 = NULL,
-    .put_cmd = ufr_ecr_ros_humble_put_cmd,
-    .put_str = ufr_enc_ros_twist_put_str,
-    .put_raw = NULL,
 
     .put_u32 = ufr_enc_ros_twist_put_u32,
     .put_i32 = ufr_enc_ros_twist_put_i32,
@@ -172,11 +168,12 @@ ufr_enc_api_t ufr_enc_ros_api = {
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-    .put_arr = ufr_enc_ros_twist_put_arr,
-    .put_mat = NULL,
+    .put_cmd = ufr_ecr_ros_humble_put_cmd,
+    .put_str = ufr_enc_ros_twist_put_str,
+    .put_raw = NULL,
 
-    .enter_array = NULL,
-    .leave_array = NULL,
+    .enter = NULL,
+    .leave = NULL,
 };
 
 // ============================================================================
