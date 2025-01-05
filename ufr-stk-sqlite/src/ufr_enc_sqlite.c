@@ -44,7 +44,17 @@
 // ============================================================================
 
 static
-int ufr_enc_sqlite_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_sqlite_boot(link_t* link, const ufr_args_t* args) {
+    return UFR_OK;
+}
+
+static
+void ufr_enc_sqlite_close(link_t* link) {
+
+}
+
+static
+int ufr_enc_sqlite_put_u32(link_t* link, uint32_t* val, int nitems) {
 	ll_gtw_obj_t* obj = link->gtw_obj;
 	if ( obj ) {
 
@@ -53,21 +63,21 @@ int ufr_enc_sqlite_put_u32(link_t* link, uint32_t val) {
 }
 
 static
-int ufr_enc_sqlite_put_i32(link_t* link, int32_t val) {
+int ufr_enc_sqlite_put_i32(link_t* link, int32_t* val, int nitems) {
 	ll_gtw_obj_t* obj = link->gtw_obj;
 	if ( obj ) {
         obj->index += 1;
-        sqlite3_bind_int(obj->stmt, obj->index, val);
+        sqlite3_bind_int(obj->stmt, obj->index, val[0]);
 	}
 	return 0;
 }
 
 static
-int ufr_enc_sqlite_put_f32(link_t* link, float val) {
+int ufr_enc_sqlite_put_f32(link_t* link, float* val, int nitems) {
 	ll_gtw_obj_t* obj = link->gtw_obj;
 	if ( obj ) {
         obj->index += 1;
-        sqlite3_bind_double(obj->stmt, obj->index, val);
+        sqlite3_bind_double(obj->stmt, obj->index, val[0]);
 	}
 	return 0;
 }
@@ -83,12 +93,6 @@ int ufr_enc_sqlite_put_str(link_t* link, const char* val) {
 }
 
 static
-int ufr_enc_sqlite_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
-	ll_gtw_obj_t* obj = link->gtw_obj;
-
-}
-
-static
 int ufr_enc_sqlite_put_cmd(link_t* link, char cmd) {
 	ll_gtw_obj_t* obj = link->gtw_obj;
     if ( cmd == '\n' ) {
@@ -100,11 +104,33 @@ int ufr_enc_sqlite_put_cmd(link_t* link, char cmd) {
 	return UFR_OK;
 }
 
+static
+int ufr_enc_sqlite_enter(link_t* link, int nitems) {
+    return -1;
+}
+
+static
+int ufr_enc_sqlite_leave(link_t* link, int nitems) {
+    return -1;
+}
+
 ufr_enc_api_t ufr_enc_sqlite_api = {
+    .boot = ufr_enc_sqlite_boot,
+    .close = ufr_enc_sqlite_close,
+    .clear = NULL,
+
 	.put_u32 = ufr_enc_sqlite_put_u32,
 	.put_i32 = ufr_enc_sqlite_put_i32,
 	.put_f32 = ufr_enc_sqlite_put_f32,
-	.put_str = ufr_enc_sqlite_put_str,
-	.put_arr = ufr_enc_sqlite_put_arr,
-	.put_cmd = ufr_enc_sqlite_put_cmd
+
+    .put_u64 = NULL,
+    .put_i64 = NULL,
+    .put_f64 = NULL,
+
+    .put_cmd = ufr_enc_sqlite_put_cmd,
+    .put_str = ufr_enc_sqlite_put_str,
+    .put_raw = NULL,
+
+    .enter = ufr_enc_sqlite_enter,
+    .leave = ufr_enc_sqlite_leave
 };

@@ -28,7 +28,7 @@ endif()
 option(BUILD_UFR_GTW_ZMQ     "build the gateway for ZMQ"    ${HAVE_ZMQ})
 option(BUILD_UFR_GTW_MQTT    "build the gateway for MQTT"   ${HAVE_MOSQUITTO})
 option(BUILD_UFR_CDR_MSGPACK "build the coder for MsgPack"  ${HAVE_MSGPACK})
-option(BUILD_UFR_STK_SQLITE  "build the stack for Sqlite3"  OFF)
+option(BUILD_UFR_STK_SQLITE  "build the stack for Sqlite3"  ON )
 option(BUILD_EXAMPLES        "build the examples"           ON )
 option(BUILD_TESTS           "build the tests"              ON )
 option(COVERAGE_TEST         "coverage test"                OFF)
@@ -87,14 +87,13 @@ endif(BUILD_TESTS)
 # add_subdirectory(./ufr-app-filesystem)
 # add_subdirectory(./ufr-app-proxy)
 
-add_subdirectory(./ufr-gtw-gtk)
-
+# add_subdirectory(./ufr-gtw-qt)
 
 # add_subdirectory(./ufr-gtw-http)
 
 # add_subdirectory(./ufr-stk-ssh)
 
-add_subdirectory(./ufr-stk-ros_humble)
+# add_subdirectory(./ufr-stk-ros_humble)
 # add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 # add_subdirectory(./ufr-stk-webots)
