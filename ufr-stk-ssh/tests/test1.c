@@ -45,7 +45,7 @@ int main() {
     link_t ssh;
     ufr_gtw_ssh_new(&ssh, 0);
 
-    ufr_args_t args = {.text="@host macalan.c3sl.ufpr.br @user fgbombardelli @password 6766Xiecaere!"};
+    ufr_args_t args = {.text="@host teste.com.br @user fgbombardelli @password aaa"};
     ufr_boot_gtw(&ssh, &args);
 
     char buffer[1024];
