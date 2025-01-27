@@ -97,7 +97,7 @@ size_t ufr_dcr_ros_humble_get_size(link_t* link) {
 }
 
 static
-int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
+int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val, int nitems) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     if ( dcr ) {
         switch (dcr->index) {
@@ -119,7 +119,7 @@ int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val, int nitems) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
         switch (dcr->index) {
@@ -141,7 +141,7 @@ int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
+int ufr_dcr_ros_humble_get_f32(link_t* link, float* val, int nitems) {
     *val = 0.0;
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     if ( dcr ) {
@@ -210,10 +210,12 @@ ufr_dcr_api_t ufr_dcr_ros_driver = {
     .recv_async_cb = ufr_dcr_ros_humble_recv_async_cb,
 
     .get_type = ufr_dcr_ros_humble_get_type,
-    .get_size = ufr_dcr_ros_humble_get_size,
+    // .get_size = ufr_dcr_ros_humble_get_size,
+
     .get_u32 = ufr_dcr_ros_humble_get_u32,
     .get_i32 = ufr_dcr_ros_humble_get_i32,
     .get_f32 = ufr_dcr_ros_humble_get_f32,
+
     // .get_str = ufr_dcr_ros_humble_get_str
     .enter = ufr_dcr_ros_humble_enter,
     .leave = ufr_dcr_ros_humble_leave,

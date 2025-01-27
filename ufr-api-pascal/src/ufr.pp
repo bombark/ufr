@@ -3,28 +3,35 @@ unit ufr;
 interface
 
 type
-    Link = record
-        gtw_api: pointer;
-        gtw_shr: pointer;
-        gtw_obj: pointer;
-        ecr_api: pointer;
-        ecr_obj: pointer;
-        dcr_api: pointer;
-        dcr_obj: pointer;
-        error: array [1..128] of char;
+    ufr_link = record
+        // gtw_api: pointer;
+        error: array [1..264] of char;
     end;
 
 
-function ufr_new(text : pchar):Link; cdecl; external 'ufr.so' name 'lt_new';
-function ufr_publisher(text : pchar):Link; cdecl; external 'ufr.so' name 'ufr_publisher';
+// Open Functions
+function ufr_subscriber(text : pchar):ufr_link; cdecl; external 'ufr.so' name 'ufr_subscriber';
+function ufr_publisher(text : pchar):ufr_link; cdecl; external 'ufr.so' name 'ufr_publisher';
+function ufr_client(text : pchar):ufr_link; cdecl; external 'ufr.so' name 'ufr_client';
+function ufr_server(text : pchar):ufr_link; cdecl; external 'ufr.so' name 'ufr_server';
 
-procedure ufr_output_init(text : pchar); cdecl; external 'ufr.so' name 'ufr_output_init';
-procedure ufr_input_init(text : pchar); cdecl; external 'ufr.so' name 'ufr_input_init';
+// Close Function
+procedure ufr_close(var link: ufr_link); cdecl; external 'ufr.so' name 'ufr_close';
 
-procedure ufr_readln(text : pchar); cdecl; varargs; external 'ufr.so' name 'lt_input';
+// Sending Functions
+function ufr_write(var link: ufr_link; buffer: pchar; nbytes: integer):integer; cdecl; external 'ufr.so' name 'ufr_write';
+function ufr_put(var link: ufr_link; format: pchar):integer; cdecl; varargs; external 'ufr.so' name 'ufr_put';
 
-procedure ufr_write(text : pchar); cdecl; varargs; external 'ufr.so' name 'ufr_output';
-procedure ufr_writeln(text : pchar); cdecl; varargs; external 'ufr.so' name 'ufr_output_ln';
+// Receiving Functions
+function ufr_recv(var link: ufr_link):integer; cdecl; varargs; external 'ufr.so' name 'ufr_recv';
+function ufr_get(var link: ufr_link; format: pchar):integer; cdecl; varargs; external 'ufr.so' name 'ufr_get';
+
+
+// procedure ufr_output_init(text : pchar); cdecl; external 'ufr.so' name 'ufr_output_init';
+// procedure ufr_input_init(text : pchar); cdecl; external 'ufr.so' name 'ufr_input_init';
+// procedure ufr_readln(text : pchar); cdecl; varargs; external 'ufr.so' name 'lt_input';
+// procedure ufr_write(text : pchar); cdecl; varargs; external 'ufr.so' name 'ufr_output';
+// procedure ufr_writeln(text : pchar); cdecl; varargs; external 'ufr.so' name 'ufr_output_ln';
 
 
 implementation

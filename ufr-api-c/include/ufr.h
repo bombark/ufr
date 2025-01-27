@@ -713,7 +713,7 @@ void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);
 void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text);
-
+void ufr_buffer_check_size(ufr_buffer_t* buffer, size_t size);
 
 
 

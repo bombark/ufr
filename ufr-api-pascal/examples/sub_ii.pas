@@ -1,14 +1,20 @@
-program TesteBiblioteca;
+program Assinante;
 uses ufr;
 
 var
-    v1, v2: Integer;
+    link: ufr_link;
+    v0, v1, v2: single;
+    i: integer;
 
 begin
-    ufr_input_init('@new mqtt:topic @host 185.209.160.8 @topic teste @coder msgpack:obj');
-    // ufr_input_init('@new zmq:topic @host 127.0.0.1 @port 5000 @coder std:csv');
+    link := ufr_subscriber('@new mqtt @host 185.159.82.136 @coder msgpack');
 
-    ufr_readln('^ii', @v1, @v2);
+    i := 0;
+    repeat 
+        ufr_get(link, '^fff', @v0, @v1, @v2);
+        writeln(v0, v1, v2);
+        i := i + 1;
+    until i = 10;
 
-    // writeln(v1,v2);
+    ufr_close(link);
 end.

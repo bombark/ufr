@@ -159,6 +159,7 @@ const char* ufr_gtw_webots_test_args(const link_t* link) {
 
 static
 ufr_gtw_api_t ufr_gtw_webots_api = {
+    .name = "webots",
 	.type = ufr_gtw_webots_type,
 	.state = ufr_gtw_webots_state,
 	.size = ufr_gtw_webots_size,

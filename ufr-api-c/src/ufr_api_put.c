@@ -248,8 +248,17 @@ int ufr_put_str(link_t* link, const char* value) {
 
 
 int ufr_put_raw(link_t* link, const uint8_t* buffer, int nitems) {
-    return -1;
-    // return ufr_put_u8(link, buffer, nitems);
+    // check inputs
+    if ( link != NULL && link->enc_api->put_raw == NULL ) {
+        ufr_fatal(link, 1, "enc_api->put_raw is NULL");
+    }
+    // send data
+    const int wrote_nitems = link->enc_api->put_raw(link, buffer, nitems);
+    if ( wrote_nitems > 0 ) {
+        ufr_log(link, "wrote %ld bytes", nitems);
+        link->put_count += wrote_nitems;
+    }
+    return wrote_nitems;
 }
 
 

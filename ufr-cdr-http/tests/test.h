@@ -1,7 +1,6 @@
 /* BSD 2-Clause License
  * 
- * Copyright (c) 2023, Visao Robotica Imagem (VRI)
- *   Felipe Bombardelli
+ * Copyright (c) 2023, Felipe Bombardelli
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -23,18 +22,14 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * */
-	
+ */
+
 // ============================================================================
-//  Header
+//  HEADER
 // ============================================================================
 
-#pragma once
+#include <ufr.h>
 
-typedef struct  {
-    size_t index;
-    sqlite3_stmt* stmt;
-    int state;
-    int rc;
-    char rc_message[512];
-} ll_gtw_obj_t;
+int ufr_dcr_http_ans_new(link_t* link, const int type);
+int ufr_dcr_http_req_new(link_t* link, const int type);
+int ufr_dcr_http_new(link_t* link, const int type);

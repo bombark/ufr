@@ -177,7 +177,7 @@ const char* ufr_gtw_posix_timer_test_args(const link_t* link) {
 
 static
 ufr_gtw_api_t ufr_gtw_posix_timer_api = {
-    .name = "file",
+    .name = "posix/timer",
     .type = ufr_gtw_posix_timer_type,
     .state = ufr_gtw_posix_timer_state,
     .size = ufr_gtw_posix_timer_size,
@@ -198,7 +198,7 @@ ufr_gtw_api_t ufr_gtw_posix_timer_api = {
 // ============================================================================
 
 int ufr_gtw_posix_new_timer(link_t* link, int type) {
-    link->gtw_api = &ufr_gtw_posix_timer_api;
+    ufr_init_link(link, &ufr_gtw_posix_timer_api);
     link->type_started = type;
     return UFR_OK;
 }

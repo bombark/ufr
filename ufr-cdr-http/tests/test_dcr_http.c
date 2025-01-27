@@ -23,94 +23,102 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
-//  Header
+//  HEADER
 // ============================================================================
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/ioctl.h>
-
-
-#include <netdb.h> /* getprotobyname */
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <ufr.h>
 
-#include "ufr_posix_socket.h"
+#include "test.h"
 
-/*typedef struct {
-    size_t size;
-    size_t max;
-    char* ptr;
-} message_t;*/
-
-typedef struct {
-    int lenght;
-    struct sockaddr address;
-    int sockfd;
-    ufr_buffer_t message;
-} ll_srv_request_t;
-
-extern ufr_gtw_api_t ufr_posix_socket_cli;
-extern ufr_gtw_api_t ufr_posix_socket_srv;
+link_t g_link;
 
 // ============================================================================
-//  Common Socket Driver
+//  Tests
 // ============================================================================
 
-int ufr_posix_socket_type(const link_t* link) {
-	return 0;
-}
+void test_decoded_req() {
+    char buffer[64];
+    ufr_dcr_http_req_new(&g_link, 0);
+    ufr_boot_dcr(&g_link, NULL);
 
-int ufr_posix_socket_state(const link_t* link){
-	return 0;
-}
+    {
+        char send[] = "GET /api?param1=value1&param2=value2 HTTP/1.1\r\n"
+            "Host: example.com\r\n"
+            "User-Agent: curl/7.68.0\r\n"
+            "Accept: */*\r\n"
+            "\r\n";
 
-size_t ufr_posix_socket_size(const link_t* link, int type){
-	return 0;
-}
+        ufr_write(&g_link, send, sizeof(send));
+        ufr_recv(&g_link);
+        
+        ufr_get_str(&g_link, buffer, 64);
+        printf("%s\n", buffer);
 
-int ufr_posix_socket_boot(link_t* link, const ufr_args_t* args) {
-    ll_shr_t* shr = malloc(sizeof(ll_shr_t));
-    shr->server_sockfd = 0;
-    link->gtw_shr = shr;
-	return 0;
-}
+        ufr_get_str(&g_link, buffer, 64);
+        printf("%s\n", buffer);
 
-void ufr_posix_socket_stop(link_t* link, int type) {
-    ll_srv_request_t* request = link->gtw_obj;
-    if ( request != NULL ) {
-        if ( request->sockfd > 0 ) {
-            close(request->sockfd);
+        for (int i=0; i<10; i++) {
+            ufr_get_str(&g_link, buffer, 64);
+            printf("%s\n", buffer);
         }
-        request->sockfd = 0;
+
+
+
+        // ufr_get_type(&g_link)
+        // ufr_get_nitems(&g_link);
+        // ufr_get_nitems(&g_link);
     }
 }
 
-int ufr_posix_socket_copy(link_t* link, link_t* out) {
-    out->gtw_shr = link->gtw_shr;
+void test_decoded_ans() {
+    char buffer[64];
+    ufr_dcr_http_ans_new(&g_link, 0);
+    ufr_boot_dcr(&g_link, NULL);
+
+    {
+        char send[] = "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: 13\r\n"
+            "\r\n"
+            "Hello, World!";
+
+        ufr_write(&g_link, send, sizeof(send));
+        ufr_recv(&g_link);
+        
+        ufr_get_str(&g_link, buffer, 64);
+        printf("%s\n", buffer);
+
+        ufr_get_str(&g_link, buffer, 64);
+        printf("%s\n", buffer);
+
+        ufr_get_str(&g_link, buffer, 64);
+        printf("%s\n", buffer);
+
+        for (int i=0; i<10; i++) {
+            ufr_get_str(&g_link, buffer, 64);
+            printf("%s\n", buffer);
+        }
+
+    }
+}
+
+
+// ============================================================================
+//  Main
+// ============================================================================
+
+int main() {
+    g_link = ufr_new_pipe();
+
+    // test_decoded_5i();
+    test_decoded_ans();
+
+    ufr_close(&g_link);
 	return 0;
-}
-
-
-// ============================================================================
-//  Public Functions
-// ============================================================================
-
-int ufr_gtw_posix_new_socket(link_t* link, int type) {
-    if ( type == UFR_START_CLIENT ) {
-        ufr_init_link(link, &ufr_posix_socket_cli);
-    } else if ( type == UFR_START_SERVER ) {
-        ufr_init_link(link, &ufr_posix_socket_srv);
-    } else {
-        return 1;
-    }
-
-    link->type_started = type;
-	return UFR_OK;
 }

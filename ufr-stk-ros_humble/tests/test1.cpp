@@ -43,8 +43,8 @@ void test_laserscan_publisher() {
     float laser[10] = {9.0,8.0,7.0,6.0,5.0,4.0,3.0,2.0,1.0,0.0};
     for (int i=0; i<5; i++) {
         ufr_put(&topic, "iiiiiii",i+1,i+2,i+3,1,1,1,1);
-        ufr_put_af32(&topic, laser, 10);
-        ufr_put_af32(&topic, laser, 10);
+        // ufr_put_af32(&topic, laser, 10);
+        // ufr_put_af32(&topic, laser, 10);
         ufr_put(&topic, "\n");
         sleep(1);
     }

@@ -294,7 +294,7 @@ int ufr_recv(link_t* link) {
     
     link->state = 1;
     const int retval = link->gtw_api->recv(link);
-    ufr_log_end(link, "received data from link");
+    ufr_log_end(link, "received data from link %d", retval);
     return retval;
 }
 
@@ -749,6 +749,7 @@ void ufr_buffer_init(ufr_buffer_t* buffer) {
 
 void ufr_buffer_clear(ufr_buffer_t* buffer) {
     buffer->size = 0;
+    buffer->ptr[0] = '\0';
 }
 
 void ufr_buffer_free(ufr_buffer_t* buffer) {
@@ -760,11 +761,23 @@ void ufr_buffer_free(ufr_buffer_t* buffer) {
     buffer->size = 0;
 }
 
-static
 void ufr_buffer_check_size(ufr_buffer_t* buffer, size_t size) {
-    if ( buffer->size + size >= buffer->max ) {
-        const size_t new_max = buffer->max * 2;
-        char* new_ptr = realloc(buffer->ptr, new_max);
+    const size_t used_size = buffer->size + size;
+    if ( used_size >= buffer->max ) { 
+        size_t new_max = buffer->max * 2;
+        while ( new_max < used_size ) {
+            new_max *= 2;
+        }
+
+        char* new_ptr;
+        if ( buffer->size == 0 ) {
+            free(buffer->ptr);
+            buffer->ptr = NULL;
+            new_ptr = malloc(new_max);
+        } else {
+            new_ptr = realloc(buffer->ptr, new_max);
+        }
+
         if ( new_ptr ) {
             buffer->max = new_max;
             buffer->ptr = new_ptr;
@@ -888,6 +901,7 @@ int ufr_app_open(link_t* link, const char* name, int type) {
     if ( g_app_root == NULL ) {
         return -1;
     }
+    ufr_init_link(link, NULL);
 
     for (int i=0; i<32; i++) {
         if ( g_app_root[i].name == NULL ) {

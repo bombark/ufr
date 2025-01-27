@@ -49,26 +49,28 @@ void message_clear(message_t* message) {
     message->size = 0;
 }
 
-bool message_write_from_fd(message_t* message, int fd) {
+bool message_write_from_fd(ufr_buffer_t* message, int fd) {
     bool is_ok = true;
-    int count;
-    message->size = 0;
 
-    // tem problema quando recebe um pacote com exatamente com 4096 bytes
+    const uint32_t part_len = 1024;
     while(1) {
-        const size_t bytes = read(fd, &message->ptr[0], MESSAGE_ITEM_SIZE);
-        if ( bytes < MESSAGE_ITEM_SIZE ) {
+        ufr_buffer_check_size(message, part_len);
+
+        const size_t bytes = read(fd, &message->ptr[ message->size ], part_len-1);
+        if ( bytes == 0 ) {
             message->size += bytes;
             break;
-        } else if ( bytes == -1 ) {
+
+        } else if ( bytes > 0 ) {
+            message->size += bytes;
+            break;
+
+        } else {
             is_ok = false;
             break;
-        } else {
-            message->size += bytes;
         }
     }
 
     message->ptr[message->size] = '\0';
-
     return is_ok;
 }

@@ -44,12 +44,20 @@
 // ============================================================================
 
 static
-void ufr_dcr_sqlite_recv(link_t* link, char* msg_data, size_t msg_size) {
+int ufr_dcr_sqlite_boot(link_t* link, const ufr_args_t* args) {
+}
+
+static
+void ufr_dcr_sqlite_close(link_t* link) {
+}
+
+static
+int ufr_dcr_sqlite_recv(link_t* link, char* msg_data, size_t msg_size) {
 
 }
 
 static
-int ufr_dcr_sqlite_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_sqlite_get_i32(link_t* link, int32_t* val, int nitems) {
     ll_gtw_obj_t* gtw_obj = link->gtw_obj;
     *val = sqlite3_column_int64(gtw_obj->stmt, gtw_obj->index);
     gtw_obj->index += 1;
@@ -59,7 +67,7 @@ int ufr_dcr_sqlite_get_i32(link_t* link, int32_t* val) {
 }
 
 static
-int ufr_dcr_sqlite_get_f32(link_t* link, float* val) {
+int ufr_dcr_sqlite_get_f32(link_t* link, float* val, int nitems) {
     ll_gtw_obj_t* gtw_obj = link->gtw_obj;
     *val = sqlite3_column_double(gtw_obj->stmt, gtw_obj->index);
     gtw_obj->index += 1;
@@ -69,9 +77,9 @@ int ufr_dcr_sqlite_get_f32(link_t* link, float* val) {
 }
 
 static
-int ufr_dcr_sqlite_get_str(link_t* link, char** str) {
+int ufr_dcr_sqlite_get_str(link_t* link, char* str, int maxbytes) {
     ll_gtw_obj_t* gtw_obj = link->gtw_obj;
-	*str = (char*) sqlite3_column_text(gtw_obj->stmt, gtw_obj->index);
+	// *str = (char*) sqlite3_column_text(gtw_obj->stmt, gtw_obj->index);
 
 	return 1;
 }
@@ -99,15 +107,39 @@ int ufr_dcr_sqlite_copy_arr(link_t* link, char arr_type, size_t arr_size_max, si
 }
 
 ufr_dcr_api_t ufr_dcr_sqlite_api = {
-	.recv = ufr_dcr_sqlite_recv,
+    .boot = ufr_dcr_sqlite_boot,
+    .close = ufr_dcr_sqlite_close,
 
+    // Receive
+	.recv_cb = ufr_dcr_sqlite_recv,
+    .recv_async_cb = ufr_dcr_sqlite_recv,
+
+    // ignore
+    .next = NULL,
+
+    // metadata
+    .get_type = NULL,
+    .get_nbytes = NULL,
+    .get_nitems = NULL,
+    .get_raw_ptr = NULL,
+
+    // 32 bits
 	.get_u32 = NULL,
 	.get_i32 = ufr_dcr_sqlite_get_i32,
 	.get_f32 = ufr_dcr_sqlite_get_f32,
-	.get_str = ufr_dcr_sqlite_get_str,
-    .copy_str = ufr_dcr_sqlite_copy_str,
-	.get_arr = ufr_dcr_sqlite_get_arr,
-	.copy_arr = ufr_dcr_sqlite_copy_arr
+
+    // 64 bits
+	.get_u64 = NULL,
+	.get_i64 = NULL,
+	.get_f64 = NULL,
+
+    // Binary and String
+    .get_raw = NULL,
+    .get_str = ufr_dcr_sqlite_get_str,
+
+    // Enter and Leave
+    .enter = NULL,
+    .leave = NULL,
 };
 
 // ============================================================================

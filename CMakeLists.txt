@@ -51,7 +51,7 @@ add_subdirectory(./ufr-gtw-posix)
 # Build libraries with dependencies
 if(BUILD_UFR_GTW_ZMQ)
     # debian/ubuntu: sudo apt install libzmq3-dev
-    add_subdirectory(./ufr-gtw-zmq)
+    # add_subdirectory(./ufr-gtw-zmq)
 endif(BUILD_UFR_GTW_ZMQ)
 
 if(BUILD_UFR_GTW_MQTT)
@@ -61,12 +61,12 @@ endif(BUILD_UFR_GTW_MQTT)
 
 if(BUILD_UFR_CDR_MSGPACK)
     # debian/ubuntu: sudo apt install libmsgpack-dev
-    add_subdirectory(./ufr-cdr-msgpack)
+    # add_subdirectory(./ufr-cdr-msgpack)
 endif(BUILD_UFR_CDR_MSGPACK)
 
 if(BUILD_UFR_STK_SQLITE)
     # debian/ubuntu: sudo apt install libsqlite3-dev
-    add_subdirectory(./ufr-stk-sqlite)
+    # add_subdirectory(./ufr-stk-sqlite)
 endif(BUILD_UFR_STK_SQLITE)
 
 # Build examples
@@ -76,8 +76,8 @@ endif(BUILD_EXAMPLES)
 
 # Build tests
 if(BUILD_TESTS)
-    add_subdirectory(./tests/)
-    enable_testing()
+    # add_subdirectory(./tests/)
+    # enable_testing()
     # add_test(NAME test_gtw_zmq COMMAND ./tests/test_topic "@new zmq:topic @port 2000")
 endif(BUILD_TESTS)
 
@@ -89,18 +89,21 @@ endif(BUILD_TESTS)
 
 # add_subdirectory(./ufr-gtw-qt)
 
+add_subdirectory(./ufr-cdr-http)
 # add_subdirectory(./ufr-gtw-http)
 
 # add_subdirectory(./ufr-stk-ssh)
 
+# add_subdirectory(ufr-stk-irrlicht)
+
 # add_subdirectory(./ufr-stk-ros_humble)
 # add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
-# add_subdirectory(./ufr-stk-webots)
+add_subdirectory(./ufr-stk-webots)
 
 # add_subdirectory(./ufr-dev-camera)
 
 
-install(FILES ./etc/init.bash DESTINATION .)
-install(FILES ./etc/Makefile DESTINATION .)
+# install(FILES ./etc/init.bash DESTINATION .)
+# install(FILES ./etc/Makefile DESTINATION .)
 

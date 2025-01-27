@@ -23,94 +23,55 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
-//  Header
+//  HEADER
 // ============================================================================
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/ioctl.h>
-
-
-#include <netdb.h> /* getprotobyname */
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <ufr.h>
-
-#include "ufr_posix_socket.h"
-
-/*typedef struct {
-    size_t size;
-    size_t max;
-    char* ptr;
-} message_t;*/
-
-typedef struct {
-    int lenght;
-    struct sockaddr address;
-    int sockfd;
-    ufr_buffer_t message;
-} ll_srv_request_t;
-
-extern ufr_gtw_api_t ufr_posix_socket_cli;
-extern ufr_gtw_api_t ufr_posix_socket_srv;
+#include "test.h"
 
 // ============================================================================
-//  Common Socket Driver
+//  Tests
 // ============================================================================
 
-int ufr_posix_socket_type(const link_t* link) {
-	return 0;
-}
+void test1() {
+    char buffer[128];
+    link_t link = ufr_new_pipe();
+    
+    ufr_enc_http_new(&link, 0);
+    ufr_boot_enc(&link, NULL);
 
-int ufr_posix_socket_state(const link_t* link){
-	return 0;
-}
-
-size_t ufr_posix_socket_size(const link_t* link, int type){
-	return 0;
-}
-
-int ufr_posix_socket_boot(link_t* link, const ufr_args_t* args) {
-    ll_shr_t* shr = malloc(sizeof(ll_shr_t));
-    shr->server_sockfd = 0;
-    link->gtw_shr = shr;
-	return 0;
-}
-
-void ufr_posix_socket_stop(link_t* link, int type) {
-    ll_srv_request_t* request = link->gtw_obj;
-    if ( request != NULL ) {
-        if ( request->sockfd > 0 ) {
-            close(request->sockfd);
-        }
-        request->sockfd = 0;
-    }
-}
-
-int ufr_posix_socket_copy(link_t* link, link_t* out) {
-    out->gtw_shr = link->gtw_shr;
-	return 0;
-}
-
-
-// ============================================================================
-//  Public Functions
-// ============================================================================
-
-int ufr_gtw_posix_new_socket(link_t* link, int type) {
-    if ( type == UFR_START_CLIENT ) {
-        ufr_init_link(link, &ufr_posix_socket_cli);
-    } else if ( type == UFR_START_SERVER ) {
-        ufr_init_link(link, &ufr_posix_socket_srv);
-    } else {
-        return 1;
+    {
+        ufr_put(&link, "ss\n", "GET", "/");
+        ufr_put_eof(&link);
+        ufr_recv(&link);
+        ufr_read(&link, buffer, sizeof(buffer));
+        printf("%s\n", buffer);
     }
 
-    link->type_started = type;
-	return UFR_OK;
+    ufr_close(&link);
+}
+
+void test2() {
+    char buffer[128];
+    link_t link = ufr_client("@new posix:stdout @coder http");
+
+    ufr_put(&link, "ss\n\n", "GET", "/teste");
+
+
+    ufr_close(&link);
+}
+
+// ============================================================================
+//  Main
+// ============================================================================
+
+int main() {
+    test2();
+    return 0;
 }

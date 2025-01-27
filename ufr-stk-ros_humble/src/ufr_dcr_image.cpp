@@ -42,7 +42,7 @@ typedef ufr_ros_decoder_t<sensor_msgs::msg::Image> ll_decoder_t;
 // ============================================================================
 
 static
-int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
+int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val, int nitems) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
 
@@ -53,7 +53,7 @@ int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val, int nitems) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
         // update the index
@@ -63,7 +63,7 @@ int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
+int ufr_dcr_ros_humble_get_f32(link_t* link, float* val, int nitems) {
 	ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
 	if ( dcr ) {
 

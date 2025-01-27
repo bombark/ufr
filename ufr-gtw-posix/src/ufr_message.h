@@ -28,6 +28,7 @@
 //  Header
 // ============================================================================
 
+#include <ufr.h>
 #include <stddef.h>
 
 #define MESSAGE_ITEM_SIZE 4096
@@ -44,4 +45,5 @@ typedef struct {
 
 void message_init(message_t* message);
 void message_clear(message_t* message);
-bool message_write_from_fd(message_t* message, int fd);
+
+bool message_write_from_fd(ufr_buffer_t* message, int fd);

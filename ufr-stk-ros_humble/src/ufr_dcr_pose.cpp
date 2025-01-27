@@ -54,7 +54,7 @@ int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
 }
 
 static
-int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
+int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val, int nitems) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     if ( dcr ) {
         switch (dcr->index) {
@@ -73,7 +73,7 @@ int ufr_dcr_ros_humble_get_u32(link_t* link, uint32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
+int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val, int nitems) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     if ( dcr ) {
         switch (dcr->index) {
@@ -100,7 +100,7 @@ int ufr_dcr_ros_humble_get_i32(link_t* link, int32_t* val) {
 }
 
 static
-int ufr_dcr_ros_humble_get_f32(link_t* link, float* val) {
+int ufr_dcr_ros_humble_get_f32(link_t* link, float* val, int nitems) {
     ll_decoder_t* dcr = (ll_decoder_t*) link->dcr_obj;
     if ( dcr ) {
         switch (dcr->index) {

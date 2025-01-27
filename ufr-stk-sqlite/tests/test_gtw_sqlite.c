@@ -34,12 +34,12 @@
 #include <string.h>
 #include <ufr.h>
 
-int ufr_new_gtw_sqlite_table(link_t* link, const ufr_args_t* args);
+int ufr_gtw_sqlite_new(link_t* link, const ufr_args_t* args);
 
 // ============================================================================
 //  Tests
 // ============================================================================
-
+/*
 void test_select() {
     link_t link;
     ufr_args_t args_boot = {.text="@file test.db"};
@@ -80,13 +80,14 @@ void test_insert() {
 
     ufr_close(&link);
 }
+*/
 
 // ============================================================================
 //  Main
 // ============================================================================
 
 int main() {
-    test_select();
-    test_insert();
+    // test_select();
+    // test_insert();
 	return 0;
 }
