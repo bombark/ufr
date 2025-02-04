@@ -7,9 +7,9 @@ target_link_libraries(subscriber ufr)
 install(TARGETS subscriber DESTINATION examples)
 
 # add_executable(server 0-basic/server.c)
-add_executable(server 0-basic/app_example.c)
-target_link_libraries(server ufr)
-install(TARGETS server DESTINATION examples)
+# add_executable(server 0-basic/app_example.c)
+# target_link_libraries(server ufr)
+# install(TARGETS server DESTINATION examples)
 
 add_executable(client 0-basic/client.c)
 target_link_libraries(client ufr m)

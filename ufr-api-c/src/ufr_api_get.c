@@ -40,7 +40,7 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
     if ( link ) {
         if ( link->log_level > 0 ) {
             if ( link->dcr_api == NULL ) {
-                ufr_fatal(link, 0, "Encoder is not loaded");
+                ufr_fatal(link, 0, "Decoder is not loaded");
             }
             if ( link->dcr_api->get_u32 == NULL ) {
                 ufr_fatal(link, 0, "Function get_u32 is NULL");
@@ -49,10 +49,10 @@ int ufr_get_va(link_t* link, const char* format, va_list list) {
                 ufr_fatal(link, -1, "Function get_i32 is NULL");
             }
             if ( link->dcr_api->get_f32 == NULL ) {
-                ufr_fatal(link, -1, "Function put_f32 is NULL");
+                ufr_fatal(link, -1, "Function get_f32 is NULL");
             }
             if ( link->dcr_api->get_str == NULL ) {
-                ufr_fatal(link, -1, "Function put_str is NULL");
+                ufr_fatal(link, -1, "Function get_str is NULL");
             }
         }
     } else {

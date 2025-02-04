@@ -44,6 +44,11 @@ Gateway* g_gtw = NULL;
 //  Topic
 // ======================================================================================
 
+static
+int ufr_ros_loop_cb(void) {
+    return ( ros::ok() ) ? UFR_OK : 1;
+}
+
 int ufr_ros_topic_type(const link_t* link) {
     return 0;
 }
@@ -61,6 +66,7 @@ int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
         int argc = 1;
         char* argv[] = {"node"};
         ros::init(argc, argv, "node");
+        ufr_put_loop_callback( ufr_ros_loop_cb );
     }
 
     g_ros_count += 1;
@@ -81,7 +87,7 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
 
         if ( msg == "i16" ) {
             sys_ufr_load(link, "dcr", "ros_melodic:i16", type, args);
-            ufr_log(link, "loaded ros_melodic:i16");
+            ufr_log(link, "loaded decoder ros_melodic:i16");
         }
 
     } else if ( type == UFR_START_PUBLISHER ) {
@@ -164,28 +170,13 @@ int ufr_dcr_ros_humble_boot(link_t* link, const ufr_args_t* args) {
 }
 
 static
-int ufr_dcr_ros_humble_get_str(link_t* link, char* val, size_t size) {
+int ufr_dcr_ros_humble_get_str(link_t* link, char* val, int size) {
     return 0;
 }
 
 static 
-void ufr_dcr_ros_humble_recv_cb (link_t* link, char* msg_data, size_t msg_size) {
-    
-}
-
-static
-int ufr_dcr_ros_humble_copy_str (struct _link* link, char* ret_val, size_t size_max) {
-    Decoder* dcr = (Decoder*) link->dcr_obj;
-    strcpy(ret_val, "opa!");
-    if ( dcr ) {
-        if ( dcr->it == dcr->topics.end() ) {
-printf("fim\n");
-            return 1;
-        }
-    }
-
-
-    return UFR_OK;
+int ufr_dcr_ros_humble_recv_cb (link_t* link, char* msg_data, size_t msg_size) {
+    return 0;
 }
 
 
@@ -193,17 +184,28 @@ static
 ufr_dcr_api_t ufr_dcr_ros_driver = {
     .boot = NULL,
     .close = NULL,
+
     .recv_cb = ufr_dcr_ros_humble_recv_cb,
     .recv_async_cb = NULL,
+
     .next = NULL,
+
     .get_type = NULL,
-    .get_size = NULL,
+    .get_nbytes = NULL,
+    .get_nitems = NULL,
     .get_raw_ptr = NULL,
+
     .get_raw = NULL,
     .get_str = ufr_dcr_ros_humble_get_str,
+
     .get_u32 = NULL,
     .get_i32 = NULL,
     .get_f32 = NULL,
+
+    .get_u64 = NULL,
+    .get_i64 = NULL,
+    .get_f64 = NULL,
+
     .enter = NULL,
     .leave = NULL
 };
@@ -239,12 +241,12 @@ ufr_gtw_api_t ufr_ros_melodic_socket_drv = {
 extern "C" {
 
 int ufr_gtw_ros_melodic_new_topic(link_t* out, int type) {
-    out->gtw_api = &ufr_ros_melodic_topic_drv;
+    ufr_init_link(out, &ufr_ros_melodic_topic_drv);
     return UFR_OK;
 }
 
 int ufr_gtw_ros_melodic_new_socket(link_t* out, int type) {
-    out->gtw_api = &ufr_ros_melodic_socket_drv;
+    ufr_init_link(out, &ufr_ros_melodic_socket_drv);
     return UFR_OK;
 }
 

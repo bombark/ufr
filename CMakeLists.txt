@@ -89,7 +89,7 @@ endif(BUILD_TESTS)
 
 # add_subdirectory(./ufr-gtw-qt)
 
-add_subdirectory(./ufr-cdr-http)
+# add_subdirectory(./ufr-cdr-http)
 # add_subdirectory(./ufr-gtw-http)
 
 # add_subdirectory(./ufr-stk-ssh)
@@ -97,9 +97,9 @@ add_subdirectory(./ufr-cdr-http)
 # add_subdirectory(ufr-stk-irrlicht)
 
 # add_subdirectory(./ufr-stk-ros_humble)
-# add_subdirectory(./ufr-stk-ros_melodic)
+add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
-add_subdirectory(./ufr-stk-webots)
+# add_subdirectory(./ufr-stk-webots)
 
 # add_subdirectory(./ufr-dev-camera)
 

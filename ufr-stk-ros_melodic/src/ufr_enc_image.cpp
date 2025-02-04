@@ -75,34 +75,34 @@ void ufr_enc_ros_close(link_t* link) {
 }
 
 static
-int ufr_enc_ros_put_u32(link_t* link, uint32_t val) {
+int ufr_enc_ros_put_u32(link_t* link, const uint32_t* val, int nitems) {
     Encoder* enc_obj = (Encoder*) link->enc_obj;
     if ( enc_obj ) {
         switch(enc_obj->index) {
-            case 0: enc_obj->message.height = val; enc_obj->index += 1; break;
-            case 1: enc_obj->message.width = val; enc_obj->index += 1; break;
-            case 2: enc_obj->message.data[enc_obj->index2++] = val; break;
+            case 0: enc_obj->message.height = val[0]; enc_obj->index += 1; break;
+            case 1: enc_obj->message.width = val[0]; enc_obj->index += 1; break;
+            case 2: enc_obj->message.data[enc_obj->index2++] = val[0]; break;
         }
     }
     return 0;
 }
 
 static
-int ufr_enc_ros_put_i32(link_t* link, int32_t val) {
+int ufr_enc_ros_put_i32(link_t* link, const int32_t* val, int nitems) {
     Encoder* enc_obj = (Encoder*) link->enc_obj;
     if ( enc_obj ) {
         switch(enc_obj->index) {
-            case 0: enc_obj->message.height = val; enc_obj->index += 1; break;
-            case 1: enc_obj->message.width = val; enc_obj->index += 1; break;
-            case 2: enc_obj->message.step = val; enc_obj->index += 1; break;
-            case 3: enc_obj->message.data[enc_obj->index2++] = val; break;
+            case 0: enc_obj->message.height = val[0]; enc_obj->index += 1; break;
+            case 1: enc_obj->message.width = val[0]; enc_obj->index += 1; break;
+            case 2: enc_obj->message.step = val[0]; enc_obj->index += 1; break;
+            case 3: enc_obj->message.data[enc_obj->index2++] = val[0]; break;
         }
     }
     return 0;
 }
 
 static
-int ufr_enc_ros_put_f32(link_t* link, float val) {
+int ufr_enc_ros_put_f32(link_t* link, const float* val, int nitems) {
     Encoder* enc_obj = (Encoder*) link->enc_obj;
     if ( enc_obj ) {
 
@@ -169,13 +169,6 @@ ufr_enc_api_t ufr_enc_ros = {
     .boot = ufr_enc_ros_boot,
     .close = ufr_enc_ros_close,
     .clear = NULL,
-    .set_header = NULL,
-
-    .put_u8 = NULL,
-    .put_i8 = NULL,
-    .put_cmd = ufr_enc_ros_put_cmd,
-    .put_str = ufr_enc_ros_put_str,
-    .put_raw = NULL,
 
     .put_u32 = ufr_enc_ros_put_u32,
     .put_i32 = ufr_enc_ros_put_i32,
@@ -185,11 +178,12 @@ ufr_enc_api_t ufr_enc_ros = {
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-    .put_arr = ufr_enc_ros_put_arr,
-    .put_mat = NULL,
+    .put_cmd = ufr_enc_ros_put_cmd,
+    .put_str = ufr_enc_ros_put_str,
+    .put_raw = NULL,
 
-    .enter_array = ufr_ros_enter_array,
-    .leave_array = ufr_ros_leave_array,
+    .enter = ufr_ros_enter_array,
+    .leave = ufr_ros_leave_array,
 };
 
 // ============================================================================
