@@ -144,7 +144,7 @@ int ufr_enc_ros_put_cmd(link_t* link, char cmd) {
 printf("%f %f %f\n", enc->x, enc->y, enc->th);
         // send
         enc->broadcaster.sendTransform (
-            tf::StampedTransform(transform, ros::Time::now(), "odom", "base_link")
+            tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint")
         );
         enc->index = 0;
     }

@@ -43,8 +43,8 @@ const double initialTheta = 0.00000000001;
 // Robot physical constants
 const double TICKS_PER_REVOLUTION = 620; // For reference purposes.
 const double WHEEL_RADIUS = 0.033; // Wheel radius in meters
-const double WHEEL_BASE = 0.17; // Center of left tire to center of right tire
-const double TICKS_PER_METER = 3100; // Original was 2800
+const double WHEEL_BASE = 0.22; // Center of left tire to center of right tire
+const double TICKS_PER_METER = 2800; // Original was 2800
 
 
 typedef struct {
@@ -94,20 +94,16 @@ void calculate_position_from_encoder(const int16_t left, const int16_t right) {
     const double delta_distance = (left_distance + right_distance) / 2.0;
     const double delta_theta = (right_distance - left_distance) / WHEEL_BASE;
 
-    printf("%d\n", call);
-
-    printf("a %d %d - (%d %d) -> %d %d\n", left, right, last_left, last_right, left_ticks, right_ticks);
-
-    printf("b %f %f %f\n", left_distance, right_distance, delta_theta);
-
+    // printf("%d\n", call);
+    // printf("a %d %d - (%d %d) -> %d %d\n", left, right, last_left, last_right, left_ticks, right_ticks);
+    // printf("b %f %f %f\n", left_distance, right_distance, delta_theta);
 
     g_robot.x += cos(g_robot.th) * delta_distance;
     g_robot.y += sin(g_robot.th) * delta_distance;
     g_robot.th += delta_theta;
 
-    printf("c %f %f %f\n", g_robot.x, g_robot.y, g_robot.th*180.0/M_PI);
-
-    printf("\n");
+    // printf("c %f %f %f\n", g_robot.x, g_robot.y, g_robot.th*180.0/M_PI);
+    // printf("\n");
 
     // Save the last count from encoder
     last_left = left;
@@ -128,7 +124,7 @@ int main() {
     link_t right_sub = ufr_subscriber("@new ros_melodic:topic @msg i16 @topic right_encoder");
 
 
-    link_t timer = ufr_subscriber("@new posix:timer @time 1s");
+    // link_t timer = ufr_subscriber("@new posix:timer @time 1s");
     link_t odom_pub = ufr_publisher("@new ros_melodic:topic @msg pose");
 
     /*
@@ -143,17 +139,18 @@ int main() {
     while( ufr_loop_ok() ) {
         int left, right;
 
-        /* if ( ufr_recv_2s(&left_sub, &right_sub, 50) == UFR_OK ) {
+        if ( ufr_recv_2s(&left_sub, &right_sub, 50) == UFR_OK ) {
             ufr_get(&left_sub, "i", &left);
             ufr_get(&right_sub, "i", &right);
             calculate_position_from_encoder(left, right);
-        } */
+            ufr_put(&odom_pub, "fff\n", g_robot.x, g_robot.y, g_robot.th);
+        } 
 
-        if ( ufr_recv(&timer) == UFR_OK ) {
+        /*if ( ufr_recv(&timer) == UFR_OK ) {
             printf("enviando\n");
             ufr_put(&odom_pub, "fff\n", g_robot.x, g_robot.y, g_robot.th);
             g_robot.x += 0.125;
-        }
+        }*/
     }
 
     // end
