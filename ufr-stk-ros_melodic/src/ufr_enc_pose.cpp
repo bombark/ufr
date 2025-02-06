@@ -24,23 +24,26 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
 // ============================================================================
 //  Header
 // ============================================================================
 
 #include <ufr.h>
+#include <tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
 
-#include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "ufr_gtw_ros_humble.hpp"
+#include "ufr_gtw_ros_melodic.hpp"
 
-struct ll_enc_obj {
-    rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr publisher;
-    geometry_msgs::msg::Pose message;
-    int index;
 
-    ll_enc_obj() : index{0} {}
+struct Encoder {
+    tf::TransformBroadcaster broadcaster;
+    tf::Quaternion q;
+
+    float x,y,th;
+    uint8_t index;
+
+    Encoder() : x{0}, y{0}, th{0}, index{0} { }
 };
 
 // ============================================================================
@@ -50,11 +53,13 @@ struct ll_enc_obj {
 static
 int ufr_enc_ros_humble_boot(link_t* link, const ufr_args_t* args) {
     std::string topic_name = ufr_args_gets(args, "@topic", "topico");
-    ll_enc_obj* enc_obj = new ll_enc_obj();
+    Encoder* enc = new Encoder();
 
-    ll_gateway_t* gtw_obj = (ll_gateway_t*) link->gtw_obj;
-    enc_obj->publisher = gtw_obj->m_node->create_publisher<geometry_msgs::msg::Pose>(topic_name, 10);
-    link->enc_obj = enc_obj;
+    Gateway* gtw = (Gateway*) link->gtw_obj;
+    // enc_obj->publisher = gtw_obj->m_node->create_publisher<geometry_msgs::msg::Pose>(topic_name, 10);
+
+
+    link->enc_obj = enc;
     ufr_info(link, "loaded encoder for geometry/twist");
 
     return UFR_OK;
@@ -66,100 +71,84 @@ void ufr_enc_ros_humble_close(link_t* link) {
 }
 
 static
-int ufr_enc_ros_put_u32(link_t* link, uint32_t val) {
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	if ( enc_obj ) {
-		switch(enc_obj->index) {
-            case 0: enc_obj->message.position.x = val; break;
-            case 1: enc_obj->message.position.y = val; break;
-            case 2: enc_obj->message.position.z = val; break;
-            case 3: enc_obj->message.orientation.x = val; break;
-            case 4: enc_obj->message.orientation.y = val; break;
-            case 5: enc_obj->message.orientation.z = val; break;
-            case 6: enc_obj->message.orientation.w = val; break;
+int ufr_enc_ros_put_u32(link_t* link, const uint32_t val[], int items) {
+    Encoder* enc_obj = (Encoder*) link->enc_obj;
+    if ( enc_obj ) {
+        switch(enc_obj->index) {
+            case 0: enc_obj->x = val[0]; break;
+            case 1: enc_obj->y = val[0]; break;
+            case 2: enc_obj->th = val[0]; break;
             default: break;
         }
         enc_obj->index += 1;
-	}
-	return UFR_OK;
-}
-
-static
-int ufr_enc_ros_put_i32(link_t* link, int32_t val) {
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	if ( enc_obj ) {
-		switch(enc_obj->index) {
-            case 0: enc_obj->message.position.x = val; break;
-            case 1: enc_obj->message.position.y = val; break;
-            case 2: enc_obj->message.position.z = val; break;
-            case 3: enc_obj->message.orientation.x = val; break;
-            case 4: enc_obj->message.orientation.y = val; break;
-            case 5: enc_obj->message.orientation.z = val; break;
-            case 6: enc_obj->message.orientation.w = val; break;
-            default: break;
-        }
-        enc_obj->index += 1;
-	}
-	return UFR_OK;
-}
-
-static
-int ufr_enc_ros_put_f32(link_t* link, float val) {
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	if ( enc_obj ) {
-        return 1;
     }
+    return UFR_OK;
+}
 
+static
+int ufr_enc_ros_put_i32(link_t* link, const int32_t val[], int nitems) {
+    Encoder* enc_obj = (Encoder*) link->enc_obj;
+    if ( enc_obj ) {
+        switch(enc_obj->index) {
+            case 0: enc_obj->x = val[0]; break;
+            case 1: enc_obj->y = val[0]; break;
+            case 2: enc_obj->th = val[0]; break;
+            default: break;
+        }
+        enc_obj->index += 1;
+    }
+    return UFR_OK;
+}
+
+static
+int ufr_enc_ros_put_f32(link_t* link, const float val[], int nitems) {
+    Encoder* enc_obj = (Encoder*) link->enc_obj;
     switch(enc_obj->index) {
-        case 0: enc_obj->message.position.x = val; break;
-        case 1: enc_obj->message.position.y = val; break;
-        case 2: enc_obj->message.position.z = val; break;
-        case 3: enc_obj->message.orientation.x = val; break;
-        case 4: enc_obj->message.orientation.y = val; break;
-        case 5: enc_obj->message.orientation.z = val; break;
-        case 6: enc_obj->message.orientation.w = val; break;
+        case 0: enc_obj->x = val[0]; break;
+        case 1: enc_obj->y = val[0]; break;
+        case 2: enc_obj->th = val[0]; break;
         default: break;
     }
     enc_obj->index += 1;
-	return UFR_OK;
+    return UFR_OK;
 }
 
 static
 int ufr_enc_ros_put_str(link_t* link, const char* val_str) {
-    double val = atof(val_str);
+    const double val = atof(val_str);
 
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	switch ( enc_obj->index ) {
-        case 0: enc_obj->message.position.x = val; break;
-        case 1: enc_obj->message.position.y = val; break;
-        case 2: enc_obj->message.position.z = val; break;
-        case 3: enc_obj->message.orientation.x = val; break;
-        case 4: enc_obj->message.orientation.y = val; break;
-        case 5: enc_obj->message.orientation.z = val; break;
-        case 6: enc_obj->message.orientation.w = val; break;
-	}
-	return UFR_OK;
-}
-
-static
-int ufr_enc_ros_put_arr(link_t* link, const void* arr_ptr, char type, size_t arr_size) {
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	if ( type == 'i' ) {
-		
-	} else if ( type == 'f' ) {
-		
-	}
-    return 0;
+    Encoder* enc_obj = (Encoder*) link->enc_obj;
+    switch ( enc_obj->index ) {
+        case 0: enc_obj->x = val; break;
+        case 1: enc_obj->y = val; break;
+        case 2: enc_obj->th = val; break;
+    }
+    return UFR_OK;
 }
 
 static
 int ufr_enc_ros_put_cmd(link_t* link, char cmd) {
-	ll_enc_obj* enc_obj = (ll_enc_obj*) link->enc_obj;
-	if ( cmd == '\n' ) {
-		enc_obj->publisher->publish(enc_obj->message);
-        enc_obj->index = 0;
-	}
-	return 0;
+    Encoder* enc = (Encoder*) link->enc_obj;
+    if ( cmd == '\n' ) {
+        // enc_obj->publisher->publish(enc_obj->message);
+
+        //
+        tf::Transform transform;
+        transform.setOrigin(tf::Vector3(enc->x, enc->y, 0.0));
+
+        // 
+        tf::Quaternion q;
+        q.setRPY(0, 0, enc->th);
+        transform.setRotation(q);
+
+printf("%f %f %f\n", enc->x, enc->y, enc->th);
+        // send
+        enc->broadcaster.sendTransform (
+            tf::StampedTransform(transform, ros::Time::now(), "odom", "base_link")
+        );
+        enc->index = 0;
+    }
+    return 0;
 }
 
 static
@@ -167,13 +156,6 @@ ufr_enc_api_t ufr_enc_ros_driver = {
     .boot = ufr_enc_ros_humble_boot,
     .close = ufr_enc_ros_humble_close,
     .clear = NULL,
-    .set_header = NULL,
-
-    .put_u8 = NULL,
-    .put_i8 = NULL,
-    .put_cmd = ufr_enc_ros_put_cmd,
-    .put_str = ufr_enc_ros_put_str,
-    .put_raw = NULL,
 
     .put_u32 = ufr_enc_ros_put_u32,
     .put_i32 = ufr_enc_ros_put_i32,
@@ -183,11 +165,12 @@ ufr_enc_api_t ufr_enc_ros_driver = {
     .put_i64 = NULL,
     .put_f64 = NULL,
 
-    .put_arr = NULL,
-    .put_mat = NULL,
+    .put_cmd = ufr_enc_ros_put_cmd,
+    .put_str = ufr_enc_ros_put_str,
+    .put_raw = NULL,
 
-    .enter_array = NULL,
-    .leave_array = NULL,
+    .enter = NULL,
+    .leave = NULL,
 };
 
 // ============================================================================
@@ -195,8 +178,8 @@ ufr_enc_api_t ufr_enc_ros_driver = {
 // ============================================================================
 
 extern "C"
-int ufr_enc_ros_humble_new_pose(link_t* link, int type) {
+int ufr_enc_ros_melodic_new_pose(link_t* link, int type) {
     link->enc_api = &ufr_enc_ros_driver;
-	return UFR_OK;
+    return UFR_OK;
 }
 

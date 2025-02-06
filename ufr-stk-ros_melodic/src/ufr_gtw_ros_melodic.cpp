@@ -99,6 +99,9 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
         } else if ( msg == "image" ) {
             sys_ufr_load(link, "enc", "ros_melodic:image", type, args);
             ufr_log(link, "loaded ros_melodic:image");
+        } else if ( msg == "pose" ) {
+            sys_ufr_load(link, "enc", "ros_melodic:pose", type, args);
+            ufr_log(link, "loaded ros_melodic:pose");
         }
     }
     return UFR_OK;

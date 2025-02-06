@@ -35,29 +35,36 @@
 
 #include "ufr_gtw_ros_melodic.hpp"
 
+#define MAX 16
+
 struct Decoder {
     ros::Subscriber m_sub;
-    std_msgs::Int16 m_msg;
-    uint8_t count_read;
-    uint8_t count_recv;
+    std_msgs::Int16* m_msg_cur;
+    std_msgs::Int16 m_msg[MAX];
 
-    uint8_t head;
-    uint8_t tail;
-    uint8_t size;
+    uint8_t m_head;
+    uint8_t m_tail;
+    uint8_t m_size;
 
     Decoder(Gateway* gtw, const std::string topic_name, int buffer_size) {
-        head = 0;
-        tail = 0;
-        size = 0;
+        m_head = 0;
+        m_tail = 0;
+        m_size = 0;
+        m_msg_cur = &m_msg[0];
 
         m_sub = gtw->node.subscribe (topic_name, buffer_size,
             &Decoder::callback, this);
     }
 
     void callback(const std_msgs::Int16::ConstPtr& msg) {
-        m_msg.data = msg->data;
-        head += 1;
-        size += 1;
+        if ( m_size >= MAX ) {
+            ROS_INFO("Stack full");
+            return;
+        }
+
+        m_msg[m_head].data = msg->data;
+        m_head = (m_head + 1) % MAX;
+        m_size += 1;
         // ROS_INFO("Recebido: %s", msg->data.c_str());
     }
 };
@@ -95,7 +102,7 @@ static
 int ufr_dcr_ros_get_u32(link_t* link, uint32_t* val, int maxitens) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     if ( dcr ) {
-        *val = (uint32_t) dcr->m_msg.data;
+        *val = (uint32_t) dcr->m_msg_cur->data;
     }
     return UFR_OK;
 }
@@ -104,7 +111,7 @@ static
 int ufr_dcr_ros_get_i32(link_t* link, int32_t* val, int maxitens) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     if ( dcr ) {
-        *val = (int32_t) dcr->m_msg.data;
+        *val = (int32_t) dcr->m_msg_cur->data;
     }
     return UFR_OK;
 }
@@ -113,7 +120,7 @@ static
 int ufr_dcr_ros_get_f32(link_t* link, float* val, int maxitens) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     if ( dcr ) {
-        *val = (float) dcr->m_msg.data;
+        *val = (float) dcr->m_msg_cur->data;
     }
     return UFR_OK;
 }
@@ -122,7 +129,7 @@ static
 int ufr_dcr_ros_get_str(link_t* link, char* val, int size) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     if ( dcr ) {
-        snprintf(val, size, "%d", dcr->m_msg.data);
+        snprintf(val, size, "%d", dcr->m_msg_cur->data);
     }
     return UFR_OK;
 }
@@ -131,10 +138,13 @@ static
 int ufr_dcr_ros_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     Gateway* gtw = (Gateway*) link->gtw_obj;
-    while ( dcr->size == 0 ) {
+    while ( dcr->m_size == 0 ) {
         ros::spinOnce();
-    } 
-    dcr->size -= 1;
+    }
+
+    dcr->m_msg_cur = &dcr->m_msg[ dcr->m_tail ];
+    dcr->m_tail = (dcr->m_tail + 1) % MAX;
+    dcr->m_size -= 1;
     return UFR_OK;
 }
 
@@ -143,19 +153,15 @@ int ufr_dcr_ros_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
     Gateway* gtw = (Gateway*) link->gtw_obj;
 
-    if ( dcr->size == 0 ) {
+    if ( dcr->m_size == 0 ) {
         ros::spinOnce();
         return -1;
     }
 
-    if ( dcr->tail <  ) {
-        dcr->count_read = count_read_1;
-        return UFR_OK;
-    } else {
-        printf("ERROR ufr_dcr_ros_recv_async_cb %d %d\n", count_read_1, dcr->count_recv);
-    }
-
-    return -1;
+    dcr->m_msg_cur = &dcr->m_msg[ dcr->m_tail ];
+    dcr->m_tail = (dcr->m_tail + 1) % MAX;
+    dcr->m_size -= 1;
+    return UFR_OK;
 }
 
 static

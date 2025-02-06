@@ -3,7 +3,7 @@ target_link_libraries(publisher ufr)
 install(TARGETS publisher DESTINATION examples)
 
 add_executable(subscriber 0-basic/subscriber.c)
-target_link_libraries(subscriber ufr)
+target_link_libraries(subscriber ufr m)
 install(TARGETS subscriber DESTINATION examples)
 
 # add_executable(server 0-basic/server.c)
