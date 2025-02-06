@@ -125,7 +125,10 @@ int main() {
 
 
     // link_t timer = ufr_subscriber("@new posix:timer @time 1s");
-    link_t odom_pub = ufr_publisher("@new ros_melodic:topic @msg pose");
+    link_t odom_pub = ufr_publisher("@new ros_melodic:topic @msg pose @frame odom @child base_footprint");
+
+    link_t lidar_tf = ufr_publisher("@new ros_melodic:topic @msg pose @frame base_footprint @child laser_frame");
+
 
     /*
      - Problema do ufr_loop_ok nao estar saindo
@@ -143,7 +146,10 @@ int main() {
             ufr_get(&left_sub, "i", &left);
             ufr_get(&right_sub, "i", &right);
             calculate_position_from_encoder(left, right);
+
+            ufr_put(&lidar_tf, "fff\n", 0.0, 0.0, 0.0);
             ufr_put(&odom_pub, "fff\n", g_robot.x, g_robot.y, g_robot.th);
+
         } 
 
         /*if ( ufr_recv(&timer) == UFR_OK ) {

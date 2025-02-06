@@ -39,6 +39,8 @@
 struct Encoder {
     tf::TransformBroadcaster broadcaster;
     tf::Quaternion q;
+    std::string frame_id;
+    std::string child_frame_id;
 
     float x,y,th;
     uint8_t index;
@@ -53,7 +55,12 @@ struct Encoder {
 static
 int ufr_enc_ros_humble_boot(link_t* link, const ufr_args_t* args) {
     std::string topic_name = ufr_args_gets(args, "@topic", "topico");
+    std::string frame_id = ufr_args_gets(args, "@frame", "frame");
+    std::string child_frame_id = ufr_args_gets(args, "@child", "child");
+
     Encoder* enc = new Encoder();
+    enc->frame_id = frame_id;
+    enc->child_frame_id = child_frame_id;
 
     Gateway* gtw = (Gateway*) link->gtw_obj;
     // enc_obj->publisher = gtw_obj->m_node->create_publisher<geometry_msgs::msg::Pose>(topic_name, 10);
@@ -141,10 +148,9 @@ int ufr_enc_ros_put_cmd(link_t* link, char cmd) {
         q.setRPY(0, 0, enc->th);
         transform.setRotation(q);
 
-printf("%f %f %f\n", enc->x, enc->y, enc->th);
         // send
         enc->broadcaster.sendTransform (
-            tf::StampedTransform(transform, ros::Time::now(), "odom", "base_footprint")
+            tf::StampedTransform(transform, ros::Time::now(), enc->frame_id, enc->child_frame_id)
         );
         enc->index = 0;
     }
