@@ -97,7 +97,7 @@ endif(BUILD_TESTS)
 # add_subdirectory(ufr-stk-irrlicht)
 
 # add_subdirectory(./ufr-stk-ros_humble)
-add_subdirectory(./ufr-stk-ros_melodic)
+# add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 # add_subdirectory(./ufr-stk-webots)
 
