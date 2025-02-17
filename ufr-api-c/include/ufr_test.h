@@ -65,5 +65,7 @@ int ufr_enc_sys_new_std(link_t* link, int type);
 
 #define UFR_TEST_NULL(current) if ( current == NULL ) { ufr_test_inc_count(); } else { printf("Error:%s:%d: the value is %p, but expected NULL\n", __FILE__, __LINE__, current); exit(1); }
 
+#define UFR_TEST_NOT_NULL(current) if ( current != NULL ) { ufr_test_inc_count(); } else { printf("Error:%s:%d: the value is %p, but expected not NULL\n", __FILE__, __LINE__, current); exit(1); }
+
 #define UFR_TEST_OK(current) if ( current == UFR_OK ) { ufr_test_inc_count(); } else { printf("Error:%s:%d: the value is %d, but expected %d\n", __FILE__, __LINE__, current, UFR_OK); exit(1); }
  

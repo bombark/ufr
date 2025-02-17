@@ -77,7 +77,7 @@ endif(BUILD_EXAMPLES)
 # Build tests
 if(BUILD_TESTS)
     # add_subdirectory(./tests/)
-    # enable_testing()
+    enable_testing()
     # add_test(NAME test_gtw_zmq COMMAND ./tests/test_topic "@new zmq:topic @port 2000")
 endif(BUILD_TESTS)
 
