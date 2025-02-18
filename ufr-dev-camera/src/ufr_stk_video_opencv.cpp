@@ -45,47 +45,32 @@ uint8_t* ufr_dcr_opencv_get_raw_ptr(link_t* link) {
 }
 
 static
-int ufr_dcr_opencv_get_u32(link_t* link, uint32_t* val, size_t maxlen) {
+int ufr_dcr_opencv_get_u32(link_t* link, uint32_t* val, int maxlen) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_opencv_get_i32(link_t* link, int32_t* val, size_t maxlen) {
+int ufr_dcr_opencv_get_i32(link_t* link, int32_t* val, int maxlen) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_opencv_get_f32(link_t* link, float* ret_val, size_t maxlen) {
+int ufr_dcr_opencv_get_f32(link_t* link, float* ret_val, int maxlen) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_opencv_get_str(link_t* link, char* ret_val, size_t maxlen) {
+int ufr_dcr_opencv_get_str(link_t* link, char* ret_val, int maxlen) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_opencv_get_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
+int ufr_dcr_opencv_enter(link_t* link) {
     return UFR_OK;
 }
 
 static
-int ufr_dcr_opencv_copy_str(link_t* link, char* ret_val, size_t size_max) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_opencv_copy_arr(link_t* link, char arr_type, size_t arr_size_max, size_t* arr_size, void* arr_ptr) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_opencv_enter_array(link_t* link) {
-    return UFR_OK;
-}
-
-static
-int ufr_dcr_opencv_leave_array(link_t* link) {
+int ufr_dcr_opencv_leave(link_t* link) {
     return UFR_OK;
 }
 
@@ -98,17 +83,23 @@ ufr_dcr_api_t ufr_dcr_opencv_api = {
     .next = NULL,
 
     .get_type = NULL,
-    .get_size = ufr_dcr_opencv_get_size,
-    .get_raw_ptr = ufr_dcr_opencv_get_raw_ptr,
+    .get_nbytes = ufr_dcr_opencv_get_size,
+    .get_nitems = NULL,
+    .get_raw_ptr = NULL,
 
+    .get_raw = NULL,
     .get_str = ufr_dcr_opencv_get_str,
 
     .get_u32 = ufr_dcr_opencv_get_u32,
     .get_i32 = ufr_dcr_opencv_get_i32,
     .get_f32 = ufr_dcr_opencv_get_f32,
 
-    .enter = ufr_dcr_opencv_enter_array,
-    .leave = ufr_dcr_opencv_leave_array
+    .get_u64 = NULL,
+    .get_i64 = NULL,
+    .get_f64 = NULL,
+
+    .enter = ufr_dcr_opencv_enter,
+    .leave = ufr_dcr_opencv_leave
 };
 
 // ============================================================================

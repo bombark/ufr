@@ -20,8 +20,7 @@ add_library(ufr SHARED
     ./src/ufr_buffer.c
     )
 
-# target_compile_options(lt_api PUBLIC -O1 -Wall -Wfloat-conversion)
-target_compile_options(ufr PUBLIC -O1)
+target_compile_options(ufr PUBLIC -O3 -Wall -Wfloat-conversion)
 target_link_libraries(ufr dl)
 
 install(TARGETS ufr DESTINATION lib)
@@ -31,9 +30,10 @@ install(FILES ./include/ufr.h DESTINATION include)
 # if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     enable_testing()
     add_subdirectory(./tests)
-
 # endif()
 
 add_custom_target(coverage
     COMMAND gcovr ${PROJECT_BINARY_DIR}
     )
+
+add_subdirectory(./examples)
