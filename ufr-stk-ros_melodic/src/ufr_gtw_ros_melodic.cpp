@@ -64,8 +64,8 @@ size_t ufr_ros_topic_size(const link_t* link, int type) {
 int ufr_ros_topic_boot(link_t* link, const ufr_args_t* args) {
     if ( g_ros_count == 0 ) {
         int argc = 1;
-        char* argv[] = {"node"};
-        ros::init(argc, argv, "node");
+        char* argv[] = {"node_2"};
+        ros::init(argc, argv, "node_2");
         ufr_put_loop_callback( ufr_ros_loop_cb );
     }
 
@@ -102,6 +102,9 @@ int ufr_ros_topic_start(link_t* link, int type, const ufr_args_t* args) {
         } else if ( msg == "pose" ) {
             sys_ufr_load(link, "enc", "ros_melodic:pose", type, args);
             ufr_log(link, "loaded ros_melodic:pose");
+        } else if ( msg == "laserscan" ) {
+            sys_ufr_load(link, "enc", "ros_melodic:laserscan", type, args);
+            ufr_log(link, "loaded ros_melodic:laserscan");
         }
     }
     return UFR_OK;

@@ -15,6 +15,7 @@ install(TARGETS ufr_gtw_ros_melodic DESTINATION lib)
 add_library(ufr_enc_ros_melodic SHARED 
     src/ufr_enc_image.cpp
     src/ufr_enc_pose.cpp
+    src/ufr_enc_laserscan.cpp
     )
 target_link_libraries(ufr_enc_ros_melodic ufr ${catkin_LIBRARIES})
 install(TARGETS ufr_enc_ros_melodic DESTINATION lib)

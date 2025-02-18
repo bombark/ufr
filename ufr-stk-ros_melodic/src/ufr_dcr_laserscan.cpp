@@ -108,9 +108,9 @@ int ufr_dcr_ros_recv_cb(link_t* link, char* msg_data, size_t msg_size) {
         ros::spinOnce();
     }
 
-    /*dcr->m_msg_cur = &dcr->m_msg[ dcr->m_tail ];
+    dcr->m_message = &dcr->m_stack[ dcr->m_tail ];
     dcr->m_tail = (dcr->m_tail + 1) % MAX;
-    dcr->m_size -= 1;*/
+    dcr->m_size -= 1;
     return UFR_OK;
 }
 
@@ -124,29 +124,15 @@ int ufr_dcr_ros_recv_async_cb(link_t* link, char* msg_data, size_t msg_size) {
         return -1;
     }
 
-    /*dcr->m_msg_cur = &dcr->m_msg[ dcr->m_tail ];
+    dcr->m_message = &dcr->m_stack[ dcr->m_tail ];
     dcr->m_tail = (dcr->m_tail + 1) % MAX;
-    dcr->m_size -= 1;*/
+    dcr->m_size -= 1;
     return UFR_OK;
 }
 
 static 
 int ufr_dcr_ros_humble_next(link_t* link) {
     Decoder* dcr = (Decoder*) link->dcr_obj;
-
-    switch (dcr->index) {
-        case 0: dcr->val_f32 = &dcr->m_message->angle_min; break;
-        case 1: dcr->val_f32 = &dcr->m_message->angle_max; break;
-        case 2: dcr->val_f32 = &dcr->m_message->angle_increment; break;
-        case 3: dcr->val_f32 = &dcr->m_message->time_increment; break;
-        case 4: dcr->val_f32 = &dcr->m_message->scan_time; break;
-        case 5: dcr->val_f32 = &dcr->m_message->range_min; break;
-        case 6: dcr->val_f32 = &dcr->m_message->range_max; break;
-        case 7: dcr->val_f32 = &dcr->m_message->ranges[0]; break;
-        case 8: dcr->val_f32 = &dcr->m_message->intensities[0]; break;
-        default: break;
-    }
-
     dcr->index += 1;
 }
 
@@ -305,4 +291,17 @@ int ufr_dcr_ros_humble_new_laserscan(link_t* link, int type) {
     link->dcr_api = &ufr_dcr_ros_driver;
     return UFR_OK;
 }
+
+/* 
+
+  ffffaiia
+      f  i
+      .  .
+      f  i
+
+
+*/
+
+
+
 
