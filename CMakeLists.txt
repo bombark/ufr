@@ -77,7 +77,7 @@ endif(BUILD_EXAMPLES)
 # Build tests
 if(BUILD_TESTS)
     # add_subdirectory(./tests/)
-    # enable_testing()
+    enable_testing()
     # add_test(NAME test_gtw_zmq COMMAND ./tests/test_topic "@new zmq:topic @port 2000")
 endif(BUILD_TESTS)
 
@@ -97,7 +97,7 @@ endif(BUILD_TESTS)
 # add_subdirectory(ufr-stk-irrlicht)
 
 # add_subdirectory(./ufr-stk-ros_humble)
-add_subdirectory(./ufr-stk-ros_melodic)
+# add_subdirectory(./ufr-stk-ros_melodic)
 # add_subdirectory(./ufr-stk-ros_noetic)
 # add_subdirectory(./ufr-stk-webots)
 

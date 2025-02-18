@@ -705,14 +705,14 @@ ufr_buffer_t* ufr_buffer_new();
 void ufr_buffer_init(ufr_buffer_t* buffer);
 void ufr_buffer_clear(ufr_buffer_t* buffer);
 void ufr_buffer_free(ufr_buffer_t* buffer);
-void ufr_buffer_put(ufr_buffer_t* buffer, char* text, size_t size);
+void ufr_buffer_put(ufr_buffer_t* buffer, const char* text, size_t size);
 void ufr_buffer_put_chr(ufr_buffer_t* buffer, char val);
 void ufr_buffer_put_u8_as_str(ufr_buffer_t* buffer, uint8_t val);
 void ufr_buffer_put_i8_as_str(ufr_buffer_t* buffer, int8_t val);
 void ufr_buffer_put_u32_as_str(ufr_buffer_t* buffer, uint32_t val);
 void ufr_buffer_put_i32_as_str(ufr_buffer_t* buffer, int32_t val);
 void ufr_buffer_put_f32_as_str(ufr_buffer_t* buffer, float val);
-void ufr_buffer_put_str(ufr_buffer_t* buffer, char* text);
+void ufr_buffer_put_str(ufr_buffer_t* buffer, const char* text);
 void ufr_buffer_check_size(ufr_buffer_t* buffer, size_t size);
 
 
